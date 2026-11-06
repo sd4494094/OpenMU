@@ -59,7 +59,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="KanturuMayaRises" xml:space="preserve">
-    <value>玛雅从精炼之塔深处苏醒！</value>
+    <value>玛雅从提炼之塔深处苏醒！</value>
   </data>
   <data name="KanturuPhase1Start" xml:space="preserve">
     <value>第一阶段：击败怪物，解除玛雅的封印！</value>
@@ -104,22 +104,22 @@
     <value>梦魇已是强弩之末！击败它！</value>
   </data>
   <data name="KanturuVictory" xml:space="preserve">
-    <value>梦魇已被击败！坎特鲁精炼之塔归你们了！</value>
+    <value>梦魇已被击败！坎特鲁提炼之塔归你们了！</value>
   </data>
   <data name="KanturuRequiredItemDestroyed" xml:space="preserve">
-    <value>你的{0}已损坏！你将离开坎特鲁精炼之塔。</value>
+    <value>你的{0}已损坏！你将离开坎特鲁提炼之塔。</value>
   </data>
   <data name="KanturuBarrierOpening" xml:space="preserve">
     <value>屏障已开启，进入高塔吧！</value>
   </data>
   <data name="KanturuTowerConquered" xml:space="preserve">
-    <value>坎特鲁精炼之塔已被攻克，现在开放。</value>
+    <value>坎特鲁提炼之塔已被攻克，现在开放。</value>
   </data>
   <data name="KanturuTowerClosingWarning" xml:space="preserve">
-    <value>坎特鲁精炼之塔将在5分钟后关闭！</value>
+    <value>坎特鲁提炼之塔将在5分钟后关闭！</value>
   </data>
   <data name="KanturuTowerClosed" xml:space="preserve">
-    <value>坎特鲁精炼之塔已关闭。</value>
+    <value>坎特鲁提炼之塔已关闭。</value>
   </data>
   <data name="KanturuDefeat" xml:space="preserve">
     <value>坎特鲁活动已结束，下次再接再厉！</value>
@@ -152,16 +152,16 @@
     <value>{0}摧毁了水晶雕像！</value>
   </data>
   <data name="DoppelgangerIceWalkerAppeared" xml:space="preserve">
-    <value>冰行者出现了！请在1分钟内击败它，否则后续怪物会变强。</value>
+    <value>冰之魔犬出现了！请在1分钟内击败它，否则后续怪物会变强。</value>
   </data>
   <data name="DoppelgangerIceWalkerEscaped" xml:space="preserve">
-    <value>冰行者逃走了！后续怪物变强了。</value>
+    <value>冰之魔犬逃走了！后续怪物变强了。</value>
   </data>
   <data name="DoppelgangerIceWalkerKilled" xml:space="preserve">
-    <value>冰行者已被击败！</value>
+    <value>冰之魔犬已被击败！</value>
   </data>
   <data name="RaklionSelupanAppeared" xml:space="preserve">
-    <value>塞尔潘出现了！孵化场入口将在{0}分钟后关闭。</value>
+    <value>冰霜巨蛛出现了！孵化场入口将在{0}分钟后关闭。</value>
   </data>
   <data name="RaklionHatcheryClosed" xml:space="preserve">
     <value>孵化场入口已关闭。</value>
@@ -176,10 +176,10 @@
     <value>孵化场入口已开放。</value>
   </data>
   <data name="RaklionSelupanDefeated" xml:space="preserve">
-    <value>{0}击败了塞尔潘！孵化场入口将在{1}后开放。</value>
+    <value>{0}击败了冰霜巨蛛！孵化场入口将在{1}后开放。</value>
   </data>
   <data name="RaklionBattleFailed" xml:space="preserve">
-    <value>挑战塞尔潘失败。孵化场入口将在{0}后开放。</value>
+    <value>挑战冰霜巨蛛失败。孵化场入口将在{0}后开放。</value>
   </data>
   <data name="RaklionDurationHoursMinutes" xml:space="preserve">
     <value>{0}小时{1}分钟</value>
@@ -188,16 +188,16 @@
     <value>{0}分钟</value>
   </data>
   <data name="CrywolfNotify1" xml:space="preserve">
-    <value>巴卡斯与昆顿军队联手，正准备进攻狼魂要塞。</value>
+    <value>巴尔盖斯与昆顿军队联手，正准备进攻狼魂要塞。</value>
   </data>
   <data name="CrywolfNotify2" xml:space="preserve">
-    <value>巴卡斯军队准备进攻狼魂要塞。</value>
+    <value>巴尔盖斯军队准备进攻狼魂要塞。</value>
   </data>
   <data name="CrywolfReady" xml:space="preserve">
-    <value>巴卡斯军队正向狼魂要塞进军。</value>
+    <value>巴尔盖斯军队正向狼魂要塞进军。</value>
   </data>
   <data name="CrywolfStart" xml:space="preserve">
-    <value>巴卡斯军队开始进攻狼魂要塞！</value>
+    <value>巴尔盖斯军队开始进攻狼魂要塞！</value>
   </data>
   <data name="CrywolfContractsStartInMinutes" xml:space="preserve">
     <value>狼魂祭坛契约将在{0}分钟后开始。</value>
@@ -206,31 +206,31 @@
     <value>狼魂祭坛契约将在{0}秒后开始。</value>
   </data>
   <data name="CrywolfAttackStartsInMinutes" xml:space="preserve">
-    <value>巴卡斯军队将在{0}分钟后进攻。</value>
+    <value>巴尔盖斯军队将在{0}分钟后进攻。</value>
   </data>
   <data name="CrywolfAttackStartsInSeconds" xml:space="preserve">
-    <value>巴卡斯军队将在{0}秒后进攻。</value>
+    <value>巴尔盖斯军队将在{0}秒后进攻。</value>
   </data>
   <data name="CrywolfNoAltarContracted" xml:space="preserve">
     <value>没有圣射手的守护，圣狼雕像将被夺走。</value>
   </data>
   <data name="CrywolfStatueAttack" xml:space="preserve">
-    <value>巴卡斯军队开始攻击圣狼雕像！</value>
+    <value>巴尔盖斯军队开始攻击圣狼雕像！</value>
   </data>
   <data name="CrywolfBalgassAppeared" xml:space="preserve">
-    <value>巴卡斯来了！保护圣狼雕像！</value>
+    <value>巴尔盖斯来了！保护圣狼雕像！</value>
   </data>
   <data name="CrywolfBalgassDefeated" xml:space="preserve">
-    <value>在勇士们的帮助下，巴卡斯被击败了！</value>
+    <value>在勇士们的帮助下，巴尔盖斯被击败了！</value>
   </data>
   <data name="CrywolfBalgassAlive" xml:space="preserve">
-    <value>战斗结束时，巴卡斯仍然存活。</value>
+    <value>战斗结束时，巴尔盖斯仍然存活。</value>
   </data>
   <data name="CrywolfDefenseSucceeded" xml:space="preserve">
     <value>防守成功！圣狼雕像得到了保护。</value>
   </data>
   <data name="CrywolfDefenseFailed" xml:space="preserve">
-    <value>防守失败！圣狼雕像被巴卡斯夺走。</value>
+    <value>防守失败！圣狼雕像被巴尔盖斯夺走。</value>
   </data>
   <data name="CrywolfRankResult" xml:space="preserve">
     <value>你的MVP排名为{0}，获得{1}点经验。</value>
@@ -239,10 +239,10 @@
     <value>你当前的MVP积分为{0}。</value>
   </data>
   <data name="CrywolfBalgassKilled" xml:space="preserve">
-    <value>{0}击败了巴卡斯！</value>
+    <value>{0}击败了巴尔盖斯！</value>
   </data>
   <data name="CrywolfDarkElfKilled" xml:space="preserve">
-    <value>{1}击败了巴卡斯军队的黑暗精灵首领（{0}）！</value>
+    <value>{1}击败了巴尔盖斯军队的黑暗精灵首领（{0}）！</value>
   </data>
   <data name="CrywolfContractAttempt" xml:space="preserve">
     <value>{0}正在与祭坛（{1}）签订契约！</value>
@@ -297,5 +297,819 @@
   </data>
   <data name="PlayerEnteredGameMessage" xml:space="preserve">
     <value>{0} 进入了游戏。</value>
+  </data>
+  <data name="CommandNeedsArguments" xml:space="preserve">
+    <value>命令需要{0}个参数，实际提供了{1}个。</value>
+  </data>
+  <data name="RequiredArgumentNotUsed" xml:space="preserve">
+    <value>缺少必填参数{0}。</value>
+  </data>
+  <data name="ArgumentInvalidType" xml:space="preserve">
+    <value>参数{0}的类型无效，应为{1}。</value>
+  </data>
+  <data name="CharacterNameRequired" xml:space="preserve">
+    <value>请输入角色名。</value>
+  </data>
+  <data name="CharacterNotFound" xml:space="preserve">
+    <value>未找到角色“{0}”。</value>
+  </data>
+  <data name="GuildNotFound" xml:space="preserve">
+    <value>未找到战盟{0}。</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>请输入名称。</value>
+  </data>
+  <data name="LoginNameRequired" xml:space="preserve">
+    <value>请输入登录名。</value>
+  </data>
+  <data name="AccountNotFound" xml:space="preserve">
+    <value>未找到账号。</value>
+  </data>
+  <data name="AccountPropertyNotFound" xml:space="preserve">
+    <value>未找到账号属性。</value>
+  </data>
+  <data name="CommandDoesNotExist" xml:space="preserve">
+    <value>命令“{0}”不存在。</value>
+  </data>
+  <data name="MapNotFound" xml:space="preserve">
+    <value>未找到地图{0}。</value>
+  </data>
+  <data name="CharacterNameAlreadyExists" xml:space="preserve">
+    <value>同名角色已存在。</value>
+  </data>
+  <data name="AwardMoneyFailByFullInventory" xml:space="preserve">
+    <value>背包已满，无法发放金币奖励。</value>
+  </data>
+  <data name="CantEnterEventWithItem" xml:space="preserve">
+    <value>装备“{0}”时无法进入活动。</value>
+  </data>
+  <data name="MuHelperAlreadyRunning" xml:space="preserve">
+    <value>奇迹助手已在运行。</value>
+  </data>
+  <data name="MuHelperMinimumLevel" xml:space="preserve">
+    <value>达到{0}级后才能使用奇迹助手。</value>
+  </data>
+  <data name="MuHelperMaximumLevel" xml:space="preserve">
+    <value>超过{0}级后无法使用奇迹助手。</value>
+  </data>
+  <data name="MuHelperRequiresMoney" xml:space="preserve">
+    <value>奇迹助手需要{0}金币。</value>
+  </data>
+  <data name="AlreadyInDuel" xml:space="preserve">
+    <value>你已在决斗中。</value>
+  </data>
+  <data name="OtherPlayerAlreadyInDuel" xml:space="preserve">
+    <value>对方已在决斗中。</value>
+  </data>
+  <data name="DuelChannelIsFull" xml:space="preserve">
+    <value>决斗频道已满。</value>
+  </data>
+  <data name="DuelRequestMustBeOnSameMap" xml:space="preserve">
+    <value>只能与同一地图中的玩家决斗。</value>
+  </data>
+  <data name="NoDuelDuringMiniGame" xml:space="preserve">
+    <value>活动期间无法发起决斗。</value>
+  </data>
+  <data name="NoDuelWhileBeingPlayerKiller" xml:space="preserve">
+    <value>红名状态下无法发起决斗。</value>
+  </data>
+  <data name="NoDuelWithPlayerKiller" xml:space="preserve">
+    <value>无法与红名玩家决斗。</value>
+  </data>
+  <data name="NoDuelDuringGuildWar" xml:space="preserve">
+    <value>战盟战争期间无法发起决斗。</value>
+  </data>
+  <data name="NoDuelDuringSelfDefense" xml:space="preserve">
+    <value>正当防卫状态下无法发起决斗。</value>
+  </data>
+  <data name="NoDuelWithOpenedNpcDialog" xml:space="preserve">
+    <value>请先关闭NPC对话窗口再发起决斗。</value>
+  </data>
+  <data name="NoDuelWithWrongState" xml:space="preserve">
+    <value>有一方状态不符合决斗要求。</value>
+  </data>
+  <data name="ItemEffectNotFound" xml:space="preserve">
+    <value>未找到物品效果。</value>
+  </data>
+  <data name="InvalidLostMap" xml:space="preserve">
+    <value>昆顿印记无效。</value>
+  </data>
+  <data name="NoKalimaGateOnEventMap" xml:space="preserve">
+    <value>无法在活动地图创建卡利玛传送门。</value>
+  </data>
+  <data name="NoKalimaGateInKalima" xml:space="preserve">
+    <value>无法在卡利玛创建卡利玛传送门。</value>
+  </data>
+  <data name="NoKalimaGateInSafezone" xml:space="preserve">
+    <value>无法在安全区创建卡利玛传送门。</value>
+  </data>
+  <data name="UndefinedGateNpc" xml:space="preserve">
+    <value>传送门NPC未定义。</value>
+  </data>
+  <data name="KalimaEntranceNotFound" xml:space="preserve">
+    <value>未找到卡利玛入口。</value>
+  </data>
+  <data name="EventMapCreatedOnEntranceWithoutTimetable" xml:space="preserve">
+    <value>活动地图在进入时创建，没有固定时间表。</value>
+  </data>
+  <data name="EventNotImplementedYet" xml:space="preserve">
+    <value>此活动尚未实现。</value>
+  </data>
+  <data name="AddingMultiplePointsWhileMiniGameNotAllowed" xml:space="preserve">
+    <value>活动期间无法批量分配属性点。</value>
+  </data>
+  <data name="LoginAttemptWarning" xml:space="preserve">
+    <value>有人尝试登录此账号。若非本人操作，建议修改密码。</value>
+  </data>
+  <data name="RequestedLanguageNotFound" xml:space="preserve">
+    <value>未找到语言“{0}”。</value>
+  </data>
+  <data name="LanguageChanged" xml:space="preserve">
+    <value>语言已切换为“{0}”（{1}）。</value>
+  </data>
+  <data name="AvailableLanguagesCaption" xml:space="preserve">
+    <value>可用语言：</value>
+  </data>
+  <data name="AccountHasBeenBanned" xml:space="preserve">
+    <value>[{0}]账号{1}已被封禁。</value>
+  </data>
+  <data name="AccountOfHasBeenBanned" xml:space="preserve">
+    <value>[{0}]角色{1}所属账号已被封禁。</value>
+  </data>
+  <data name="AccountChatBannedResult" xml:space="preserve">
+    <value>[{0}]角色{1}所属账号已被禁言{2}分钟。</value>
+  </data>
+  <data name="YouAreChatBanned" xml:space="preserve">
+    <value>你已被禁言{0}分钟。</value>
+  </data>
+  <data name="YourChatBanRemovedByGameMaster" xml:space="preserve">
+    <value>游戏管理员已解除你的禁言。</value>
+  </data>
+  <data name="ChatBanRemoved" xml:space="preserve">
+    <value>[{0}]角色{1}所属账号的禁言已解除。</value>
+  </data>
+  <data name="MonsterNotFoundByNumber" xml:space="preserve">
+    <value>未找到编号为{0}的怪物。</value>
+  </data>
+  <data name="MonsterCreatedByGameMaster" xml:space="preserve">
+    <value>已创建编号为{0}的怪物，实例ID：{1}。</value>
+  </data>
+  <data name="CommandResultPlayerDisconnected" xml:space="preserve">
+    <value>[{0}]{1}已断开连接。</value>
+  </data>
+  <data name="LevelInformation" xml:space="preserve">
+    <value>“{0}”的等级：{1}。</value>
+  </data>
+  <data name="LevelUpPointsInfo" xml:space="preserve">
+    <value>“{0}”的剩余属性点：{1}。</value>
+  </data>
+  <data name="MasterLevelInfo" xml:space="preserve">
+    <value>“{0}”的大师等级：{1}。</value>
+  </data>
+  <data name="MasterLevelUpPointsInfo" xml:space="preserve">
+    <value>“{0}”的大师技能点：{1}。</value>
+  </data>
+  <data name="MoneyInfo" xml:space="preserve">
+    <value>“{0}”的金币：{1}。</value>
+  </data>
+  <data name="ResetsInfo" xml:space="preserve">
+    <value>“{0}”的转生次数：{1}。</value>
+  </data>
+  <data name="ResetSystemInactive" xml:space="preserve">
+    <value>本服务器未启用转生系统。</value>
+  </data>
+  <data name="StatPointInfo" xml:space="preserve">
+    <value>“{0}”的属性值：{1}。</value>
+  </data>
+  <data name="GuildDisconnectResult" xml:space="preserve">
+    <value>[{0}]{1}已断开连接。</value>
+  </data>
+  <data name="MovedByGameMaster" xml:space="preserve">
+    <value>游戏管理员已将你传送到其他位置。</value>
+  </data>
+  <data name="MovedPlayerResult" xml:space="preserve">
+    <value>[{0}]已将{1}传送至{2}，坐标（{3}，{4}）。</value>
+  </data>
+  <data name="ItemCreatedResult" xml:space="preserve">
+    <value>[{0}]已创建{1}。</value>
+  </data>
+  <data name="ItemGroupNumberNotExists" xml:space="preserve">
+    <value>物品组{0}、编号{1}不存在。</value>
+  </data>
+  <data name="ItemLevelExceeded" xml:space="preserve">
+    <value>等级不能超过{0}。</value>
+  </data>
+  <data name="MonsterNotFoundById" xml:space="preserve">
+    <value>未找到ID为{0}的怪物。</value>
+  </data>
+  <data name="InvalidMerchantId" xml:space="preserve">
+    <value>NPC ID“{0}”无效，请提供有效的商人NPC ID。</value>
+  </data>
+  <data name="NpcIsNotMerchant" xml:space="preserve">
+    <value>该NPC不是有效的商人。</value>
+  </data>
+  <data name="OnlineCountInfo" xml:space="preserve">
+    <value>[{0}]在线管理员{1}人，玩家{2}人。</value>
+  </data>
+  <data name="NoWarehouseNpcFound" xml:space="preserve">
+    <value>未找到仓库NPC。</value>
+  </data>
+  <data name="PlayerKillLevelRangeError" xml:space="preserve">
+    <value>PK等级必须在{0}至{1}之间。</value>
+  </data>
+  <data name="PlayerKillCountMustBePositive" xml:space="preserve">
+    <value>击杀次数必须大于零。</value>
+  </data>
+  <data name="PlayerKillStateChangeResult" xml:space="preserve">
+    <value>[{0}]已将{1}的状态改为{2}，击杀次数{3}，持续{4}分钟。</value>
+  </data>
+  <data name="PkStatusClearedByGameMaster" xml:space="preserve">
+    <value>游戏管理员已清除你的PK记录。</value>
+  </data>
+  <data name="PkClearedResult" xml:space="preserve">
+    <value>[{0}]已清除{1}的PK记录。</value>
+  </data>
+  <data name="NpcNotFoundById" xml:space="preserve">
+    <value>未找到ID为{0}的NPC。</value>
+  </data>
+  <data name="NpcRemovedById" xml:space="preserve">
+    <value>已移除ID为{0}的NPC。</value>
+  </data>
+  <data name="InvalidCharacterLevel" xml:space="preserve">
+    <value>等级无效，必须在1至{0}之间。</value>
+  </data>
+  <data name="SetLevelResult" xml:space="preserve">
+    <value>等级已设为{0}。</value>
+  </data>
+  <data name="InvalidLevelUpPoints" xml:space="preserve">
+    <value>属性点无效，必须大于或等于0。</value>
+  </data>
+  <data name="SetLevelUpPointsResult" xml:space="preserve">
+    <value>属性点已设为{0}。</value>
+  </data>
+  <data name="SetMasterLevelResult" xml:space="preserve">
+    <value>大师等级已设为{0}。</value>
+  </data>
+  <data name="InvalidMasterLevelUpPoints" xml:space="preserve">
+    <value>大师技能点无效，必须大于或等于0。</value>
+  </data>
+  <data name="SetMasterLevelUpPointsResult" xml:space="preserve">
+    <value>大师技能点已设为{0}。</value>
+  </data>
+  <data name="InvalidMoneyAmount" xml:space="preserve">
+    <value>金币数量无效，必须在0至{0}之间。</value>
+  </data>
+  <data name="SetMoneyResult" xml:space="preserve">
+    <value>金币已设为{0}。</value>
+  </data>
+  <data name="InvalidResetsAmount" xml:space="preserve">
+    <value>转生次数无效，必须大于0。</value>
+  </data>
+  <data name="InvalidResetsWithLimits" xml:space="preserve">
+    <value>转生次数无效，必须在0至{0}之间。</value>
+  </data>
+  <data name="SetResetsResult" xml:space="preserve">
+    <value>转生次数已设为{0}。</value>
+  </data>
+  <data name="InvalidStatValue" xml:space="preserve">
+    <value>{0}无效，必须大于1。</value>
+  </data>
+  <data name="InvalidStatValueRange" xml:space="preserve">
+    <value>{0}无效，必须在0至{1}之间。</value>
+  </data>
+  <data name="SetStatResult" xml:space="preserve">
+    <value>已将玩家{2}的{0}设为{1}。</value>
+  </data>
+  <data name="UnbanAccountResult" xml:space="preserve">
+    <value>[{0}]账号{1}已解封。</value>
+  </data>
+  <data name="UnbanAccountOfCharacterResult" xml:space="preserve">
+    <value>[{0}]角色{1}所属账号已解封。</value>
+  </data>
+  <data name="PickupLimitReached" xml:space="preserve">
+    <value>“{0}”已达到持有上限。</value>
+  </data>
+  <data name="NotEnoughMoneyToEnter" xml:space="preserve">
+    <value>金币不足，无法进入{0}。</value>
+  </data>
+  <data name="SkipWaitNotInMiniGame" xml:space="preserve">
+    <value>必须进入活动后才能跳过等待时间。</value>
+  </data>
+  <data name="SkipWaitRequested" xml:space="preserve">
+    <value>已跳过当前等待时间。</value>
+  </data>
+  <data name="SkipWaitAnnouncedFormat" xml:space="preserve">
+    <value>{0}跳过了等待时间，活动继续！</value>
+  </data>
+  <data name="SkipWaitNothingToSkip" xml:space="preserve">
+    <value>当前没有可跳过的等待时间，活动已在进行中。</value>
+  </data>
+  <data name="MiniGameForceRestartFormat" xml:space="preserve">
+    <value>正在进行的{0}活动已停止，新一轮即将开始。</value>
+  </data>
+  <data name="MiniGameForceStartInitiatedFormat" xml:space="preserve">
+    <value>{0}即将开始。</value>
+  </data>
+  <data name="MiniGameForceStartUnavailableFormat" xml:space="preserve">
+    <value>本游戏服务器不提供{0}活动。</value>
+  </data>
+  <data name="KillAllMonstersFormat" xml:space="preserve">
+    <value>已消灭{0}只怪物。</value>
+  </data>
+  <data name="TalkingNotImplementedFormat" xml:space="preserve">
+    <value>此NPC（{0}，{1}）的对话功能尚未实现。</value>
+  </data>
+  <data name="MiniGameEnterFailed" xml:space="preserve">
+    <value>无法进入此活动。</value>
+  </data>
+  <data name="MiniGameNotConfigured" xml:space="preserve">
+    <value>本服务器未配置此活动，无法启动。</value>
+  </data>
+  <data name="MiniGameCharacterLevelTooLowFormat" xml:space="preserve">
+    <value>等级不足，至少需要{0}级才能进入此活动。</value>
+  </data>
+  <data name="MiniGameCharacterLevelTooHighFormat" xml:space="preserve">
+    <value>等级过高，进入此活动的等级上限为{0}级。</value>
+  </data>
+  <data name="MiniGameTicketRequired" xml:space="preserve">
+    <value>需要入场券才能进入此活动。</value>
+  </data>
+  <data name="MiniGameEntranceFeeRequiredFormat" xml:space="preserve">
+    <value>进入此活动需要{0}金币。</value>
+  </data>
+  <data name="MiniGamePlayerKillersCantEnter" xml:space="preserve">
+    <value>红名玩家无法进入！</value>
+  </data>
+  <data name="MiniGameNotDuringGuildWar" xml:space="preserve">
+    <value>战盟战争期间无法进入此活动。</value>
+  </data>
+  <data name="MiniGameNotOpenFormat" xml:space="preserve">
+    <value>{0}当前未开放。</value>
+  </data>
+  <data name="CharacterWithNameAlreadyExists" xml:space="preserve">
+    <value>同名角色已存在。</value>
+  </data>
+  <data name="CantDeleteGuildMember" xml:space="preserve">
+    <value>无法删除战盟成员，请先让角色退出战盟。</value>
+  </data>
+  <data name="NotEnoughLevelUpPointsAvailable" xml:space="preserve">
+    <value>剩余属性点不足。</value>
+  </data>
+  <data name="MaximumAttributeValueReachedFormat" xml:space="preserve">
+    <value>{1}已达到上限{0}。</value>
+  </data>
+  <data name="AttributeNotAvailable" xml:space="preserve">
+    <value>此属性不可用。</value>
+  </data>
+  <data name="ChatBanMinutesRemaining" xml:space="preserve">
+    <value>禁言剩余{0}分钟。</value>
+  </data>
+  <data name="ChatBanSecondsRemaining" xml:space="preserve">
+    <value>禁言剩余{0}秒。</value>
+  </data>
+  <data name="WrongSecurityCode" xml:space="preserve">
+    <value>安全码错误。</value>
+  </data>
+  <data name="UsingThisItemNotImplemented" xml:space="preserve">
+    <value>此物品的使用功能尚未实现。</value>
+  </data>
+  <data name="ItemUnknown" xml:space="preserve">
+    <value>未知物品</value>
+  </data>
+  <data name="InventoryFull" xml:space="preserve">
+    <value>背包已满。</value>
+  </data>
+  <data name="NotEnoughMoney" xml:space="preserve">
+    <value>金币不足。</value>
+  </data>
+  <data name="NoItemToRepair" xml:space="preserve">
+    <value>没有可修理的物品。</value>
+  </data>
+  <data name="NotEnoughMoneyToRepair" xml:space="preserve">
+    <value>金币不足，无法修理。</value>
+  </data>
+  <data name="YouLackOfJewels" xml:space="preserve">
+    <value>宝石不足。</value>
+  </data>
+  <data name="StackedJewelNotFound" xml:space="preserve">
+    <value>未找到宝石组合。</value>
+  </data>
+  <data name="SelectedItemIsNotStackedJewel" xml:space="preserve">
+    <value>所选物品不是宝石组合。</value>
+  </data>
+  <data name="InventoryNotEnoughSpace" xml:space="preserve">
+    <value>背包空间不足。</value>
+  </data>
+  <data name="TheVaultIsLocked" xml:space="preserve">
+    <value>仓库已锁定。</value>
+  </data>
+  <data name="CantEquipItemDuringEvent" xml:space="preserve">
+    <value>活动期间无法装备此物品。</value>
+  </data>
+  <data name="YouCantWearThisItem" xml:space="preserve">
+    <value>无法装备此物品。</value>
+  </data>
+  <data name="ItemIsBoundToInventoryOfCharacter" xml:space="preserve">
+    <value>此物品已绑定到该角色背包。</value>
+  </data>
+  <data name="ItemCannotBeDropped" xml:space="preserve">
+    <value>此物品无法丢弃。</value>
+  </data>
+  <data name="ItemCannotBeRepaired" xml:space="preserve">
+    <value>此物品无法修理。</value>
+  </data>
+  <data name="ItemCannotBeSoldInPersonalStore" xml:space="preserve">
+    <value>此物品无法在个人商店出售。</value>
+  </data>
+  <data name="ItemCannotBeSoldToNpc" xml:space="preserve">
+    <value>此物品无法出售。</value>
+  </data>
+  <data name="ItemCannotBeStored" xml:space="preserve">
+    <value>此物品无法存入仓库。</value>
+  </data>
+  <data name="ItemCannotBeTraded" xml:space="preserve">
+    <value>此物品无法交易。</value>
+  </data>
+  <data name="NotEnoughMoneyToSendLetter" xml:space="preserve">
+    <value>金币不足，无法发送信件。</value>
+  </data>
+  <data name="ErrorDuringSendingLetter" xml:space="preserve">
+    <value>发送信件时发生错误。</value>
+  </data>
+  <data name="MuHelperIsDisabled" xml:space="preserve">
+    <value>奇迹助手已禁用。</value>
+  </data>
+  <data name="MuHelperCantHandleStatus" xml:space="preserve">
+    <value>奇迹助手无法处理当前状态：{0}。</value>
+  </data>
+  <data name="PartyNotPossibleDuringEvent" xml:space="preserve">
+    <value>此活动期间无法组队。</value>
+  </data>
+  <data name="PlayerIsAlreadyInParty" xml:space="preserve">
+    <value>{0}已加入队伍。</value>
+  </data>
+  <data name="YouAreNotPartyMaster" xml:space="preserve">
+    <value>你不是队长。</value>
+  </data>
+  <data name="RequestedPlayerForParty" xml:space="preserve">
+    <value>已向{0}发送组队邀请。</value>
+  </data>
+  <data name="SellerInventoryFull" xml:space="preserve">
+    <value>卖家的背包已满。</value>
+  </data>
+  <data name="PlayerStoreNotOpen" xml:space="preserve">
+    <value>玩家的个人商店尚未营业。</value>
+  </data>
+  <data name="CharacterTooStrongMessage" xml:space="preserve">
+    <value>你已经足够强大，无需此帮助。</value>
+  </data>
+  <data name="NotEnoughMoneyToProceed" xml:space="preserve">
+    <value>金币不足，无法继续。</value>
+  </data>
+  <data name="MissingMapRequirement" xml:space="preserve">
+    <value>不满足进入地图的条件：{0}。</value>
+  </data>
+  <data name="UnexpectedErrorDuringClosingTrade" xml:space="preserve">
+    <value>结束交易时发生意外错误。</value>
+  </data>
+  <data name="UncheckTradeAcceptButtonFirst" xml:space="preserve">
+    <value>请先取消交易确认。</value>
+  </data>
+  <data name="LevelTooLowToEnterMap" xml:space="preserve">
+    <value>等级不足，无法进入此地图。</value>
+  </data>
+  <data name="HappyHourEventHasBeenStarted" xml:space="preserve">
+    <value>欢乐时光活动已开始！</value>
+  </data>
+  <data name="SelfDefenseInitiatedFormat" xml:space="preserve">
+    <value>{0}攻击了{1}，正当防卫状态已生效！</value>
+  </data>
+  <data name="SelfDefenseDiminishesFormat" xml:space="preserve">
+    <value>{0}针对{1}的正当防卫状态已结束。</value>
+  </data>
+  <data name="ResetNotEnabled" xml:space="preserve">
+    <value>转生功能未启用。</value>
+  </data>
+  <data name="CantResetWithOpenedWindows" xml:space="preserve">
+    <value>请先关闭所有窗口再转生。</value>
+  </data>
+  <data name="NotEnteredTheGame" xml:space="preserve">
+    <value>尚未进入游戏。</value>
+  </data>
+  <data name="ResetNotConfigured" xml:space="preserve">
+    <value>转生功能尚未配置。</value>
+  </data>
+  <data name="NextResetInfoCompactWithItem" xml:space="preserve">
+    <value>第{0}次转生：需{1}级、{2}金币、{3}×{4}；奖励{5}属性点，累计{6}点。</value>
+  </data>
+  <data name="NextResetInfoCompactNoItem" xml:space="preserve">
+    <value>第{0}次转生：需{1}级、{2}金币；奖励{3}属性点，累计{4}点。</value>
+  </data>
+  <data name="RequiredLevelForReset" xml:space="preserve">
+    <value>转生需要达到{0}级。</value>
+  </data>
+  <data name="MaximumResetsReached" xml:space="preserve">
+    <value>已达到转生上限{0}次。</value>
+  </data>
+  <data name="NotEnoughItemsForReset" xml:space="preserve">
+    <value>转生所需物品不足，需要{0}×{1}。</value>
+  </data>
+  <data name="NotEnoughMoneyForReset" xml:space="preserve">
+    <value>金币不足，转生需要{0}金币。</value>
+  </data>
+  <data name="DuelBattleBeginsInSecondsFormat" xml:space="preserve">
+    <value>决斗将在{0}秒后开始。</value>
+  </data>
+  <data name="LetterInvalid" xml:space="preserve">
+    <value>信件无效。</value>
+  </data>
+  <data name="OpenStorePlayerNotFound" xml:space="preserve">
+    <value>打开个人商店失败：未找到玩家。</value>
+  </data>
+  <data name="PlayerNamesDontMatch" xml:space="preserve">
+    <value>玩家名称不匹配：{0}与{1}。</value>
+  </data>
+  <data name="TradePartnerNotFound" xml:space="preserve">
+    <value>未找到交易对象。</value>
+  </data>
+  <data name="UnknownWarpIndex" xml:space="preserve">
+    <value>未知传送编号{0}。</value>
+  </data>
+  <data name="LevelUpCongrats" xml:space="preserve">
+    <value>恭喜，你已升至{0}级！</value>
+  </data>
+  <data name="MasterLevelUpCongrats" xml:space="preserve">
+    <value>恭喜，你的大师等级已升至{0}级！</value>
+  </data>
+  <data name="YouGotKilledBy" xml:space="preserve">
+    <value>你被{0}击败了。</value>
+  </data>
+  <data name="DisconnectedByGameMaster" xml:space="preserve">
+    <value>游戏管理员已断开你的连接。</value>
+  </data>
+  <data name="DisconnectedByAdmin" xml:space="preserve">
+    <value>系统管理员已断开你的连接。</value>
+  </data>
+  <data name="TemporaryBanByGameMaster" xml:space="preserve">
+    <value>游戏管理员已暂时封禁你的账号。</value>
+  </data>
+  <data name="CommandExtensions_RequiredArgumentMissing" xml:space="preserve">
+    <value>缺少必填参数{0}。</value>
+  </data>
+  <data name="CommandExtensionsArgumentInvalidType" xml:space="preserve">
+    <value>参数{0}的类型无效，应为{1}。</value>
+  </data>
+  <data name="CommandExtensionsInvalidArgumentCount" xml:space="preserve">
+    <value>命令需要{0}个参数，实际提供了{1}个。</value>
+  </data>
+  <data name="CharacterNameIsRequired" xml:space="preserve">
+    <value>请输入角色名。</value>
+  </data>
+  <data name="DurationMustBeLongerThan0" xml:space="preserve">
+    <value>持续时间必须大于0分钟。</value>
+  </data>
+  <data name="UnknownAttribute" xml:space="preserve">
+    <value>未知属性：“{0}”。</value>
+  </data>
+  <data name="CharacterHasNoStatAttribute" xml:space="preserve">
+    <value>角色没有“{0}”属性。</value>
+  </data>
+  <data name="OfflineLevelingStarted" xml:space="preserve">
+    <value>离线练级已开始，重新登录即可停止。</value>
+  </data>
+  <data name="OfflineLevelingFailed" xml:space="preserve">
+    <value>无法开始离线练级，请在安全位置重试。</value>
+  </data>
+  <data name="OfflineLevelingAlreadyActive" xml:space="preserve">
+    <value>此账号已在离线练级。</value>
+  </data>
+  <data name="OfflineLevelingMustBeAlive" xml:space="preserve">
+    <value>角色存活时才能开始离线练级。</value>
+  </data>
+  <data name="OfflineLevelingNotOnMap" xml:space="preserve">
+    <value>进入地图后才能开始离线练级。</value>
+  </data>
+  <data name="OfflineLevelingInMiniGame" xml:space="preserve">
+    <value>活动期间无法开始离线练级。</value>
+  </data>
+  <data name="OfflineLevelingNoCharacterSelected" xml:space="preserve">
+    <value>尚未选择角色。</value>
+  </data>
+  <data name="OfflineLevelingMuHelperNotRunning" xml:space="preserve">
+    <value>请先开启奇迹助手，再开始离线练级。</value>
+  </data>
+  <data name="StatResetNotEnabled" xml:space="preserve">
+    <value>属性重置功能未启用。</value>
+  </data>
+  <data name="StatResetNotConfigured" xml:space="preserve">
+    <value>属性重置功能尚未配置。</value>
+  </data>
+  <data name="RequiredLevelForStatReset" xml:space="preserve">
+    <value>属性重置需要达到{0}级。</value>
+  </data>
+  <data name="NotEnoughMoneyForStatReset" xml:space="preserve">
+    <value>金币不足，属性重置需要{0}金币。</value>
+  </data>
+  <data name="NotEnoughItemsForStatReset" xml:space="preserve">
+    <value>属性重置所需物品不足，需要{0}×{1}。</value>
+  </data>
+  <data name="CantResetStatsNotInSafezone" xml:space="preserve">
+    <value>只能在安全区重置属性。</value>
+  </data>
+  <data name="CantResetStatsWithOpenedWindows" xml:space="preserve">
+    <value>请先关闭所有窗口再重置属性。</value>
+  </data>
+  <data name="StatResetChatCommandDisabled" xml:space="preserve">
+    <value>/resetstats命令已禁用。</value>
+  </data>
+  <data name="StatsResetSuccessfully" xml:space="preserve">
+    <value>属性已重置，现有{0}点可分配属性点。</value>
+  </data>
+  <data name="InvasionMonsterDefeated" xml:space="preserve">
+    <value>{0}击败了{1}{2}！</value>
+  </data>
+  <data name="PkClearCommandOnlyForGameMasters" xml:space="preserve">
+    <value>此命令仅限游戏管理员使用。</value>
+  </data>
+  <data name="PkClearOnlyClearOwnPk" xml:space="preserve">
+    <value>只能清除自己的PK状态。</value>
+  </data>
+  <data name="PkClearTargetNotPlayerKiller" xml:space="preserve">
+    <value>{0}不是红名玩家。</value>
+  </data>
+  <data name="PkClearYouAreNotPlayerKiller" xml:space="preserve">
+    <value>你不是红名玩家。</value>
+  </data>
+  <data name="ItemDoesNotBelongToYou" xml:space="preserve">
+    <value>此物品不属于你。</value>
+  </data>
+  <data name="CharacterNotStrongEnoughMessage" xml:space="preserve">
+    <value>你目前的实力还不足以接受此挑战。</value>
+  </data>
+  <data name="ImperialGuardianLevelTooLow" xml:space="preserve">
+    <value>至少需要{0}级才能进入帝国要塞。</value>
+  </data>
+  <data name="GensBattleZoneMembersOnly" xml:space="preserve">
+    <value>只有家族成员才能进入家族战场。</value>
+  </data>
+  <data name="GensContributionGainedFormat" xml:space="preserve">
+    <value>你获得了{0}点贡献值。</value>
+  </data>
+  <data name="GensContributionLostFormat" xml:space="preserve">
+    <value>你损失了{0}点贡献值。</value>
+  </data>
+  <data name="GensKillAbuseWarningFormat" xml:space="preserve">
+    <value>你最近已击败{0}共{1}次。从第{2}次击杀起，再击败{0}将无法获得贡献值。</value>
+  </data>
+  <data name="GensKillAbuseLimitFormat" xml:space="preserve">
+    <value>你最近击败{0}的次数过多，无法再从该目标获得贡献值。</value>
+  </data>
+  <data name="GensNoPartyWithOtherGens" xml:space="preserve">
+    <value>无法与敌对家族成员组队。</value>
+  </data>
+  <data name="GensNoPartyInBattleZone" xml:space="preserve">
+    <value>家族战场内无法组队。</value>
+  </data>
+  <data name="GensPartyLeftInBattleZone" xml:space="preserve">
+    <value>家族战场内无法组队，你已退出队伍。</value>
+  </data>
+  <data name="GensRequiredToCreateGuild" xml:space="preserve">
+    <value>加入家族后才能创建战盟。</value>
+  </data>
+  <data name="EquipmentHasChangedMessage" xml:space="preserve">
+    <value>装备已变更。</value>
+  </data>
+  <data name="SpeedHackWarning" xml:space="preserve">
+    <value>警告：检测到异常速度行为。多次违规将导致账号受限。</value>
+  </data>
+  <data name="SummonPartyCountdownFormat" xml:space="preserve">
+    <value>将在{0}秒后召唤……</value>
+  </data>
+  <data name="SummonPartyCanceled" xml:space="preserve">
+    <value>召唤已取消。</value>
+  </data>
+  <data name="CharacterInfoAccountNameFormat" xml:space="preserve">
+    <value>账号名称：{0}</value>
+  </data>
+  <data name="CharacterInfoFormat" xml:space="preserve">
+    <value>ID：{0}
+角色名：{1}
+职业：{2}
+角色槽位：{3}
+创建时间：{4}
+经验值：{5}
+剩余属性点：{6}
+大师经验值：{7}
+大师技能点：{8}
+位置：{9}（{10}，{11}）
+击杀次数：{12}
+PK状态剩余秒数：{13}
+PK状态：{14}
+角色状态：{15}
+已使用果实点：{16}
+已使用减点果实点：{17}
+背包扩展次数：{18}</value>
+  </data>
+  <data name="GoblinPointsForPlayTime" xml:space="preserve">
+    <value>你因在线时长获得了{0}哥布林积分。</value>
+  </data>
+  <data name="CashShopVaultExtended" xml:space="preserve">
+    <value>仓库已扩展。</value>
+  </data>
+  <data name="CashShopInventoryExtended" xml:space="preserve">
+    <value>背包已扩展，请重新选择角色以使用新增空间。</value>
+  </data>
+  <data name="CashShopCharacterClassUnlocked" xml:space="preserve">
+    <value>你现在可以创建{0}职业的角色。</value>
+  </data>
+  <data name="ShopCurrencyZen" xml:space="preserve">
+    <value>金币</value>
+  </data>
+  <data name="ShopCurrencyWCoinC" xml:space="preserve">
+    <value>W币（C）</value>
+  </data>
+  <data name="ShopCurrencyWCoinP" xml:space="preserve">
+    <value>W币（P）</value>
+  </data>
+  <data name="ShopCurrencyGoblinPoints" xml:space="preserve">
+    <value>哥布林积分</value>
+  </data>
+  <data name="PlayerShopCurrencyNotAllowed" xml:space="preserve">
+    <value>个人商店不允许使用{0}标价。</value>
+  </data>
+  <data name="PlayerShopPriceTooHigh" xml:space="preserve">
+    <value>售价最高为{0}{1}。</value>
+  </data>
+  <data name="PlayerShopNotEnoughCurrency" xml:space="preserve">
+    <value>购买此物品需要{0}{1}。</value>
+  </data>
+  <data name="PlayerShopItemPriceNotPayableExactly" xml:space="preserve">
+    <value>你的物品无法恰好支付{0}{1}。宝石组合不会拆分，也不找零。</value>
+  </data>
+  <data name="PlayerShopCoinsReceived" xml:space="preserve">
+    <value>你的商店售出物品，获得{0}{1}。</value>
+  </data>
+  <data name="PlayerShopCoinsPaid" xml:space="preserve">
+    <value>你支付了{0}{1}。</value>
+  </data>
+  <data name="PlayerShopPriceCommandUsage" xml:space="preserve">
+    <value>用法：{0} [位置1-32] [数量] [货币]。不带参数时列出个人商店价格。</value>
+  </data>
+  <data name="PlayerShopUnknownCurrency" xml:space="preserve">
+    <value>未知货币“{0}”，可用货币：{1}。</value>
+  </data>
+  <data name="PlayerShopCloseToChangePrices" xml:space="preserve">
+    <value>请先关闭个人商店再修改价格。</value>
+  </data>
+  <data name="PlayerShopPriceSet" xml:space="preserve">
+    <value>位置{0}的物品价格已设为{1}{2}。</value>
+  </data>
+  <data name="PlayerShopPriceRemoved" xml:space="preserve">
+    <value>位置{0}的物品价格已移除。</value>
+  </data>
+  <data name="PlayerShopPriceItemNotFound" xml:space="preserve">
+    <value>个人商店位置{0}没有物品。</value>
+  </data>
+  <data name="PlayerShopPriceLevelTooLow" xml:space="preserve">
+    <value>角色等级不足，无法在个人商店出售物品。</value>
+  </data>
+  <data name="PlayerShopIsEmpty" xml:space="preserve">
+    <value>你的个人商店没有物品。</value>
+  </data>
+  <data name="PlayerShopPriceListEntry" xml:space="preserve">
+    <value>#{0} {1} - {2}{3}</value>
+  </data>
+  <data name="PlayerShopPriceListEntryWithoutPrice" xml:space="preserve">
+    <value>#{0} {1} - 未标价</value>
+  </data>
+  <data name="ItemBoxRequiresLevel" xml:space="preserve">
+    <value>达到{0}级才能打开此箱子。</value>
+  </data>
+  <data name="DiscordLinkCode" xml:space="preserve">
+    <value>你的Discord绑定码是{0}。请在Discord中选择机器人的/link命令，并在{1}分钟内输入此码。</value>
+  </data>
+  <data name="DiscordLinked" xml:space="preserve">
+    <value>账号已绑定Discord用户{0}，显示名称为{1}。使用/discord unlink解除绑定。</value>
+  </data>
+  <data name="DiscordNotLinked" xml:space="preserve">
+    <value>账号尚未绑定Discord。使用/discord link获取绑定码。</value>
+  </data>
+  <data name="DiscordUnlinked" xml:space="preserve">
+    <value>账号已解除Discord绑定。</value>
+  </data>
+  <data name="WorldChatMessage" xml:space="preserve">
+    <value>[世界] {0}：{1}</value>
+  </data>
+  <data name="GuildChatMirrored" xml:space="preserve">
+    <value>战盟聊天已同步至Discord。已绑定Discord的成员可以在那里收发消息。</value>
+  </data>
+  <data name="AllianceChatMirrored" xml:space="preserve">
+    <value>联盟聊天已同步至Discord。已绑定Discord的成员可以在那里收发消息。</value>
+  </data>
+  <data name="DiscordNotifications" xml:space="preserve">
+    <value>Discord私信通知：{0}。使用/discord notify login、letter或friend开启或关闭相应通知。</value>
+  </data>
+  <data name="MapIsNotActive" xml:space="preserve">
+    <value>此地图当前不可用。</value>
   </data>
 </root>
