@@ -1,0 +1,301 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:schema id="root">
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xs:element name="root" ns1:IsDataSet="true">
+      <xs:complexType>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element name="metadata">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" />
+              </xs:sequence>
+              <xs:attribute name="name" use="required" type="xsd:string" />
+              <xs:attribute name="type" type="xsd:string" />
+              <xs:attribute name="mimetype" type="xsd:string" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="assembly">
+            <xs:complexType>
+              <xs:attribute name="alias" type="xsd:string" />
+              <xs:attribute name="name" type="xsd:string" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="data">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+                <xs:element name="comment" type="xsd:string" minOccurs="0" ns1:Ordinal="2" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" ns1:Ordinal="1" />
+              <xs:attribute name="type" type="xsd:string" ns1:Ordinal="3" />
+              <xs:attribute name="mimetype" type="xsd:string" ns1:Ordinal="4" />
+              <xs:attribute ref="xml:space" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="resheader">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="value" type="xsd:string" minOccurs="0" ns1:Ordinal="1" />
+              </xs:sequence>
+              <xs:attribute name="name" type="xsd:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="KanturuMayaRises" xml:space="preserve">
+    <value>玛雅从精炼之塔深处苏醒！</value>
+  </data>
+  <data name="KanturuPhase1Start" xml:space="preserve">
+    <value>第一阶段：击败怪物，解除玛雅的封印！</value>
+  </data>
+  <data name="KanturuMayaLeftHandAppeared" xml:space="preserve">
+    <value>玛雅左手出现了！击败它！</value>
+  </data>
+  <data name="KanturuPhase1Cleared" xml:space="preserve">
+    <value>第一阶段完成！第二阶段将在2分钟后开始。</value>
+  </data>
+  <data name="KanturuPhase2Start" xml:space="preserve">
+    <value>第二阶段：更多玛雅的爪牙出现了！</value>
+  </data>
+  <data name="KanturuMayaRightHandAppeared" xml:space="preserve">
+    <value>玛雅右手出现了！击败它！</value>
+  </data>
+  <data name="KanturuPhase2Cleared" xml:space="preserve">
+    <value>第二阶段完成！第三阶段将在2分钟后开始。</value>
+  </data>
+  <data name="KanturuPhase3Start" xml:space="preserve">
+    <value>第三阶段：最后一波怪物来袭！</value>
+  </data>
+  <data name="KanturuBothMayaHandsAppeared" xml:space="preserve">
+    <value>玛雅双手出现了！击败它们！</value>
+  </data>
+  <data name="KanturuMayaHandsFallen" xml:space="preserve">
+    <value>玛雅双手已被击败！拾取战利品，梦魇将在10秒后苏醒。</value>
+  </data>
+  <data name="KanturuNightmareGuardiansAppeared" xml:space="preserve">
+    <value>梦魇的守卫出现了！梦魇将在3秒后苏醒！</value>
+  </data>
+  <data name="KanturuNightmareAppeared" xml:space="preserve">
+    <value>梦魇出现了！击败它赢得胜利！</value>
+  </data>
+  <data name="KanturuNightmareTeleport2" xml:space="preserve">
+    <value>梦魇瞬移了！别让它逃走！</value>
+  </data>
+  <data name="KanturuNightmareTeleport3" xml:space="preserve">
+    <value>梦魇再次瞬移！继续攻击！</value>
+  </data>
+  <data name="KanturuNightmareTeleport4" xml:space="preserve">
+    <value>梦魇已是强弩之末！击败它！</value>
+  </data>
+  <data name="KanturuVictory" xml:space="preserve">
+    <value>梦魇已被击败！坎特鲁精炼之塔归你们了！</value>
+  </data>
+  <data name="KanturuRequiredItemDestroyed" xml:space="preserve">
+    <value>你的{0}已损坏！你将离开坎特鲁精炼之塔。</value>
+  </data>
+  <data name="KanturuBarrierOpening" xml:space="preserve">
+    <value>屏障已开启，进入高塔吧！</value>
+  </data>
+  <data name="KanturuTowerConquered" xml:space="preserve">
+    <value>坎特鲁精炼之塔已被攻克，现在开放。</value>
+  </data>
+  <data name="KanturuTowerClosingWarning" xml:space="preserve">
+    <value>坎特鲁精炼之塔将在5分钟后关闭！</value>
+  </data>
+  <data name="KanturuTowerClosed" xml:space="preserve">
+    <value>坎特鲁精炼之塔已关闭。</value>
+  </data>
+  <data name="KanturuDefeat" xml:space="preserve">
+    <value>坎特鲁活动已结束，下次再接再厉！</value>
+  </data>
+  <data name="BloodCastleArchangelAquiredMessageFormat" xml:space="preserve">
+    <value>{0}获得了{1}！</value>
+  </data>
+  <data name="MiniGameStartsInMinutesFormat" xml:space="preserve">
+    <value>{0}将在{1}分钟后开始。</value>
+  </data>
+  <data name="MiniGameCantStartWithLessThanPlayers" xml:space="preserve">
+    <value>人数不足{0}人，无法开始。</value>
+  </data>
+  <data name="IllusionTempleRelicPickedUpFormat" xml:space="preserve">
+    <value>{0}夺取了圣物！</value>
+  </data>
+  <data name="IllusionTempleRelicDroppedFormat" xml:space="preserve">
+    <value>{0}掉落了圣物！</value>
+  </data>
+  <data name="IllusionTempleScoreFormat" xml:space="preserve">
+    <value>比分：联合军 {0} | 幻影军 {1}</value>
+  </data>
+  <data name="IllusionTempleStatueSpawnedMessage" xml:space="preserve">
+    <value>新的圣物出现了！</value>
+  </data>
+  <data name="IllusionTempleBattleStartedMessage" xml:space="preserve">
+    <value>战斗开始了！</value>
+  </data>
+  <data name="BloodCastleCrystalStatusDestroyed" xml:space="preserve">
+    <value>{0}摧毁了水晶雕像！</value>
+  </data>
+  <data name="DoppelgangerIceWalkerAppeared" xml:space="preserve">
+    <value>冰行者出现了！请在1分钟内击败它，否则后续怪物会变强。</value>
+  </data>
+  <data name="DoppelgangerIceWalkerEscaped" xml:space="preserve">
+    <value>冰行者逃走了！后续怪物变强了。</value>
+  </data>
+  <data name="DoppelgangerIceWalkerKilled" xml:space="preserve">
+    <value>冰行者已被击败！</value>
+  </data>
+  <data name="RaklionSelupanAppeared" xml:space="preserve">
+    <value>塞尔潘出现了！孵化场入口将在{0}分钟后关闭。</value>
+  </data>
+  <data name="RaklionHatcheryClosed" xml:space="preserve">
+    <value>孵化场入口已关闭。</value>
+  </data>
+  <data name="RaklionHatcheryOpensIn" xml:space="preserve">
+    <value>孵化场入口将在{0}后开放。</value>
+  </data>
+  <data name="RaklionHatcheryIsClosed" xml:space="preserve">
+    <value>孵化场入口已关闭，无法进入。</value>
+  </data>
+  <data name="RaklionHatcheryOpened" xml:space="preserve">
+    <value>孵化场入口已开放。</value>
+  </data>
+  <data name="RaklionSelupanDefeated" xml:space="preserve">
+    <value>{0}击败了塞尔潘！孵化场入口将在{1}后开放。</value>
+  </data>
+  <data name="RaklionBattleFailed" xml:space="preserve">
+    <value>挑战塞尔潘失败。孵化场入口将在{0}后开放。</value>
+  </data>
+  <data name="RaklionDurationHoursMinutes" xml:space="preserve">
+    <value>{0}小时{1}分钟</value>
+  </data>
+  <data name="RaklionDurationMinutes" xml:space="preserve">
+    <value>{0}分钟</value>
+  </data>
+  <data name="CrywolfNotify1" xml:space="preserve">
+    <value>巴卡斯与昆顿军队联手，正准备进攻狼魂要塞。</value>
+  </data>
+  <data name="CrywolfNotify2" xml:space="preserve">
+    <value>巴卡斯军队准备进攻狼魂要塞。</value>
+  </data>
+  <data name="CrywolfReady" xml:space="preserve">
+    <value>巴卡斯军队正向狼魂要塞进军。</value>
+  </data>
+  <data name="CrywolfStart" xml:space="preserve">
+    <value>巴卡斯军队开始进攻狼魂要塞！</value>
+  </data>
+  <data name="CrywolfContractsStartInMinutes" xml:space="preserve">
+    <value>狼魂祭坛契约将在{0}分钟后开始。</value>
+  </data>
+  <data name="CrywolfContractsStartInSeconds" xml:space="preserve">
+    <value>狼魂祭坛契约将在{0}秒后开始。</value>
+  </data>
+  <data name="CrywolfAttackStartsInMinutes" xml:space="preserve">
+    <value>巴卡斯军队将在{0}分钟后进攻。</value>
+  </data>
+  <data name="CrywolfAttackStartsInSeconds" xml:space="preserve">
+    <value>巴卡斯军队将在{0}秒后进攻。</value>
+  </data>
+  <data name="CrywolfNoAltarContracted" xml:space="preserve">
+    <value>没有圣射手的守护，圣狼雕像将被夺走。</value>
+  </data>
+  <data name="CrywolfStatueAttack" xml:space="preserve">
+    <value>巴卡斯军队开始攻击圣狼雕像！</value>
+  </data>
+  <data name="CrywolfBalgassAppeared" xml:space="preserve">
+    <value>巴卡斯来了！保护圣狼雕像！</value>
+  </data>
+  <data name="CrywolfBalgassDefeated" xml:space="preserve">
+    <value>在勇士们的帮助下，巴卡斯被击败了！</value>
+  </data>
+  <data name="CrywolfBalgassAlive" xml:space="preserve">
+    <value>战斗结束时，巴卡斯仍然存活。</value>
+  </data>
+  <data name="CrywolfDefenseSucceeded" xml:space="preserve">
+    <value>防守成功！圣狼雕像得到了保护。</value>
+  </data>
+  <data name="CrywolfDefenseFailed" xml:space="preserve">
+    <value>防守失败！圣狼雕像被巴卡斯夺走。</value>
+  </data>
+  <data name="CrywolfRankResult" xml:space="preserve">
+    <value>你的MVP排名为{0}，获得{1}点经验。</value>
+  </data>
+  <data name="CrywolfCurrentScore" xml:space="preserve">
+    <value>你当前的MVP积分为{0}。</value>
+  </data>
+  <data name="CrywolfBalgassKilled" xml:space="preserve">
+    <value>{0}击败了巴卡斯！</value>
+  </data>
+  <data name="CrywolfDarkElfKilled" xml:space="preserve">
+    <value>{1}击败了巴卡斯军队的黑暗精灵首领（{0}）！</value>
+  </data>
+  <data name="CrywolfContractAttempt" xml:space="preserve">
+    <value>{0}正在与祭坛（{1}）签订契约！</value>
+  </data>
+  <data name="CrywolfContractAttemptInfo" xml:space="preserve">
+    <value>契约将在{0}秒后生效，完成前请勿移动。</value>
+  </data>
+  <data name="CrywolfContractValid" xml:space="preserve">
+    <value>你已与圣狼祭坛（{0}）建立契约。</value>
+  </data>
+  <data name="CrywolfContractValidToOthers" xml:space="preserve">
+    <value>{0}已与圣狼祭坛（{1}）建立契约。</value>
+  </data>
+  <data name="CrywolfContractCancelled" xml:space="preserve">
+    <value>圣狼祭坛（{0}）的契约已取消。</value>
+  </data>
+  <data name="CrywolfAltarCooldown" xml:space="preserve">
+    <value>圣狼祭坛（{0}）暂时无法签订契约。</value>
+  </data>
+  <data name="CrywolfContractWrongPosition" xml:space="preserve">
+    <value>请站在圣狼祭坛（{0}）上签订契约。</value>
+  </data>
+  <data name="CrywolfContractRequirement" xml:space="preserve">
+    <value>签订祭坛契约需要{0}级或以上的圣射手。</value>
+  </data>
+  <data name="CrywolfBarrierCreated" xml:space="preserve">
+    <value>圣狼雕像的屏障已建立。</value>
+  </data>
+  <data name="CrywolfBarrierDisappeared" xml:space="preserve">
+    <value>圣狼雕像的屏障已消失。</value>
+  </data>
+  <data name="CrywolfBarrierStatus" xml:space="preserve">
+    <value>守护圣狼雕像的圣射手：{0}，屏障：{1}%。</value>
+  </data>
+  <data name="CrywolfBattleOnOtherServer" xml:space="preserve">
+    <value>狼魂要塞战斗正在其他服务器进行。</value>
+  </data>
+  <data name="CrywolfRunsOnOtherServer" xml:space="preserve">
+    <value>狼魂要塞活动正在游戏服务器{0}进行。</value>
+  </data>
+  <data name="CrywolfNotActive" xml:space="preserve">
+    <value>狼魂要塞活动尚未开始。</value>
+  </data>
+  <data name="CrywolfProceeds" xml:space="preserve">
+    <value>狼魂要塞活动从状态{0}继续。</value>
+  </data>
+  <data name="CrywolfAltarNotAvailable" xml:space="preserve">
+    <value>圣狼祭坛（{0}）目前无法签订契约。</value>
+  </data>
+  <data name="CrywolfContractMounted" xml:space="preserve">
+    <value>骑乘时无法与祭坛签订契约。</value>
+  </data>
+  <data name="PlayerEnteredGameMessage" xml:space="preserve">
+    <value>{0} 进入了游戏。</value>
+  </data>
+</root>
