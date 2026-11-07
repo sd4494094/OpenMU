@@ -432,7 +432,7 @@
     <value>Add stat reset NPC Erin</value>
   </data>
   <data name="AddStatResetNpcPlugIn_Description" xml:space="preserve">
-    <value>Adds Erin and her stat reset window outside the Lorencia tavern (145, 128), or moves the original indoor placement there. Customized placements are preserved. The optional stat reset feature remains disabled until enabled by the server owner.</value>
+    <value>Adds Erin and her stat reset window outside the Lorencia tavern (130, 133), or moves the original indoor or fountain-side placement there. Customized placements are preserved. The optional stat reset feature remains disabled until enabled by the server owner.</value>
   </data>
   <data name="AddLevelingWarp_Name" xml:space="preserve">
     <value>Add leveling teleport NPC</value>

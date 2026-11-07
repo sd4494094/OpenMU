@@ -28,6 +28,8 @@ Operators may reorder or translate rows freely. Keep each destination **Number**
 stable and never reuse a deleted number for another location. **Name** identifies the
 full map/floor; **Description** identifies the place within it. **IsEnabled** disables
 one destination. **LevelRequirement**, **Costs** and **Gate** are independently configurable.
+Plugin configuration references may be loaded independently of the running maps; travel
+uses the matching runtime map and its current entry requirements.
 Use a single walkable landing tile on an active map hosted by the same game context.
 A menu supports up to 64 destinations and interaction within **MaximumDistance**
 (default three tiles, accepted range one to ten).

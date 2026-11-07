@@ -33,11 +33,11 @@ The server checks the opened NPC dialog, equipment, safe zone, level, money and 
 before processing the request. Repeating a confirmation after the dialog closes does
 not process another NPC reset.
 
-Fresh Season 6 configurations place NPC 464 outside the Lorencia tavern at (145,128).
+Fresh Season 6 configurations place NPC 464 outside the Lorencia tavern at (130,133).
 Leo remains at (130,126). Existing configurations can install **Add stat reset NPC** on the
 configuration updates page. The update does not enable either reset feature.
-Version 2 of that optional update moves only the original single indoor placement
-at (128,126) to the outdoor location. Custom NPC windows, coordinates, quantities,
+Version 3 of that optional update moves only the original single indoor placement
+at (128,126), or its version 2 fountain-side placement at (145,128), to the tavern door. Custom NPC windows, coordinates, quantities,
 directions, triggers and additional spawns are preserved. Review customized placements
 manually rather than expecting the update to override them.
 

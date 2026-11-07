@@ -28,16 +28,16 @@ internal class StatResetNpcDataTest
         var config = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).First();
         AssertPlacement(config);
         var map = config.Maps.Single(map => map.Number == 0);
-        for (var y = 127; y <= 129; y++)
+        for (var y = 132; y <= 134; y++)
         {
-            for (var x = 144; x <= 146; x++)
+            for (var x = 130; x <= 131; x++)
             {
                 Assert.That(map.TerrainData![3 + (y * 256) + x], Is.EqualTo(1), $"Tile ({x}, {y}) must be walkable and safe.");
             }
         }
 
         Assert.That(map.MonsterSpawns.Any(area => area.MonsterDefinition is { Number: not 464, ObjectKind: NpcObjectKind.PassiveNpc }
-            && area.X1 <= 145 && area.X2 >= 145 && area.Y1 <= 128 && area.Y2 >= 128), Is.False);
+            && area.X1 <= 130 && area.X2 >= 130 && area.Y1 <= 133 && area.Y2 >= 133), Is.False);
     }
 
     /// <summary>
@@ -67,20 +67,26 @@ internal class StatResetNpcDataTest
     /// <summary>
     /// Migrates the original location in place, both for version 1 and for unversioned installations.
     /// </summary>
-    [TestCase(true)]
-    [TestCase(false)]
-    public async Task UpgradeMovesOriginalPlacementInPlaceAsync(bool versionOneInstalled)
+    [TestCase(0)]
+    [TestCase(1)]
+    [TestCase(2)]
+    public async Task UpgradeMovesOriginalPlacementInPlaceAsync(int installedVersion)
     {
         var provider = new InMemoryPersistenceContextProvider();
         var config = CreateExistingConfiguration(provider);
         var original = config.Maps.Single().MonsterSpawns.Single();
         using var context = provider.CreateNewContext();
         var update = new AddStatResetNpcPlugIn();
-        if (versionOneInstalled)
+        if (installedVersion > 0)
         {
             var entry = context.CreateNew<ConfigurationUpdate>();
             entry.Key = update.Key;
-            entry.Version = 1;
+            entry.Version = installedVersion;
+            if (installedVersion == 2)
+            {
+                original.X1 = original.X2 = 145;
+                original.Y1 = original.Y2 = 128;
+            }
         }
 
         await update.ApplyUpdateAsync(context, config).ConfigureAwait(false);
@@ -88,7 +94,7 @@ internal class StatResetNpcDataTest
         AssertPlacement(config);
         Assert.That(config.Maps.Single().MonsterSpawns.Single(), Is.SameAs(original));
         var installed = (await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Single(entry => entry.Key == update.Key);
-        Assert.That(installed.Version, Is.EqualTo(2));
+        Assert.That(installed.Version, Is.EqualTo(3));
         Assert.That(update.IsMandatory, Is.False);
         Assert.That(update.Key, Is.EqualTo(new Guid("108ae690-0a2e-444b-a36a-938ee8268aaa")));
     }
@@ -151,7 +157,7 @@ internal class StatResetNpcDataTest
         Assert.That(npc.NpcWindow, Is.EqualTo(NpcWindow.StatReInitializer));
         Assert.That(npc.IsActive, Is.True);
         var spawn = config.Maps.Single(map => map.Number == 0).MonsterSpawns.Single(spawn => spawn.MonsterDefinition == npc);
-        Assert.That((spawn.X1, spawn.Y1, spawn.X2, spawn.Y2, spawn.Quantity), Is.EqualTo((145, 128, 145, 128, 1)));
+        Assert.That((spawn.X1, spawn.Y1, spawn.X2, spawn.Y2, spawn.Quantity), Is.EqualTo((130, 133, 130, 133, 1)));
     }
 
     private static GameConfiguration CreateExistingConfiguration(InMemoryPersistenceContextProvider provider)

@@ -455,6 +455,6 @@
     <value>添加洗点师艾琳</value>
   </data>
   <data name="AddStatResetNpcPlugIn_Description" xml:space="preserve">
-    <value>在勇者大陆酒馆外（145，128）添加艾琳及属性重置窗口，或迁移原来的室内默认位置；保留服主自定义位置，洗点功能仍需由服主自行开启。</value>
+    <value>在勇者大陆酒馆外（130，133）添加艾琳及属性重置窗口，或迁移原来的室内或喷泉旁默认位置；保留服主自定义位置，洗点功能仍需由服主自行开启。</value>
   </data>
 </root>

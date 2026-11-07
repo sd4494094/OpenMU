@@ -27,6 +27,12 @@ public class AddStatResetNpcPlugIn : UpdatePlugInBase
     /// </summary>
     private const byte OriginalSpawnY = 126;
 
+    /// <summary>The X coordinate shipped by version 2, near the fountain.</summary>
+    private const byte PreviousOutdoorSpawnX = 145;
+
+    /// <summary>The Y coordinate shipped by version 2, near the fountain.</summary>
+    private const byte PreviousOutdoorSpawnY = 128;
+
     /// <inheritdoc />
     public override string Name => Properties.PlugInResources.AddStatResetNpcPlugIn_Name;
 
@@ -43,10 +49,10 @@ public class AddStatResetNpcPlugIn : UpdatePlugInBase
     public override DateTime CreatedAt => new(2026, 11, 7, 0, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
-    public override int Version => 2;
+    public override int Version => 3;
 
     /// <inheritdoc />
-    public override DateTime UpdatedAt => new(2026, 11, 7, 0, 0, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 8, 0, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
@@ -72,7 +78,7 @@ public class AddStatResetNpcPlugIn : UpdatePlugInBase
     }
 
     /// <summary>
-    /// Adds the outdoor placement or moves only the unmodified version 1 placement.
+    /// Adds the outdoor placement or moves only the unmodified version 1 or version 2 placement.
     /// </summary>
     /// <param name="context">The persistence context.</param>
     /// <param name="map">The Lorencia definition.</param>
@@ -95,8 +101,10 @@ public class AddStatResetNpcPlugIn : UpdatePlugInBase
 
         // Preserve owner customizations, including additional spawns, areas, direction and trigger.
         if (spawns is [var original]
-            && original.X1 == OriginalSpawnX && original.X2 == OriginalSpawnX
-            && original.Y1 == OriginalSpawnY && original.Y2 == OriginalSpawnY
+            && ((original.X1 == OriginalSpawnX && original.X2 == OriginalSpawnX
+                    && original.Y1 == OriginalSpawnY && original.Y2 == OriginalSpawnY)
+                || (original.X1 == PreviousOutdoorSpawnX && original.X2 == PreviousOutdoorSpawnX
+                    && original.Y1 == PreviousOutdoorSpawnY && original.Y2 == PreviousOutdoorSpawnY))
             && original.Quantity == 1 && original.Direction == Direction.SouthEast
             && original.SpawnTrigger == SpawnTrigger.Automatic)
         {

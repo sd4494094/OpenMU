@@ -122,8 +122,9 @@ public static class LevelingWarpAction
     private static LevelingWarpQuote Quote(Player player, Snapshot destination)
     {
         var level = player.SelectedCharacter!.GetEffectiveMoveLevelRequirement(destination.Level);
-        var enabled = player.Level >= level && player.Money >= destination.Costs && destination.Map is { IsActive: true }
-            && !destination.Map.TryGetRequirementError(player, out _);
+        var map = GetRuntimeDefinition(player, destination);
+        var enabled = player.Level >= level && player.Money >= destination.Costs && map is { IsActive: true }
+            && !map.TryGetRequirementError(player, out _);
         return new LevelingWarpQuote(
             destination.Number,
             destination.Name.GetTranslation(player.Culture) ?? string.Empty,
@@ -135,16 +136,29 @@ public static class LevelingWarpAction
 
     private static async ValueTask ExecuteAsync(Player player, Session session, LevelingWarpDestination destination, Snapshot quote)
     {
-        var gate = destination.Gate;
-        var target = quote.Map is { IsActive: true } map
+        var map = GetRuntimeDefinition(player, quote);
+        var target = map is { IsActive: true }
             ? await player.GameContext.GetMapAsync(map.Number.ToUnsigned()).ConfigureAwait(false) : null;
-        if (gate is null || target is null || !ReferenceEquals(target.Definition, quote.Map)
+        if (destination.Gate is null || target is null || !ReferenceEquals(target.Definition, map)
             || quote.X != quote.X2 || quote.Y != quote.Y2 || !target.Terrain.WalkMap[quote.X, quote.Y]
             || !Quote(player, quote).Enabled)
         {
             await RejectAsync(player, nameof(PlayerMessage.LevelingWarpRequirements)).ConfigureAwait(false);
             return;
         }
+
+        // Plugin references can belong to another loaded configuration graph. Never install that
+        // graph on the character: use the authoritative runtime map and the approved landing.
+        var gate = new ExitGate
+        {
+            Map = target.Definition,
+            X1 = quote.X,
+            X2 = quote.X2,
+            Y1 = quote.Y,
+            Y2 = quote.Y2,
+            Direction = quote.Direction,
+            IsSpawnGate = false,
+        };
 
         if (player.GameContext.PlugInManager.GetPlugInPoint<IWarpGateEnteringPlugIn>() is { } entering)
         {
@@ -163,6 +177,7 @@ public static class LevelingWarpAction
             || session.Npc is not { } npc || !CanInteract(player, npc, session.Configuration!)
             || !session.Configuration!.Destinations.Contains(destination) || !destination.IsEnabled
             || !quote.Equals(Snapshot.Create(destination)) || !Quote(player, quote).Enabled
+            || !MatchesLanding(gate, target.Definition, quote)
             || !target.Terrain.WalkMap[quote.X, quote.Y])
         {
             await RejectAsync(player, nameof(PlayerMessage.LevelingWarpChanged)).ConfigureAwait(false);
@@ -204,8 +219,19 @@ public static class LevelingWarpAction
             IsPlaced(character, quote));
     }
 
+    private static bool MatchesLanding(ExitGate gate, GameMapDefinition map, Snapshot quote) =>
+        ReferenceEquals(gate.Map, map) && gate.X1 == quote.X && gate.X2 == quote.X2
+        && gate.Y1 == quote.Y && gate.Y2 == quote.Y2 && gate.Direction == quote.Direction
+        && !gate.IsSpawnGate;
+
+    private static GameMapDefinition? GetRuntimeDefinition(Player player, Snapshot quote) =>
+        quote.Map is { } map
+            ? player.GameContext.Configuration.Maps.SingleOrDefault(m => m.Number == map.Number && m.Discriminator == map.Discriminator)
+            : null;
+
     private static bool IsPlaced(Character character, Snapshot quote) =>
-        ReferenceEquals(character.CurrentMap, quote.Map)
+        character.CurrentMap is { } map && quote.Map is { } expected
+        && map.Number == expected.Number && map.Discriminator == expected.Discriminator
         && character.PositionX == quote.X && character.PositionY == quote.Y;
 
     private static void RefundIfNotPlaced(Player player, Character character, Snapshot quote)
@@ -249,9 +275,9 @@ public static class LevelingWarpAction
         public Dictionary<int, Snapshot> Destinations { get; set; } = [];
     }
 
-    private sealed record Snapshot(int Number, LocalizedString Name, LocalizedString Description, int Level, int Costs, ExitGate? Gate, GameMapDefinition? Map, byte X, byte Y, byte X2, byte Y2)
+    private sealed record Snapshot(int Number, LocalizedString Name, LocalizedString Description, int Level, int Costs, ExitGate? Gate, GameMapDefinition? Map, byte X, byte Y, byte X2, byte Y2, Direction Direction)
     {
         public static Snapshot Create(LevelingWarpDestination destination) =>
-            new(destination.Number, destination.Name, destination.Description, destination.LevelRequirement, destination.Costs, destination.Gate, destination.Gate?.Map, destination.Gate?.X1 ?? 0, destination.Gate?.Y1 ?? 0, destination.Gate?.X2 ?? 0, destination.Gate?.Y2 ?? 0);
+            new(destination.Number, destination.Name, destination.Description, destination.LevelRequirement, destination.Costs, destination.Gate, destination.Gate?.Map, destination.Gate?.X1 ?? 0, destination.Gate?.Y1 ?? 0, destination.Gate?.X2 ?? 0, destination.Gate?.Y2 ?? 0, destination.Gate?.Direction ?? default);
     }
 }

@@ -20,12 +20,12 @@ internal partial class NpcInitialization : Version095d.NpcInitialization
     /// <summary>
     /// The stat reset helper's default outdoor X coordinate, east of the Lorencia tavern.
     /// </summary>
-    internal const byte StatResetNpcX = 145;
+    internal const byte StatResetNpcX = 130;
 
     /// <summary>
     /// The stat reset helper's default outdoor Y coordinate, on the walkable town street.
     /// </summary>
-    internal const byte StatResetNpcY = 128;
+    internal const byte StatResetNpcY = 133;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NpcInitialization" /> class.

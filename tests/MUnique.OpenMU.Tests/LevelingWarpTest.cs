@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.LevelingWarp;
@@ -47,6 +48,64 @@ public class LevelingWarpTest
         Assert.That(player.SelectedCharacter!.PositionX, Is.EqualTo(15));
         Assert.That(player.SelectedCharacter.PositionY, Is.EqualTo(15));
         Assert.That(player.OpenedNpc, Is.Null);
+    }
+
+    /// <summary>Independent plugin configuration graphs still enter the authoritative runtime map.</summary>
+    [Test]
+    public async Task IndependentConfigurationGraphCanWarpAcrossMapsAsync()
+    {
+        var player = await CreateAsync(independentMap: true).ConfigureAwait(false);
+        var quoteMap = player.GameContext.FeaturePlugIns.GetPlugIn<LevelingWarpFeaturePlugIn>()!.Configuration!.Destinations.Single().Gate!.Map;
+        var runtimeMap = player.GameContext.Configuration.Maps.Single(m => m.Number == 1);
+        Assert.That(quoteMap, Is.Not.SameAs(runtimeMap));
+        Assert.That(GetEntries(player).Single().Enabled, Is.True);
+        var token = GetToken(player);
+        await LevelingWarpAction.SelectAsync(player, token, 31).ConfigureAwait(false);
+        await LevelingWarpAction.SelectAsync(player, token, 31).ConfigureAwait(false);
+        Assert.That(player.Money, Is.EqualTo(900));
+        Assert.That(player.SelectedCharacter!.CurrentMap, Is.SameAs(runtimeMap));
+        Assert.That(player.SelectedCharacter.PositionX, Is.EqualTo(15));
+        Assert.That(player.OpenedNpc, Is.Null);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.ChangingMap));
+        await player.ClientReadyAfterMapChangeAsync().ConfigureAwait(false);
+        Assert.That(player.CurrentMap!.Definition, Is.SameAs(runtimeMap));
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.EnteredWorld));
+        Assert.That(player.Money, Is.EqualTo(900), "client acknowledgement must not refund a successful transfer");
+    }
+
+    /// <summary>Runtime rules cannot be bypassed by a stale, independently loaded plugin map.</summary>
+    [TestCase("inactive")]
+    [TestCase("requirements")]
+    [TestCase("blocked")]
+    [TestCase("discriminator")]
+    public async Task IndependentGraphUsesRuntimeRestrictionsAsync(string reason)
+    {
+        var player = await CreateAsync(independentMap: true).ConfigureAwait(false);
+        var runtimeMap = player.GameContext.Configuration.Maps.Single(m => m.Number == 1);
+        switch (reason)
+        {
+            case "inactive":
+                runtimeMap.IsActive = false;
+                break;
+            case "requirements":
+                var requirement = player.PersistenceContext.CreateNew<AttributeRequirement>();
+                requirement.Attribute = Stats.Level;
+                requirement.MinimumValue = 401;
+                runtimeMap.MapRequirements.Add(requirement);
+                break;
+            case "blocked":
+                (await player.GameContext.GetMapAsync(1).ConfigureAwait(false))!.Terrain.ApplyTerrainAttribute(15, 15, TerrainAttributeType.Blocked, true);
+                break;
+            case "discriminator":
+                runtimeMap.Discriminator = 1;
+                break;
+        }
+
+        await LevelingWarpAction.SelectAsync(player, GetToken(player), 31).ConfigureAwait(false);
+        Assert.That(player.Money, Is.EqualTo(1000));
+        Assert.That(player.SelectedCharacter!.CurrentMap!.Number, Is.EqualTo(0));
+        Assert.That(player.OpenedNpc, Is.Null);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.EnteredWorld));
     }
 
     /// <summary>Rejects stale, forged and no-longer-eligible requests without charging.</summary>
@@ -173,6 +232,7 @@ public class LevelingWarpTest
     [TestCase("feature")]
     [TestCase("moved")]
     [TestCase("price")]
+    [TestCase("gate")]
     public async Task CallbackChangesCannotChargeAsync(string reason)
     {
         var player = await CreateAsync().ConfigureAwait(false);
@@ -196,6 +256,9 @@ public class LevelingWarpTest
                     case "price":
                         feature.Configuration!.Destinations.Single().Costs = 200;
                         break;
+                    case "gate":
+                        gate.X1 = gate.X2 = 50;
+                        break;
                 }
             }).Returns(ValueTask.CompletedTask);
         player.GameContext.PlugInManager.RegisterPlugInAtPlugInPoint<IWarpGateEnteringPlugIn>(callback.Object);
@@ -217,7 +280,7 @@ public class LevelingWarpTest
     private static Moq.IInvocation GetInvocation(Player player) =>
         Mock.Get(player.ViewPlugIns.GetPlugIn<IShowLevelingWarpDialogPlugIn>()!).Invocations.Last();
 
-    private static async ValueTask<Player> CreateAsync(bool support = true)
+    private static async ValueTask<Player> CreateAsync(bool support = true, bool independentMap = false)
     {
         var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
         player.Culture = CultureInfo.GetCultureInfo("zh-CN");
@@ -229,6 +292,18 @@ public class LevelingWarpTest
         player.CurrentMap!.Definition.IsActive = true;
         var gate = player.PersistenceContext.CreateNew<ExitGate>();
         gate.Map = player.CurrentMap.Definition;
+        if (independentMap)
+        {
+            var runtimeMap = player.PersistenceContext.CreateNew<GameMapDefinition>();
+            runtimeMap.Number = 1;
+            runtimeMap.IsActive = true;
+            runtimeMap.TerrainData = new byte[ushort.MaxValue + 3];
+            player.GameContext.Configuration.Maps.Add(runtimeMap);
+            var pluginMap = player.PersistenceContext.CreateNew<GameMapDefinition>();
+            pluginMap.Number = 1;
+            pluginMap.IsActive = true;
+            gate.Map = pluginMap;
+        }
         gate.X1 = gate.X2 = gate.Y1 = gate.Y2 = 15;
         var destination = new LevelingWarpDestination
         {
