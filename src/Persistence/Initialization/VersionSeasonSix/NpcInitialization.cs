@@ -18,6 +18,16 @@ using MUnique.OpenMU.Persistence.Initialization.Skills;
 internal partial class NpcInitialization : Version095d.NpcInitialization
 {
     /// <summary>
+    /// The stat reset helper's default outdoor X coordinate, east of the Lorencia tavern.
+    /// </summary>
+    internal const byte StatResetNpcX = 145;
+
+    /// <summary>
+    /// The stat reset helper's default outdoor Y coordinate, on the walkable town street.
+    /// </summary>
+    internal const byte StatResetNpcY = 128;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="NpcInitialization" /> class.
     /// </summary>
     /// <param name="context">The persistence context.</param>

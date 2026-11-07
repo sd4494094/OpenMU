@@ -94,6 +94,61 @@ public class ResetStatsNpcTest
         Assert.That(player.Attributes[Stats.Resets], Is.EqualTo(3));
     }
 
+    /// <summary>
+    /// Closing without confirmation releases the NPC session without changing character data.
+    /// </summary>
+    [Test]
+    public async Task CancellationAllowsAnotherNpcWithoutResetAsync()
+    {
+        var player = await CreatePlayerAsync().ConfigureAwait(false);
+        await OpenNpcAsync(player).ConfigureAwait(false);
+        var firstNpc = player.OpenedNpc;
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.NpcDialogOpened));
+
+        // Reproduce the stuck state when a client only hides the menu without sending close.
+        await OpenNpcAsync(player, NpcWindow.Lahap).ConfigureAwait(false);
+        Assert.That(player.OpenedNpc, Is.SameAs(firstNpc));
+
+        // No reset request is sent by the cancel action, only the ordinary close packet.
+        await new CloseNpcDialogHandlerPlugIn().HandlePacketAsync(player, new byte[] { 0xC1, 3, 0x31 }).ConfigureAwait(false);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.EnteredWorld));
+        Assert.That(player.OpenedNpc, Is.Null);
+        Assert.That(player.Money, Is.EqualTo(1000));
+        Assert.That(player.Attributes![Stats.BaseStrength], Is.EqualTo(128));
+        Assert.That(player.SelectedCharacter!.LevelUpPoints, Is.EqualTo(7));
+
+        // A delayed confirmation after cancellation must never charge or reset.
+        await new ResetCharacterPointRequestHandlerPlugIn().HandlePacketAsync(player, new byte[] { 0xC1, 4, 0xF2, 0 }).ConfigureAwait(false);
+        Assert.That(player.Money, Is.EqualTo(1000));
+        await OpenNpcAsync(player, NpcWindow.Lahap).ConfigureAwait(false);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.NpcDialogOpened));
+        Assert.That(player.OpenedNpc, Is.Not.SameAs(firstNpc));
+        Assert.That(player.OpenedNpc!.Definition.NpcWindow, Is.EqualTo(NpcWindow.Lahap));
+    }
+
+    /// <summary>
+    /// Equipment rejection ends the conversation because the client's menu closes after clicking.
+    /// </summary>
+    [Test]
+    public async Task EquipmentRejectionAllowsAnotherNpcWithoutResetAsync()
+    {
+        var player = await CreatePlayerAsync().ConfigureAwait(false);
+        await OpenNpcAsync(player).ConfigureAwait(false);
+        var item = player.PersistenceContext.CreateNew<Item>();
+        item.ItemSlot = 0;
+        item.Definition = new ItemDefinition { Group = 0, Number = 0, Width = 1, Height = 1 };
+        Assert.That(await player.Inventory!.AddItemAsync(0, item).ConfigureAwait(false), Is.True);
+
+        await new ResetCharacterPointRequestHandlerPlugIn().HandlePacketAsync(player, new byte[] { 0xC1, 4, 0xF2, 0 }).ConfigureAwait(false);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.EnteredWorld));
+        Assert.That(player.OpenedNpc, Is.Null);
+        Assert.That(player.Money, Is.EqualTo(1000));
+        Assert.That(player.Attributes![Stats.BaseStrength], Is.EqualTo(128));
+        Assert.That(player.SelectedCharacter!.LevelUpPoints, Is.EqualTo(7));
+        await OpenNpcAsync(player, NpcWindow.Lahap).ConfigureAwait(false);
+        Assert.That(player.OpenedNpc!.Definition.NpcWindow, Is.EqualTo(NpcWindow.Lahap));
+    }
+
     private static async ValueTask<Player> CreatePlayerAsync(bool featureEnabled = true)
     {
         var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);

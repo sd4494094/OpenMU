@@ -42,7 +42,7 @@ internal class Lorencia : Version095d.Maps.Lorencia
         yield return this.CreateMonsterSpawn(23, this.NpcDictionary[375], 132, 161, Direction.SouthEast);
         yield return this.CreateMonsterSpawn(24, this.NpcDictionary[543], 141, 143, Direction.South);
         yield return this.CreateMonsterSpawn(25, this.NpcDictionary[371], 130, 126, Direction.SouthEast);
-        yield return this.CreateMonsterSpawn(28, this.NpcDictionary[464], 128, 126, Direction.SouthEast);
+        yield return this.CreateMonsterSpawn(28, this.NpcDictionary[464], NpcInitialization.StatResetNpcX, NpcInitialization.StatResetNpcY, Direction.SouthEast);
         yield return this.CreateMonsterSpawn(26, this.NpcDictionary[568], 131, 139, Direction.South, SpawnTrigger.Wandering); // Wandering Merchant Zyro
         yield return this.CreateMonsterSpawn(27, this.NpcDictionary[547], 139, 138, Direction.SouthEast); // Market Union Member Julia (warps to the Loren Market)
     }

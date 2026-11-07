@@ -104,6 +104,10 @@ public class ResetStatsAction
             return;
         }
 
+        // Every native menu action dismisses the client window, including a rejected confirmation.
+        // Release the authorized NPC session before validation can return.
+        await new CloseNpcDialogAction().CloseNpcDialogAsync(this._player).ConfigureAwait(false);
+
         // The native client requires equipment to be removed. Check this on the server too.
         if (this._player.Inventory?.Items.Any(item => item.ItemSlot <= InventoryConstants.LastEquippableItemSlotIndex) == true)
         {
@@ -111,7 +115,6 @@ public class ResetStatsAction
             return;
         }
 
-        await new CloseNpcDialogAction().CloseNpcDialogAsync(this._player).ConfigureAwait(false);
         await this.ResetStatsAsync().ConfigureAwait(false);
     }
 
