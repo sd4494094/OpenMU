@@ -3197,5 +3197,130 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("RemoveEquipmentForStatReset", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to View reset requirements.
+        /// </summary>
+        public static string ResetNpcQuery {
+            get {
+                return ResourceManager.GetString("ResetNpcQuery", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Apply for reset.
+        /// </summary>
+        public static string ResetNpcApply {
+            get {
+                return ResourceManager.GetString("ResetNpcApply", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm reset.
+        /// </summary>
+        public static string ResetNpcConfirm {
+            get {
+                return ResourceManager.GetString("ResetNpcConfirm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leave.
+        /// </summary>
+        public static string ResetNpcLeave {
+            get {
+                return ResourceManager.GetString("ResetNpcLeave", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Next reset: {0}. Level: {1}; required: {2}..
+        /// </summary>
+        public static string ResetNpcNext {
+            get {
+                return ResourceManager.GetString("ResetNpcNext", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Zen required: {0}; held: {1}..
+        /// </summary>
+        public static string ResetNpcMoney {
+            get {
+                return ResourceManager.GetString("ResetNpcMoney", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} required: {1}; held: {2}..
+        /// </summary>
+        public static string ResetNpcItems {
+            get {
+                return ResourceManager.GetString("ResetNpcItems", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reset limit: {0}..
+        /// </summary>
+        public static string ResetNpcLimit {
+            get {
+                return ResourceManager.GetString("ResetNpcLimit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Level after reset: {0}. Reward: {1} points; available total: {2}..
+        /// </summary>
+        public static string ResetNpcResult {
+            get {
+                return ResourceManager.GetString("ResetNpcResult", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allocated stats return to class defaults..
+        /// </summary>
+        public static string ResetNpcStatsReset {
+            get {
+                return ResourceManager.GetString("ResetNpcStatsReset", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allocated stats are kept..
+        /// </summary>
+        public static string ResetNpcStatsKept {
+            get {
+                return ResourceManager.GetString("ResetNpcStatsKept", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Returns you to your home spawn..
+        /// </summary>
+        public static string ResetNpcMoveHome {
+            get {
+                return ResourceManager.GetString("ResetNpcMoveHome", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Returns you to character selection..
+        /// </summary>
+        public static string ResetNpcLogout {
+            get {
+                return ResourceManager.GetString("ResetNpcLogout", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Viewing and applying are free. Only Confirm reset performs the reset..
+        /// </summary>
+        public static string ResetNpcConfirmationNotice {
+            get {
+                return ResourceManager.GetString("ResetNpcConfirmationNotice", resourceCulture);
+            }
+        }
     }
 }

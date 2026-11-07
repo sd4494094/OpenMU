@@ -29,6 +29,12 @@ public class ResetInfoChatCommandPlugIn : IChatCommandPlugIn
     /// <inheritdoc />
     public async ValueTask HandleCommandAsync(Player player, string command)
     {
+        if (ResetNpcDialogAction.IsOpen(player))
+        {
+            await ResetNpcDialogAction.HandleAsync(player, "query").ConfigureAwait(false);
+            return;
+        }
+
         var configuration = player.GameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>()?.Configuration;
         if (configuration is null)
         {

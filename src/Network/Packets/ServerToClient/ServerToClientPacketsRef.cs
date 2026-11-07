@@ -44351,3 +44351,141 @@ public readonly ref struct ActiveQuestListReadyRef
     /// <returns>The packet as byte span.</returns>
     public static implicit operator Span<byte>(ActiveQuestListReadyRef packet) => packet._data; 
 }
+
+
+/// <summary>
+/// Is sent by the server when: The player talks to the configured reset NPC, queries requirements, or requests a confirmation on the open source client.
+/// Causes reaction on client side: The client shows an NPC menu with localized requirements and actions. It sends the existing resetinfo or reset prepare/confirm commands only when the player chooses the corresponding option. Closing sends CloseNpcRequest. Displaying this packet never performs a reset.
+/// </summary>
+public readonly ref struct ResetNpcDialogExtendedRef
+{
+    private readonly Span<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ResetNpcDialogExtendedRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public ResetNpcDialogExtendedRef(Span<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ResetNpcDialogExtendedRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private ResetNpcDialogExtendedRef(Span<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (ushort)data.Length;
+            header.SubCode = SubCode;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC2;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xF2;
+
+    /// <summary>
+    /// Gets the operation sub-code of this data packet.
+    /// The <see cref="Code" /> is used as a grouping key.
+    /// </summary>
+    public static byte SubCode => 0x01;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C2HeaderWithSubCodeRef Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the confirmation token.
+    /// </summary>
+    public string ConfirmationToken
+    {
+        get => this._data.ExtractString(5, 33, System.Text.Encoding.UTF8);
+        set => this._data.Slice(5, 33).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the title.
+    /// </summary>
+    public string Title
+    {
+        get => this._data.ExtractString(38, 96, System.Text.Encoding.UTF8);
+        set => this._data.Slice(38, 96).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the query label.
+    /// </summary>
+    public string QueryLabel
+    {
+        get => this._data.ExtractString(134, 64, System.Text.Encoding.UTF8);
+        set => this._data.Slice(134, 64).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the apply label.
+    /// </summary>
+    public string ApplyLabel
+    {
+        get => this._data.ExtractString(198, 64, System.Text.Encoding.UTF8);
+        set => this._data.Slice(198, 64).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the close label.
+    /// </summary>
+    public string CloseLabel
+    {
+        get => this._data.ExtractString(262, 64, System.Text.Encoding.UTF8);
+        set => this._data.Slice(262, 64).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the text.
+    /// </summary>
+    public string Text
+    {
+        get => this._data.ExtractString(326, this._data.Length - 326, System.Text.Encoding.UTF8);
+        set => this._data.Slice(326).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Performs an implicit conversion from a Span of bytes to a <see cref="ResetNpcDialogExtended"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator ResetNpcDialogExtendedRef(Span<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="ResetNpcDialogExtended"/> to a Span of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Span<byte>(ResetNpcDialogExtendedRef packet) => packet._data; 
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified field content.
+    /// </summary>
+    /// <param name="content">The content of the variable 'Text' field from which the size will be calculated.</param>
+    public static int GetRequiredSize(string content) => System.Text.Encoding.UTF8.GetByteCount(content) + 1 + 326;
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified field content.
+    /// </summary>
+    /// <param name="contentLength">The content length in bytes of the variable 'Text' field from which the size will be calculated.</param>
+    public static int GetRequiredSize(int contentLength) => contentLength + 1 + 326;
+}

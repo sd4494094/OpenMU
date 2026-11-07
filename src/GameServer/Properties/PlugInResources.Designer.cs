@@ -8034,5 +8034,22 @@ namespace MUnique.OpenMU.GameServer.Properties {
                 return ResourceManager.GetString("ResetCharacterPointRequestHandlerPlugIn_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Reset NPC dialog (open source client).
+        /// </summary>
+        public static string ShowResetDialogExtendedPlugIn_Name {
+            get {
+                return ResourceManager.GetString("ShowResetDialogExtendedPlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shows live reset requirements and waits for explicit confirmation..
+        /// </summary>
+        public static string ShowResetDialogExtendedPlugIn_Description {
+            get {
+                return ResourceManager.GetString("ShowResetDialogExtendedPlugIn_Description", resourceCulture);
+            }
+        }
     }
 }

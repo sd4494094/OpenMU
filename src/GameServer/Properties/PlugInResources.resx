@@ -2777,4 +2777,10 @@
   <data name="ResetCharacterPointRequestHandlerPlugIn_Description" xml:space="preserve">
     <value>Handles stat reset confirmations from the opened attribute reset NPC window.</value>
   </data>
+  <data name="ShowResetDialogExtendedPlugIn_Name" xml:space="preserve">
+    <value>Reset NPC dialog (open source client)</value>
+  </data>
+  <data name="ShowResetDialogExtendedPlugIn_Description" xml:space="preserve">
+    <value>Shows live reset requirements and waits for explicit confirmation.</value>
+  </data>
 </root>

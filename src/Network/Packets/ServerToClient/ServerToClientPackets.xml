@@ -16563,6 +16563,52 @@
       <CausedReaction>The 1.04d client does not read any payload of this packet.</CausedReaction>
       <Fields />
     </Packet>
+    <Packet>
+      <HeaderType>C2HeaderWithSubCode</HeaderType>
+      <Code>F2</Code>
+      <SubCode>01</SubCode>
+      <Name>ResetNpcDialogExtended</Name>
+      <Direction>ServerToClient</Direction>
+      <SentWhen>The player talks to the configured reset NPC, queries requirements, or requests a confirmation on the open source client.</SentWhen>
+      <CausedReaction>The client shows an NPC menu with localized requirements and actions. It sends the existing resetinfo or reset prepare/confirm commands only when the player chooses the corresponding option. Closing sends CloseNpcRequest. Displaying this packet never performs a reset.</CausedReaction>
+      <Fields>
+        <Field>
+          <Index>5</Index>
+          <Type>String</Type>
+          <Name>ConfirmationToken</Name>
+          <Length>33</Length>
+        </Field>
+        <Field>
+          <Index>38</Index>
+          <Type>String</Type>
+          <Name>Title</Name>
+          <Length>96</Length>
+        </Field>
+        <Field>
+          <Index>134</Index>
+          <Type>String</Type>
+          <Name>QueryLabel</Name>
+          <Length>64</Length>
+        </Field>
+        <Field>
+          <Index>198</Index>
+          <Type>String</Type>
+          <Name>ApplyLabel</Name>
+          <Length>64</Length>
+        </Field>
+        <Field>
+          <Index>262</Index>
+          <Type>String</Type>
+          <Name>CloseLabel</Name>
+          <Length>64</Length>
+        </Field>
+        <Field>
+          <Index>326</Index>
+          <Type>String</Type>
+          <Name>Text</Name>
+        </Field>
+      </Fields>
+    </Packet>
   </Packets>
   <Enums>
     <Enum>

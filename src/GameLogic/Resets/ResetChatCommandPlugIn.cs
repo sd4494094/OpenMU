@@ -29,6 +29,30 @@ public class ResetChatCommandPlugIn : IChatCommandPlugIn
     /// <inheritdoc />
     public async ValueTask HandleCommandAsync(Player player, string command)
     {
+        var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 2 && parts[1] == "prepare")
+        {
+            await ResetNpcDialogAction.HandleAsync(player, "prepare").ConfigureAwait(false);
+            return;
+        }
+
+        if (parts.Length == 3 && parts[1] == "confirm")
+        {
+            await ResetNpcDialogAction.HandleAsync(player, "confirm", parts[2]).ConfigureAwait(false);
+            return;
+        }
+
+        if (parts.Length != 1)
+        {
+            return;
+        }
+
+        if (ResetNpcDialogAction.IsOpen(player))
+        {
+            await ResetNpcDialogAction.HandleAsync(player, "prepare").ConfigureAwait(false);
+            return;
+        }
+
         var resetAction = new ResetCharacterAction(player);
         await resetAction.ResetCharacterAsync().ConfigureAwait(false);
     }

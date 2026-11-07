@@ -1115,4 +1115,46 @@ PK状态：{14}
   <data name="RemoveEquipmentForStatReset" xml:space="preserve">
     <value>请先卸下全部装备，再重置属性点。</value>
   </data>
+  <data name="ResetNpcQuery" xml:space="preserve">
+    <value>查询转生条件</value>
+  </data>
+  <data name="ResetNpcApply" xml:space="preserve">
+    <value>申请转生</value>
+  </data>
+  <data name="ResetNpcConfirm" xml:space="preserve">
+    <value>确认转生</value>
+  </data>
+  <data name="ResetNpcLeave" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="ResetNpcNext" xml:space="preserve">
+    <value>下一次：第{0}次转生；当前{1}级，需要{2}级。</value>
+  </data>
+  <data name="ResetNpcMoney" xml:space="preserve">
+    <value>需要金币：{0}；当前持有：{1}。</value>
+  </data>
+  <data name="ResetNpcItems" xml:space="preserve">
+    <value>需要{0}：{1}个；当前持有：{2}个。</value>
+  </data>
+  <data name="ResetNpcLimit" xml:space="preserve">
+    <value>转生次数上限：{0}次。</value>
+  </data>
+  <data name="ResetNpcResult" xml:space="preserve">
+    <value>转生后{0}级；本次奖励{1}点，可分配点数合计{2}。</value>
+  </data>
+  <data name="ResetNpcStatsReset" xml:space="preserve">
+    <value>已分配属性恢复为职业初始值。</value>
+  </data>
+  <data name="ResetNpcStatsKept" xml:space="preserve">
+    <value>已分配属性保留。</value>
+  </data>
+  <data name="ResetNpcMoveHome" xml:space="preserve">
+    <value>成功后回到出生点。</value>
+  </data>
+  <data name="ResetNpcLogout" xml:space="preserve">
+    <value>成功后返回角色选择。</value>
+  </data>
+  <data name="ResetNpcConfirmationNotice" xml:space="preserve">
+    <value>查询和申请不会扣费；只有点击“确认转生”才会执行。</value>
+  </data>
 </root>

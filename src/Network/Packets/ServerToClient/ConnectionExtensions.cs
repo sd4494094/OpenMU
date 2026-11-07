@@ -10473,4 +10473,42 @@ public static class ConnectionExtensions
         }
 
         await connection.SendAsync(WritePacket).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a <see cref="ResetNpcDialogExtended" /> to this connection.
+    /// </summary>
+    /// <param name="connection">The connection.</param>
+    /// <param name="confirmationToken">The confirmation token.</param>
+    /// <param name="title">The title.</param>
+    /// <param name="queryLabel">The query label.</param>
+    /// <param name="applyLabel">The apply label.</param>
+    /// <param name="closeLabel">The close label.</param>
+    /// <param name="text">The text.</param>
+    /// <remarks>
+    /// Is sent by the server when: The player talks to the configured reset NPC, queries requirements, or requests a confirmation on the open source client.
+    /// Causes reaction on client side: The client shows an NPC menu with localized requirements and actions. It sends the existing resetinfo or reset prepare/confirm commands only when the player chooses the corresponding option. Closing sends CloseNpcRequest. Displaying this packet never performs a reset.
+    /// </remarks>
+    public static async ValueTask SendResetNpcDialogExtendedAsync(this IConnection? connection, string @confirmationToken, string @title, string @queryLabel, string @applyLabel, string @closeLabel, string @text)
+    {
+        if (connection is null)
+        {
+            return;
+        }
+
+        int WritePacket()
+        {
+            var length = ResetNpcDialogExtendedRef.GetRequiredSize(text);
+            var packet = new ResetNpcDialogExtendedRef(connection.Output.GetSpan(length)[..length]);
+            packet.ConfirmationToken = @confirmationToken;
+            packet.Title = @title;
+            packet.QueryLabel = @queryLabel;
+            packet.ApplyLabel = @applyLabel;
+            packet.CloseLabel = @closeLabel;
+            packet.Text = @text;
+
+            return packet.Header.Length;
+        }
+
+        await connection.SendAsync(WritePacket).ConfigureAwait(false);
     }}

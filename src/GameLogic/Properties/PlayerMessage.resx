@@ -1174,4 +1174,46 @@ Inventory Extensions: {18}</value>
   <data name="RemoveEquipmentForStatReset" xml:space="preserve">
     <value>Remove all equipped items before resetting your stat points.</value>
   </data>
+  <data name="ResetNpcQuery" xml:space="preserve">
+    <value>View reset requirements</value>
+  </data>
+  <data name="ResetNpcApply" xml:space="preserve">
+    <value>Apply for reset</value>
+  </data>
+  <data name="ResetNpcConfirm" xml:space="preserve">
+    <value>Confirm reset</value>
+  </data>
+  <data name="ResetNpcLeave" xml:space="preserve">
+    <value>Leave</value>
+  </data>
+  <data name="ResetNpcNext" xml:space="preserve">
+    <value>Next reset: {0}. Level: {1}; required: {2}.</value>
+  </data>
+  <data name="ResetNpcMoney" xml:space="preserve">
+    <value>Zen required: {0}; held: {1}.</value>
+  </data>
+  <data name="ResetNpcItems" xml:space="preserve">
+    <value>{0} required: {1}; held: {2}.</value>
+  </data>
+  <data name="ResetNpcLimit" xml:space="preserve">
+    <value>Reset limit: {0}.</value>
+  </data>
+  <data name="ResetNpcResult" xml:space="preserve">
+    <value>Level after reset: {0}. Reward: {1} points; available total: {2}.</value>
+  </data>
+  <data name="ResetNpcStatsReset" xml:space="preserve">
+    <value>Allocated stats return to class defaults.</value>
+  </data>
+  <data name="ResetNpcStatsKept" xml:space="preserve">
+    <value>Allocated stats are kept.</value>
+  </data>
+  <data name="ResetNpcMoveHome" xml:space="preserve">
+    <value>Returns you to your home spawn.</value>
+  </data>
+  <data name="ResetNpcLogout" xml:space="preserve">
+    <value>Returns you to character selection.</value>
+  </data>
+  <data name="ResetNpcConfirmationNotice" xml:space="preserve">
+    <value>Viewing and applying are free. Only Confirm reset performs the reset.</value>
+  </data>
 </root>

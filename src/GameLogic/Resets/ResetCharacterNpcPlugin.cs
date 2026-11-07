@@ -29,7 +29,6 @@ public class ResetCharacterNpcPlugin : NpcTalkPlugInBase
     protected override async ValueTask PlayerTalksToConfiguredNpcAsync(Player player, NonPlayerCharacter npc, NpcTalkEventArgs eventArgs)
     {
         eventArgs.HasBeenHandled = true;
-        var resetAction = new ResetCharacterAction(player, npc);
-        await resetAction.ResetCharacterAsync().ConfigureAwait(false);
+        eventArgs.LeavesDialogOpen = await ResetNpcDialogAction.OpenAsync(player, npc).ConfigureAwait(false);
     }
 }
