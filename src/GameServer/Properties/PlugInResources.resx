@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2782,5 +2782,11 @@
   </data>
   <data name="ShowResetDialogExtendedPlugIn_Description" xml:space="preserve">
     <value>Shows live reset requirements and waits for explicit confirmation.</value>
+  </data>
+  <data name="ShowLevelingWarp_Name" xml:space="preserve">
+    <value>Show leveling teleport menu (extended)</value>
+  </data>
+  <data name="ShowLevelingWarp_Description" xml:space="preserve">
+    <value>Sends full destination names and server-calculated prices to MuMain.</value>
   </data>
 </root>

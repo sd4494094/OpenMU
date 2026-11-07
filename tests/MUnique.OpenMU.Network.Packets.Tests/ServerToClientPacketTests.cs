@@ -9877,4 +9877,20 @@ public class PacketStructureTests
         Assert.That(calculatedSize, Is.GreaterThanOrEqualTo(expectedMinSize), 
             "GetRequiredSize calculation incorrect for string field");
     }
+
+    /// <summary>
+    /// Tests the packet size calculation for LevelingWarpDialogExtended.
+    /// </summary>
+    [Test]
+    public void LevelingWarpDialogExtended_PacketSizeValidation()
+    {
+        // Variable-length packet validation
+        // Test GetRequiredSize method with sample data
+        const string testString = "TestData";
+        var calculatedSize = LevelingWarpDialogExtendedRef.GetRequiredSize(testString);
+        var expectedMinSize = Encoding.UTF8.GetByteCount(testString) + 1 + 262;
+        
+        Assert.That(calculatedSize, Is.GreaterThanOrEqualTo(expectedMinSize), 
+            "GetRequiredSize calculation incorrect for string field");
+    }
 }

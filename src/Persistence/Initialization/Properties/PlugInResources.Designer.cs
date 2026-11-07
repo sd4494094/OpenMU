@@ -1042,5 +1042,22 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddStatResetNpcPlugIn_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Add leveling teleport NPC.
+        /// </summary>
+        public static string AddLevelingWarp_Name {
+            get {
+                return ResourceManager.GetString("AddLevelingWarp_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the optional NPC, independent destination list and non-respawn landing gates; keeps the ordinary move list unchanged..
+        /// </summary>
+        public static string AddLevelingWarp_Description {
+            get {
+                return ResourceManager.GetString("AddLevelingWarp_Description", resourceCulture);
+            }
+        }
     }
 }

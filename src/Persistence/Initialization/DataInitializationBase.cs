@@ -1,4 +1,4 @@
-﻿// <copyright file="DataInitializationBase.cs" company="MUnique">
+// <copyright file="DataInitializationBase.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -214,6 +214,8 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
             }
         });
 
+        this.ConfigureVersionPlugIns();
+
         await this.AddAllUpdateEntriesAsync(plugInManager).ConfigureAwait(false);
 
         await this.Context.SaveChangesAsync().ConfigureAwait(false);
@@ -223,6 +225,11 @@ public abstract class DataInitializationBase : IDataInitializationPlugIn
     /// Creates the game client definition.
     /// </summary>
     protected abstract void CreateGameClientDefinition();
+
+    /// <summary>Configures version-specific plugins after their default configurations exist.</summary>
+    protected virtual void ConfigureVersionPlugIns()
+    {
+    }
 
     private PlayerShopCurrenciesConfiguration CreatePlayerShopCurrenciesConfiguration()
     {

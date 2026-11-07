@@ -3322,5 +3322,67 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("ResetNpcConfirmationNotice", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Leveling Destinations.
+        /// </summary>
+        public static string LevelingWarpTitle {
+            get {
+                return ResourceManager.GetString("LevelingWarpTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leave.
+        /// </summary>
+        public static string LevelingWarpClose {
+            get {
+                return ResourceManager.GetString("LevelingWarpClose", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Level.
+        /// </summary>
+        public static string LevelingWarpLevel {
+            get {
+                return ResourceManager.GetString("LevelingWarpLevel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Zen.
+        /// </summary>
+        public static string LevelingWarpZen {
+            get {
+                return ResourceManager.GetString("LevelingWarpZen", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This teleport service is unavailable for your character or client..
+        /// </summary>
+        public static string LevelingWarpUnavailable {
+            get {
+                return ResourceManager.GetString("LevelingWarpUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The teleport menu has changed or expired. Talk to the guide again..
+        /// </summary>
+        public static string LevelingWarpChanged {
+            get {
+                return ResourceManager.GetString("LevelingWarpChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You do not meet the teleport requirements, or the destination is unavailable..
+        /// </summary>
+        public static string LevelingWarpRequirements {
+            get {
+                return ResourceManager.GetString("LevelingWarpRequirements", resourceCulture);
+            }
+        }
     }
 }

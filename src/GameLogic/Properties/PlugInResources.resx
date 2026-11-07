@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1839,5 +1839,23 @@
   </data>
   <data name="MediumEliteHealingPotionConsumeHandlerPlugIn_Description" xml:space="preserve">
     <value>Plugin which handles the medium elite healing potion consumption. It recovers a part of the health immediately.</value>
+  </data>
+  <data name="LevelingWarp_Name" xml:space="preserve">
+    <value>Leveling teleport service</value>
+  </data>
+  <data name="LevelingWarp_Description" xml:space="preserve">
+    <value>Independent NPC destinations with server-authoritative conditions; server bots cannot use the service.</value>
+  </data>
+  <data name="LevelingWarpNpc_Name" xml:space="preserve">
+    <value>Leveling teleport NPC</value>
+  </data>
+  <data name="LevelingWarpNpc_Description" xml:space="preserve">
+    <value>Opens the dedicated leveling destination menu.</value>
+  </data>
+  <data name="LevelingWarpRequest_Name" xml:space="preserve">
+    <value>Leveling menu selection</value>
+  </data>
+  <data name="LevelingWarpRequest_Description" xml:space="preserve">
+    <value>Accepts one selection in the current authorized NPC session.</value>
   </data>
 </root>

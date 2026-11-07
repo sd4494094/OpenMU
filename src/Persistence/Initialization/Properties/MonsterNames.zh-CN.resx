@@ -854,4 +854,7 @@
   <data name="ErinStatResetHelper" xml:space="preserve">
     <value>洗点师·艾琳</value>
   </data>
+  <data name="LevelingWarpGuide" xml:space="preserve">
+    <value>传送使者·诺亚</value>
+  </data>
 </root>

@@ -8051,5 +8051,22 @@ namespace MUnique.OpenMU.GameServer.Properties {
                 return ResourceManager.GetString("ShowResetDialogExtendedPlugIn_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Show leveling teleport menu (extended).
+        /// </summary>
+        public static string ShowLevelingWarp_Name {
+            get {
+                return ResourceManager.GetString("ShowLevelingWarp_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sends full destination names and server-calculated prices to MuMain..
+        /// </summary>
+        public static string ShowLevelingWarp_Description {
+            get {
+                return ResourceManager.GetString("ShowLevelingWarp_Description", resourceCulture);
+            }
+        }
     }
 }

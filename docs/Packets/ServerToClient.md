@@ -310,6 +310,7 @@
   * [C1 F1 05 - AccountPasswordChangeResult (by server)](C1-F1-05-AccountPasswordChangeResult_by-server.md)
   * [C1 F1 06 - GameServerChannelResult (by server)](C1-F1-06-GameServerChannelResult_by-server.md)
   * [C2 F2 01 - ResetNpcDialogExtended (by server)](C2-F2-01-ResetNpcDialogExtended_by-server.md)
+  * [C2 F2 02 - LevelingWarpDialogExtended (by server)](C2-F2-02-LevelingWarpDialogExtended_by-server.md)
   * [C1 F3 00 - CharacterList (by server)](C1-F3-00-CharacterList_by-server.md)
   * [C1 F3 00 - CharacterListExtended (by server)](C1-F3-00-CharacterListExtended_by-server.md)
   * [C1 F3 00 - CharacterList075 (by server)](C1-F3-00-CharacterList075_by-server.md)

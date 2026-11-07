@@ -854,4 +854,7 @@
   <data name="ErinStatResetHelper" xml:space="preserve">
     <value>Erin the Stat Resetter</value>
   </data>
+  <data name="LevelingWarpGuide" xml:space="preserve">
+    <value>Teleport Guide Noah</value>
+  </data>
 </root>

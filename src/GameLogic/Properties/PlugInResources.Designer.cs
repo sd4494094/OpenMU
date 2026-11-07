@@ -5055,5 +5055,76 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("DiscordIntegrationFeaturePlugIn_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Castle Siege Guardsman.
+        /// </summary>
+        public static string CastleSiegeGuardsmanTalkPlugIn_Name {
+            get {
+                return ResourceManager.GetString("CastleSiegeGuardsmanTalkPlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shows Land of Trials availability and its applicable entry fee..
+        /// </summary>
+        public static string CastleSiegeGuardsmanTalkPlugIn_Description {
+            get {
+                return ResourceManager.GetString("CastleSiegeGuardsmanTalkPlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leveling teleport service.
+        /// </summary>
+        public static string LevelingWarp_Name {
+            get {
+                return ResourceManager.GetString("LevelingWarp_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Independent NPC destinations with server-authoritative conditions; server bots cannot use the service..
+        /// </summary>
+        public static string LevelingWarp_Description {
+            get {
+                return ResourceManager.GetString("LevelingWarp_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leveling teleport NPC.
+        /// </summary>
+        public static string LevelingWarpNpc_Name {
+            get {
+                return ResourceManager.GetString("LevelingWarpNpc_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Opens the dedicated leveling destination menu..
+        /// </summary>
+        public static string LevelingWarpNpc_Description {
+            get {
+                return ResourceManager.GetString("LevelingWarpNpc_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leveling menu selection.
+        /// </summary>
+        public static string LevelingWarpRequest_Name {
+            get {
+                return ResourceManager.GetString("LevelingWarpRequest_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Accepts one selection in the current authorized NPC session..
+        /// </summary>
+        public static string LevelingWarpRequest_Description {
+            get {
+                return ResourceManager.GetString("LevelingWarpRequest_Description", resourceCulture);
+            }
+        }
     }
 }

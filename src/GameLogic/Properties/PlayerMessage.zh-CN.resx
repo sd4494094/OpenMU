@@ -1157,4 +1157,25 @@ PK状态：{14}
   <data name="ResetNpcConfirmationNotice" xml:space="preserve">
     <value>查询和申请不会扣费；只有点击“确认转生”才会执行。</value>
   </data>
+  <data name="LevelingWarpTitle" xml:space="preserve">
+    <value>练级点传送</value>
+  </data>
+  <data name="LevelingWarpClose" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="LevelingWarpLevel" xml:space="preserve">
+    <value>等级</value>
+  </data>
+  <data name="LevelingWarpZen" xml:space="preserve">
+    <value>金币</value>
+  </data>
+  <data name="LevelingWarpUnavailable" xml:space="preserve">
+    <value>当前角色或客户端暂时无法使用此传送服务。</value>
+  </data>
+  <data name="LevelingWarpChanged" xml:space="preserve">
+    <value>传送列表已变更或对话已失效，请重新与传送使者交谈。</value>
+  </data>
+  <data name="LevelingWarpRequirements" xml:space="preserve">
+    <value>等级、金币或地图进入条件不符，或目的地暂时不可用。</value>
+  </data>
 </root>

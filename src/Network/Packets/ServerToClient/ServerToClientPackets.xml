@@ -16609,6 +16609,52 @@
         </Field>
       </Fields>
     </Packet>
+    <Packet>
+      <HeaderType>C2HeaderWithSubCode</HeaderType>
+      <Code>F2</Code>
+      <SubCode>02</SubCode>
+      <Name>LevelingWarpDialogExtended</Name>
+      <Direction>ServerToClient</Direction>
+      <SentWhen>A human player talks to the dedicated leveling teleport NPC on the open source client.</SentWhen>
+      <CausedReaction>The client displays up to 64 scrollable destinations with full map name, location description, effective level and Zen price. Selecting a row sends /levelwarp followed by Token and the stable Number using the existing chat command transport; closing sends CloseNpcRequest. EntriesJson is a UTF-8 JSON array of Number, Name, Description, Level, Costs and Enabled fields. Names and row positions never identify a destination.</CausedReaction>
+      <Fields>
+        <Field>
+          <Index>5</Index>
+          <Type>String</Type>
+          <Name>Token</Name>
+          <Length>33</Length>
+        </Field>
+        <Field>
+          <Index>38</Index>
+          <Type>String</Type>
+          <Name>Title</Name>
+          <Length>96</Length>
+        </Field>
+        <Field>
+          <Index>134</Index>
+          <Type>String</Type>
+          <Name>CloseLabel</Name>
+          <Length>64</Length>
+        </Field>
+        <Field>
+          <Index>198</Index>
+          <Type>String</Type>
+          <Name>LevelLabel</Name>
+          <Length>32</Length>
+        </Field>
+        <Field>
+          <Index>230</Index>
+          <Type>String</Type>
+          <Name>CostLabel</Name>
+          <Length>32</Length>
+        </Field>
+        <Field>
+          <Index>262</Index>
+          <Type>String</Type>
+          <Name>EntriesJson</Name>
+        </Field>
+      </Fields>
+    </Packet>
   </Packets>
   <Enums>
     <Enum>

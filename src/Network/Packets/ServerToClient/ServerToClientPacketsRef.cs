@@ -44489,3 +44489,141 @@ public readonly ref struct ResetNpcDialogExtendedRef
     /// <param name="contentLength">The content length in bytes of the variable 'Text' field from which the size will be calculated.</param>
     public static int GetRequiredSize(int contentLength) => contentLength + 1 + 326;
 }
+
+
+/// <summary>
+/// Is sent by the server when: A human player talks to the dedicated leveling teleport NPC on the open source client.
+/// Causes reaction on client side: The client displays up to 64 scrollable destinations with full map name, location description, effective level and Zen price. Selecting a row sends /levelwarp followed by Token and the stable Number using the existing chat command transport; closing sends CloseNpcRequest. EntriesJson is a UTF-8 JSON array of Number, Name, Description, Level, Costs and Enabled fields. Names and row positions never identify a destination.
+/// </summary>
+public readonly ref struct LevelingWarpDialogExtendedRef
+{
+    private readonly Span<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LevelingWarpDialogExtendedRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public LevelingWarpDialogExtendedRef(Span<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LevelingWarpDialogExtendedRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private LevelingWarpDialogExtendedRef(Span<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (ushort)data.Length;
+            header.SubCode = SubCode;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC2;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xF2;
+
+    /// <summary>
+    /// Gets the operation sub-code of this data packet.
+    /// The <see cref="Code" /> is used as a grouping key.
+    /// </summary>
+    public static byte SubCode => 0x02;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C2HeaderWithSubCodeRef Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the token.
+    /// </summary>
+    public string Token
+    {
+        get => this._data.ExtractString(5, 33, System.Text.Encoding.UTF8);
+        set => this._data.Slice(5, 33).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the title.
+    /// </summary>
+    public string Title
+    {
+        get => this._data.ExtractString(38, 96, System.Text.Encoding.UTF8);
+        set => this._data.Slice(38, 96).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the close label.
+    /// </summary>
+    public string CloseLabel
+    {
+        get => this._data.ExtractString(134, 64, System.Text.Encoding.UTF8);
+        set => this._data.Slice(134, 64).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the level label.
+    /// </summary>
+    public string LevelLabel
+    {
+        get => this._data.ExtractString(198, 32, System.Text.Encoding.UTF8);
+        set => this._data.Slice(198, 32).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the cost label.
+    /// </summary>
+    public string CostLabel
+    {
+        get => this._data.ExtractString(230, 32, System.Text.Encoding.UTF8);
+        set => this._data.Slice(230, 32).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the entries json.
+    /// </summary>
+    public string EntriesJson
+    {
+        get => this._data.ExtractString(262, this._data.Length - 262, System.Text.Encoding.UTF8);
+        set => this._data.Slice(262).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Performs an implicit conversion from a Span of bytes to a <see cref="LevelingWarpDialogExtended"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator LevelingWarpDialogExtendedRef(Span<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="LevelingWarpDialogExtended"/> to a Span of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Span<byte>(LevelingWarpDialogExtendedRef packet) => packet._data; 
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified field content.
+    /// </summary>
+    /// <param name="content">The content of the variable 'EntriesJson' field from which the size will be calculated.</param>
+    public static int GetRequiredSize(string content) => System.Text.Encoding.UTF8.GetByteCount(content) + 1 + 262;
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified field content.
+    /// </summary>
+    /// <param name="contentLength">The content length in bytes of the variable 'EntriesJson' field from which the size will be calculated.</param>
+    public static int GetRequiredSize(int contentLength) => contentLength + 1 + 262;
+}

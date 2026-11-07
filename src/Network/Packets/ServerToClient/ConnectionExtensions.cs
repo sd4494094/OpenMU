@@ -10511,4 +10511,42 @@ public static class ConnectionExtensions
         }
 
         await connection.SendAsync(WritePacket).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a <see cref="LevelingWarpDialogExtended" /> to this connection.
+    /// </summary>
+    /// <param name="connection">The connection.</param>
+    /// <param name="token">The token.</param>
+    /// <param name="title">The title.</param>
+    /// <param name="closeLabel">The close label.</param>
+    /// <param name="levelLabel">The level label.</param>
+    /// <param name="costLabel">The cost label.</param>
+    /// <param name="entriesJson">The entries json.</param>
+    /// <remarks>
+    /// Is sent by the server when: A human player talks to the dedicated leveling teleport NPC on the open source client.
+    /// Causes reaction on client side: The client displays up to 64 scrollable destinations with full map name, location description, effective level and Zen price. Selecting a row sends /levelwarp followed by Token and the stable Number using the existing chat command transport; closing sends CloseNpcRequest. EntriesJson is a UTF-8 JSON array of Number, Name, Description, Level, Costs and Enabled fields. Names and row positions never identify a destination.
+    /// </remarks>
+    public static async ValueTask SendLevelingWarpDialogExtendedAsync(this IConnection? connection, string @token, string @title, string @closeLabel, string @levelLabel, string @costLabel, string @entriesJson)
+    {
+        if (connection is null)
+        {
+            return;
+        }
+
+        int WritePacket()
+        {
+            var length = LevelingWarpDialogExtendedRef.GetRequiredSize(entriesJson);
+            var packet = new LevelingWarpDialogExtendedRef(connection.Output.GetSpan(length)[..length]);
+            packet.Token = @token;
+            packet.Title = @title;
+            packet.CloseLabel = @closeLabel;
+            packet.LevelLabel = @levelLabel;
+            packet.CostLabel = @costLabel;
+            packet.EntriesJson = @entriesJson;
+
+            return packet.Header.Length;
+        }
+
+        await connection.SendAsync(WritePacket).ConfigureAwait(false);
     }}
