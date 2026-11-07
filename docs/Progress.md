@@ -24,6 +24,7 @@ complexity and effort). Complexity 0 means we wont implement it.
 | *InventoryMove*               | 0x24              | 100%     | 7          |                                               |
 | *ConsumeItem*                 | 0x26              | 100%     | 5          |                                               |
 | *TalkNPC*                     | 0x30              | 100%     | 5          |                                               |
+| *ResetCharacterPoint*        | 0xF2 / 0x00       | 100%     | 2          | Native stat reset NPC confirmation; optional feature |
 | *CloseNPC*                    | 0x31              | 100%     | 1          |                                               |
 | *BuyNPCItem*                  | 0x32              | 100%     | 5          |                                               |
 | *SellNPCItem*                 | 0x33              | 100%     | 5          |                                               |

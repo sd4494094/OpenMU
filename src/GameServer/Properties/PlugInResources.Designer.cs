@@ -8017,5 +8017,22 @@ namespace MUnique.OpenMU.GameServer.Properties {
 
         /// <summary>Gets the localized PingHandlerPlugIn_Description text.</summary>
         public static string PingHandlerPlugIn_Description => ResourceManager.GetString("PingHandlerPlugIn_Description", resourceCulture)!;
+        /// <summary>
+        ///   Looks up a localized string similar to Stat reset confirmation handler.
+        /// </summary>
+        public static string ResetCharacterPointRequestHandlerPlugIn_Name {
+            get {
+                return ResourceManager.GetString("ResetCharacterPointRequestHandlerPlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Handles stat reset confirmations from the opened attribute reset NPC window..
+        /// </summary>
+        public static string ResetCharacterPointRequestHandlerPlugIn_Description {
+            get {
+                return ResourceManager.GetString("ResetCharacterPointRequestHandlerPlugIn_Description", resourceCulture);
+            }
+        }
     }
 }

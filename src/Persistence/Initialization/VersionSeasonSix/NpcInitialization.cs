@@ -41,6 +41,16 @@ internal partial class NpcInitialization : Version095d.NpcInitialization
         base.Initialize();
         {
             var def = this.Context.CreateNew<MonsterDefinition>();
+            def.Number = 464;
+            def.Designation = LocalizedString.FromResource(() => MonsterNames.ErinStatResetHelper);
+            def.NpcWindow = NpcWindow.StatReInitializer;
+            def.ObjectKind = NpcObjectKind.PassiveNpc;
+            this.GameConfiguration.Monsters.Add(def);
+            def.SetGuid(def.Number);
+        }
+
+        {
+            var def = this.Context.CreateNew<MonsterDefinition>();
             def.Number = 226;
             def.Designation = LocalizedString.FromResource(() => MonsterNames.PetTrainer);
             def.NpcWindow = NpcWindow.PetTrainer;

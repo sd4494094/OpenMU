@@ -1025,5 +1025,22 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         /// <summary>Gets the localized AddCraftingTalismansUpdatePlugIn_Description text.</summary>
         public static string AddCraftingTalismansUpdatePlugIn_Description => ResourceManager.GetString("AddCraftingTalismansUpdatePlugIn_Description", resourceCulture)!;
 
+        /// <summary>
+        ///   Looks up a localized string similar to Add stat reset NPC Erin.
+        /// </summary>
+        public static string AddStatResetNpcPlugIn_Name {
+            get {
+                return ResourceManager.GetString("AddStatResetNpcPlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds Erin and her stat reset window in Lorencia (128, 126). The optional stat reset feature remains disabled until enabled by the server owner..
+        /// </summary>
+        public static string AddStatResetNpcPlugIn_Description {
+            get {
+                return ResourceManager.GetString("AddStatResetNpcPlugIn_Description", resourceCulture);
+            }
+        }
     }
 }

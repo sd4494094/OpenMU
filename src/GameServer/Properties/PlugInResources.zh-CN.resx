@@ -2526,4 +2526,10 @@
   <data name="ShowItemCraftingPreviewExtendedPlugIn_Description" xml:space="preserve">
     <value>IShowItemCraftingPreviewPlugIn 的扩展实现，通过特定数据包将所有内容转发到游戏客户端。</value>
   </data>
+  <data name="ResetCharacterPointRequestHandlerPlugIn_Name" xml:space="preserve">
+    <value>洗点确认处理器</value>
+  </data>
+  <data name="ResetCharacterPointRequestHandlerPlugIn_Description" xml:space="preserve">
+    <value>处理属性重置NPC窗口中的洗点确认请求。</value>
+  </data>
 </root>

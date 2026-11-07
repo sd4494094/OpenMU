@@ -2771,4 +2771,10 @@
   <data name="ShowItemCraftingPreviewExtendedPlugIn_Description" xml:space="preserve">
     <value>The extended implementation of the IShowItemCraftingPreviewPlugIn which is forwarding everything to the game client with specific data packets.</value>
   </data>
+  <data name="ResetCharacterPointRequestHandlerPlugIn_Name" xml:space="preserve">
+    <value>Stat reset confirmation handler</value>
+  </data>
+  <data name="ResetCharacterPointRequestHandlerPlugIn_Description" xml:space="preserve">
+    <value>Handles stat reset confirmations from the opened attribute reset NPC window.</value>
+  </data>
 </root>

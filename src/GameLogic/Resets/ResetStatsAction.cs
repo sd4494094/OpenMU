@@ -91,6 +91,30 @@ public class ResetStatsAction
         }
     }
 
+    /// <summary>
+    /// Handles the confirmation from an opened stat reset NPC dialog.
+    /// </summary>
+    /// <returns>The task.</returns>
+    public async ValueTask ResetStatsFromNpcAsync()
+    {
+        if (this._player.PlayerState.CurrentState != PlayerState.NpcDialogOpened
+            || this._player.OpenedNpc is not { Definition.NpcWindow: NpcWindow.StatReInitializer } npc
+            || npc.CurrentMap != this._player.CurrentMap)
+        {
+            return;
+        }
+
+        // The native client requires equipment to be removed. Check this on the server too.
+        if (this._player.Inventory?.Items.Any(item => item.ItemSlot <= InventoryConstants.LastEquippableItemSlotIndex) == true)
+        {
+            await this.ShowMessageAsync(nameof(PlayerMessage.RemoveEquipmentForStatReset)).ConfigureAwait(false);
+            return;
+        }
+
+        await new CloseNpcDialogAction().CloseNpcDialogAsync(this._player).ConfigureAwait(false);
+        await this.ResetStatsAsync().ConfigureAwait(false);
+    }
+
     private void ResetAttributes()
     {
         var selectedCharacter = this._player.SelectedCharacter!;

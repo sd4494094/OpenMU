@@ -851,4 +851,7 @@
   <data name="IllusionSorcererSpirit" xml:space="preserve">
     <value>Illusion Sorc. Spirit</value>
   </data>
+  <data name="ErinStatResetHelper" xml:space="preserve">
+    <value>Erin the Stat Resetter</value>
+  </data>
 </root>

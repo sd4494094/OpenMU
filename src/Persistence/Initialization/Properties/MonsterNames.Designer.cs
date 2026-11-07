@@ -3317,5 +3317,13 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("IllusionSorcererSpirit", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Erin the Stat Resetter.
+        /// </summary>
+        public static string ErinStatResetHelper {
+            get {
+                return ResourceManager.GetString("ErinStatResetHelper", resourceCulture);
+            }
+        }
     }
 }

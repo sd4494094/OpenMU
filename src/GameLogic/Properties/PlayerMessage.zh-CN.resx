@@ -1112,4 +1112,7 @@ PK状态：{14}
   <data name="MapIsNotActive" xml:space="preserve">
     <value>此地图当前不可用。</value>
   </data>
+  <data name="RemoveEquipmentForStatReset" xml:space="preserve">
+    <value>请先卸下全部装备，再重置属性点。</value>
+  </data>
 </root>

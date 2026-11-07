@@ -3189,5 +3189,13 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("ItemBoxRequiresLevel", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Remove all equipped items before resetting your stat points..
+        /// </summary>
+        public static string RemoveEquipmentForStatReset {
+            get {
+                return ResourceManager.GetString("RemoveEquipmentForStatReset", resourceCulture);
+            }
+        }
     }
 }

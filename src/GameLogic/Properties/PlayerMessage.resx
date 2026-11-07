@@ -1171,4 +1171,7 @@ Inventory Extensions: {18}</value>
   <data name="MapIsNotActive" xml:space="preserve">
     <value>This map is not available.</value>
   </data>
+  <data name="RemoveEquipmentForStatReset" xml:space="preserve">
+    <value>Remove all equipped items before resetting your stat points.</value>
+  </data>
 </root>

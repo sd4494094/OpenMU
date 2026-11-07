@@ -393,7 +393,7 @@
     <value>市场传送师朱丽亚</value>
   </data>
   <data name="LeoTheHelper" xml:space="preserve">
-    <value>助手里奥</value>
+    <value>转生导师·里奥</value>
   </data>
   <data name="GensDuprian" xml:space="preserve">
     <value>多普瑞恩家族管家</value>
@@ -850,5 +850,8 @@
   </data>
   <data name="IllusionSorcererSpirit" xml:space="preserve">
     <value>幻影术士之灵</value>
+  </data>
+  <data name="ErinStatResetHelper" xml:space="preserve">
+    <value>洗点师·艾琳</value>
   </data>
 </root>
