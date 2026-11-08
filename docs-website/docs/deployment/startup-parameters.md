@@ -44,6 +44,18 @@ a firewall) and you want to use it within your computer or private network.
 | `loopback` | For testing on the same machine, a loopback IP is used (`127.127.127.127`). | `-resolveIP:loopback` |
 | *an IPv4 address* | A custom and constant IP address or a host name. | `-resolveIP:140.82.118.4` |
 
+## Stopping the server
+
+Use a normal stop signal (for example, `docker compose stop`, `systemctl stop`,
+or `SIGTERM`) and allow the process to finish. The host stops accepting connections,
+stops its game services and saves players before exiting. A console `exit` command
+uses the same shutdown path when console input is enabled.
+
+Do not use `kill -9` or `docker kill` for normal maintenance: they bypass cleanup
+and can lose unsaved player progress. The container/service stop timeout should
+leave enough time for all running game servers to finish saving; confirm a normal
+exit in the deployment logs instead of treating a forced exit (137) as success.
+
 ## Environment variables
 
 These may be helpful when running the server in a container or under Linux.

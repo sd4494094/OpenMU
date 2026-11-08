@@ -53,7 +53,7 @@ using Serilog.Extensions.Logging;
 /// <summary>
 /// The startup class for an all-in-one game server.
 /// </summary>
-internal sealed class Program : IDisposable
+internal sealed class Program : IAsyncDisposable
 {
     private static bool _confirmExit;
     private static SystemConfiguration? _systemConfiguration;
@@ -121,40 +121,20 @@ internal sealed class Program : IDisposable
 
         Console.CancelKeyPress += OnCancelKeyPress;
 
-        AppDomain.CurrentDomain.ProcessExit += (sender, eventArgs) =>
-        {
-            if (!exitToken.IsCancellationRequested)
-            {
-#pragma warning disable VSTHRD103 // Call async methods when in an async method
-                exitCts.Cancel();
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
-                Debug.WriteLine("KILL");
-            }
-        };
-
-        using var program = new Program();
+        await using var program = new Program();
         try
         {
             await program.InitializeAsync(args).ConfigureAwait(false);
+            await program.WaitForExitAsync(exitToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FindStartupCancellation(ex) is { } cancellation)
         {
             Console.WriteLine(cancellation.Message);
             Environment.ExitCode = 1;
-
-            // The exit handler above cancels the source unless it's cancelled already, but it's disposed when we return.
-            await exitCts.CancelAsync().ConfigureAwait(false);
-            return;
         }
-
-        while (!exitToken.IsCancellationRequested)
+        finally
         {
-            await Task.Delay(100).ConfigureAwait(false);
-
-            if (_systemConfiguration?.ReadConsoleInput is true)
-            {
-                await HandleConsoleInputAsync(exitCts, exitToken).ConfigureAwait(false);
-            }
+            Console.CancelKeyPress -= OnCancelKeyPress;
         }
     }
 
@@ -200,10 +180,28 @@ internal sealed class Program : IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        this._serverHost?.StopAsync().WaitAndUnwrapException();
-        this._serverHost?.Dispose();
+        if (this._serverHost is not { } host)
+        {
+            return;
+        }
+
+        try
+        {
+            await host.StopAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            if (host is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+            }
+            else
+            {
+                host.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -348,6 +346,28 @@ internal sealed class Program : IDisposable
         builder.AddOpenTelemetryMetrics(metricsRegistry);
 
         builder.Host.UseSerilog(this._logger, providers: this._loggerProviders);
+    }
+
+    private async ValueTask WaitForExitAsync(CancellationToken exitToken)
+    {
+        var lifetime = this._serverHost!.Services.GetRequiredService<IHostApplicationLifetime>();
+        using var runningCts = CancellationTokenSource.CreateLinkedTokenSource(exitToken, lifetime.ApplicationStopping);
+        var runningToken = runningCts.Token;
+        try
+        {
+            while (!runningToken.IsCancellationRequested)
+            {
+                await Task.Delay(100, runningToken).ConfigureAwait(false);
+                if (_systemConfiguration?.ReadConsoleInput is true)
+                {
+                    await HandleConsoleInputAsync(runningCts, runningToken).ConfigureAwait(false);
+                }
+            }
+        }
+        catch (OperationCanceledException) when (runningToken.IsCancellationRequested)
+        {
+            // Host signals also cancel a pending console read. Disposal still stops all hosted services.
+        }
     }
 
     private async Task<IHost> CreateHostAsync(string[] args)
