@@ -11,7 +11,9 @@ using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions;
+using MUnique.OpenMU.GameLogic.PlayerActions.Chat;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 
@@ -118,6 +120,68 @@ public class ResetNpcDialogTest
         Assert.That(player.Money, Is.EqualTo(money));
         Assert.That(player.Level, Is.EqualTo(400));
         Assert.That(player.Attributes![Stats.Resets], Is.Zero);
+    }
+
+    /// <summary>
+    /// Routes real public chat commands while an NPC session is open.
+    /// </summary>
+    [TestCase(372)]
+    [TestCase(400)]
+    public async Task PublicChatDispatchesQueryAndPreparationAsync(int level)
+    {
+        var player = await CreatePlayerAsync().ConfigureAwait(false);
+        player.Attributes![Stats.Level] = level;
+        player.GameContext.PlugInManager.RegisterPlugInAtPlugInPoint<IChatCommandPlugIn>(new ResetInfoChatCommandPlugIn());
+        player.GameContext.PlugInManager.RegisterPlugInAtPlugInPoint<IChatCommandPlugIn>(new ResetChatCommandPlugIn());
+        var view = Mock.Get(player.ViewPlugIns.GetPlugIn<IShowResetDialogPlugIn>()!);
+        view.Invocations.Clear();
+        var chat = new ChatMessageAction();
+        await chat.ChatMessageAsync(player, player.Name, "/resetinfo", false).ConfigureAwait(false);
+        view.Verify(v => v.ShowResetDialogAsync("", It.IsAny<string>(),
+            It.Is<string>(text => text.StartsWith("已刷新当前转生条件", StringComparison.Ordinal) && text.Contains(level.ToString(CultureInfo.InvariantCulture))),
+            "查询转生条件", "申请转生", "离开"), Times.Once);
+        await chat.ChatMessageAsync(player, player.Name, "/reset prepare", false).ConfigureAwait(false);
+        if (level < 400)
+        {
+            Assert.That(GetToken(player), Is.Empty);
+            view.Verify(v => v.ShowResetDialogAsync("", It.IsAny<string>(),
+                It.Is<string>(text => text.StartsWith("转生需要达到400级。", StringComparison.Ordinal)),
+                "查询转生条件", "申请转生", "离开"), Times.Once);
+            await chat.ChatMessageAsync(player, player.Name, "/reset confirm " + Guid.NewGuid().ToString("N"), false).ConfigureAwait(false);
+        }
+        else
+        {
+            Assert.That(GetToken(player), Has.Length.EqualTo(32));
+            view.Verify(v => v.ShowResetDialogAsync(It.Is<string>(token => token.Length == 32), It.IsAny<string>(),
+                It.Is<string>(text => text.StartsWith("请核对以下条件", StringComparison.Ordinal)),
+                "查询转生条件", "确认转生", "离开"), Times.Once);
+        }
+        Assert.That(player.Level, Is.EqualTo(level));
+        Assert.That(player.Money, Is.EqualTo(1000));
+    }
+
+    /// <summary>
+    /// Preparation uses the configured level and invalidates an earlier quote when rejected.
+    /// </summary>
+    [TestCase(350)]
+    [TestCase(450)]
+    public async Task InsufficientLevelRejectsPreparationAndInvalidatesQuoteAsync(int requiredLevel)
+    {
+        var player = await CreatePlayerAsync().ConfigureAwait(false);
+        var configuration = player.GameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>()!.Configuration!;
+        configuration.RequiredLevel = requiredLevel;
+        player.Attributes![Stats.Level] = requiredLevel;
+        await ResetNpcDialogAction.HandleAsync(player, "prepare").ConfigureAwait(false);
+        var token = GetToken(player);
+        Assert.That(token, Has.Length.EqualTo(32));
+        player.Attributes[Stats.Level] = requiredLevel - 1;
+        await ResetNpcDialogAction.HandleAsync(player, "prepare").ConfigureAwait(false);
+        Assert.That(GetToken(player), Is.Empty);
+        await ResetNpcDialogAction.HandleAsync(player, "confirm", token).ConfigureAwait(false);
+        Assert.That(player.Level, Is.EqualTo(requiredLevel - 1));
+        Assert.That(player.Money, Is.EqualTo(1000));
+        Assert.That(player.Attributes[Stats.Resets], Is.Zero);
+        Assert.That(player.OpenedNpc, Is.Not.Null);
     }
 
     private static string GetToken(Player player)

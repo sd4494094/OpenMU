@@ -1285,4 +1285,10 @@ Inventory Extensions: {18}</value>
   <data name="ItemRegistrationUnavailable" xml:space="preserve">
     <value>Registration for this NPC is not yet available. It can be expanded in the future.</value>
   </data>
+  <data name="ResetNpcQueryRefreshed" xml:space="preserve">
+    <value>Reset requirements refreshed. No reset has been performed.</value>
+  </data>
+  <data name="ResetNpcReviewConfirmation" xml:space="preserve">
+    <value>Review the conditions below, then choose Confirm reset to proceed.</value>
+  </data>
 </root>

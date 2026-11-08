@@ -57,13 +57,17 @@ public static class ResetNpcDialogAction
     {
         if (!Sessions.TryGetValue(player, out var session))
         {
+            player.Logger.LogWarning("Reset NPC operation {Operation} rejected: no dialog session.", operation);
             return;
         }
 
         // This lock serializes requests for one player, including token consumption and closing
         // the NPC. Do not call OpenAsync or HandleAsync recursively while holding it.
         using var guard = await session.Lock.LockAsync().ConfigureAwait(false);
-        if (!IsCurrentSession(player, session))
+        var isCurrentSession = IsCurrentSession(player, session);
+        player.Logger.LogInformation("Reset NPC operation {Operation}; current session: {IsCurrentSession}; player state: {PlayerState}.",
+            operation, isCurrentSession, player.PlayerState.CurrentState);
+        if (!isCurrentSession)
         {
             session.Token = string.Empty;
             return;
@@ -71,7 +75,7 @@ public static class ResetNpcDialogAction
 
         if (operation is "query" or "prepare")
         {
-            await ShowAsync(player, session, operation == "prepare").ConfigureAwait(false);
+            await ShowAsync(player, session, operation == "prepare", operation == "query").ConfigureAwait(false);
         }
         else if (operation == "confirm")
         {
@@ -97,24 +101,34 @@ public static class ResetNpcDialogAction
                 .OfType<ResetCharacterNpcPlugin>().Any(plugIn => plugIn.IsConfiguredNpc(npc));
     }
 
-    private static async ValueTask ShowAsync(Player player, Session session, bool confirmation)
+    private static async ValueTask ShowAsync(Player player, Session session, bool confirmation, bool queried = false)
     {
         session.Token = string.Empty;
         var configuration = player.GameContext.FeaturePlugIns.GetPlugIn<ResetFeaturePlugIn>()?.Configuration;
         var description = configuration is null
             ? player.GetLocalizedMessage(nameof(PlayerMessage.ResetSystemInactive))
             : ResetNpcDescription.Create(player, configuration);
+        var feedback = queried ? player.GetLocalizedMessage(nameof(PlayerMessage.ResetNpcQueryRefreshed)) : string.Empty;
         if (confirmation && configuration is not null)
         {
-            session.Token = Guid.NewGuid().ToString("N");
-            session.QuotedDescription = description;
-            session.ExpiresAt = DateTime.UtcNow.AddSeconds(ConfirmationLifetimeSeconds);
+            if (player.Level < configuration.RequiredLevel)
+            {
+                feedback = player.GetLocalizedMessage(nameof(PlayerMessage.RequiredLevelForReset), configuration.RequiredLevel);
+                confirmation = false;
+            }
+            else
+            {
+                session.Token = Guid.NewGuid().ToString("N");
+                session.QuotedDescription = description;
+                session.ExpiresAt = DateTime.UtcNow.AddSeconds(ConfirmationLifetimeSeconds);
+                feedback = player.GetLocalizedMessage(nameof(PlayerMessage.ResetNpcReviewConfirmation));
+            }
         }
 
         await player.InvokeViewPlugInAsync<IShowResetDialogPlugIn>(view => view.ShowResetDialogAsync(
                 session.Token,
                 session.Npc!.Definition.Designation.GetTranslation(player.Culture) ?? string.Empty,
-                description,
+                string.IsNullOrEmpty(feedback) ? description : feedback + "\n" + description,
                 player.GetLocalizedMessage(nameof(PlayerMessage.ResetNpcQuery)),
                 player.GetLocalizedMessage(confirmation ? nameof(PlayerMessage.ResetNpcConfirm) : nameof(PlayerMessage.ResetNpcApply)),
                 player.GetLocalizedMessage(nameof(PlayerMessage.ResetNpcLeave))))

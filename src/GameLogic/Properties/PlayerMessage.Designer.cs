@@ -3527,5 +3527,22 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("ItemRegistrationUnavailable", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Reset requirements refreshed. No reset has been performed..
+        /// </summary>
+        public static string ResetNpcQueryRefreshed {
+            get {
+                return ResourceManager.GetString("ResetNpcQueryRefreshed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Review the conditions below, then choose Confirm reset to proceed..
+        /// </summary>
+        public static string ResetNpcReviewConfirmation {
+            get {
+                return ResourceManager.GetString("ResetNpcReviewConfirmation", resourceCulture);
+            }
+        }
     }
 }

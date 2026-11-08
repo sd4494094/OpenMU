@@ -29,7 +29,9 @@ public class ResetInfoChatCommandPlugIn : IChatCommandPlugIn
     /// <inheritdoc />
     public async ValueTask HandleCommandAsync(Player player, string command)
     {
-        if (ResetNpcDialogAction.IsOpen(player))
+        var isOpen = ResetNpcDialogAction.IsOpen(player);
+        player.Logger.LogInformation("Reset requirements query received; current NPC session: {IsOpen}.", isOpen);
+        if (isOpen)
         {
             await ResetNpcDialogAction.HandleAsync(player, "query").ConfigureAwait(false);
             return;

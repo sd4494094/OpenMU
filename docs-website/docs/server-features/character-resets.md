@@ -13,8 +13,10 @@ and current level, price and available zen, required items, reset limit, and the
 level and points. The menu also explains attribute resets, relocation and returning to
 character selection, as configured by the server.
 
-Choose **Query reset conditions** to refresh that information, or **Apply for reset** to
-review it before choosing **Confirm reset**. Opening or querying the menu never performs
+Choose **Query reset conditions** to refresh that information and see an acknowledgement in
+the dialog. **Apply for reset** immediately reports an insufficient level in the dialog
+and does not issue a confirmation token. At the required level, it displays a review
+prompt before **Confirm reset**. The final reset action still validates all requirements. Opening or querying the menu never performs
 a reset. Confirmation is valid once for two minutes; closing or reopening the dialog,
 querying again, or a change in the displayed conditions requires a new confirmation.
 **Leave** or Escape closes the conversation. No typed command is needed for this flow.

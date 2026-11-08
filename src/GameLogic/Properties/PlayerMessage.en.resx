@@ -1226,4 +1226,10 @@ PK状态：{14}
   <data name="ItemRegistrationUnavailable" xml:space="preserve">
     <value>Registration for this NPC is not yet available. It can be expanded in the future.</value>
   </data>
+  <data name="ResetNpcQueryRefreshed" xml:space="preserve">
+    <value>已刷新当前转生条件，尚未执行转生。</value>
+  </data>
+  <data name="ResetNpcReviewConfirmation" xml:space="preserve">
+    <value>请核对以下条件；点击“确认转生”后才会执行。</value>
+  </data>
 </root>
