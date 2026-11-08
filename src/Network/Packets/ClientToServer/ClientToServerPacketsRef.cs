@@ -18189,3 +18189,152 @@ public readonly ref struct GameGuardAuthResponseRef
     /// <returns>The packet as byte span.</returns>
     public static implicit operator Span<byte>(GameGuardAuthResponseRef packet) => packet._data; 
 }
+
+
+/// <summary>
+/// Is sent by the client when: The extended client opens the stat advisor or navigates, previews or confirms an allocation or stat reset.
+/// Causes reaction on server side: Open=0, reset preview=1, reset confirm=2, allocation form=3, allocation preview=4, allocation confirm=5, home=6. Non-open requests require the current SessionId. Confirmations require the one-use Token; the server uses its stored quote, never client amounts. Other amounts are nonnegative increases, with zero for unsupported attributes. The original F2/00 request remains unchanged.
+/// </summary>
+public readonly ref struct StatAdvisorRequestExtendedRef
+{
+    private readonly Span<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StatAdvisorRequestExtendedRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public StatAdvisorRequestExtendedRef(Span<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StatAdvisorRequestExtendedRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private StatAdvisorRequestExtendedRef(Span<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (byte)Math.Min(data.Length, Length);
+            header.SubCode = SubCode;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC1;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xF2;
+
+    /// <summary>
+    /// Gets the operation sub-code of this data packet.
+    /// The <see cref="Code" /> is used as a grouping key.
+    /// </summary>
+    public static byte SubCode => 0x03;
+
+    /// <summary>
+    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
+    /// </summary>
+    public static int Length => 91;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C1HeaderWithSubCodeRef Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the operation.
+    /// </summary>
+    public byte Operation
+    {
+        get => this._data[4];
+        set => this._data[4] = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the session id.
+    /// </summary>
+    public string SessionId
+    {
+        get => this._data.ExtractString(5, 33, System.Text.Encoding.UTF8);
+        set => this._data.Slice(5, 33).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the token.
+    /// </summary>
+    public string Token
+    {
+        get => this._data.ExtractString(38, 33, System.Text.Encoding.UTF8);
+        set => this._data.Slice(38, 33).WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Gets or sets the strength.
+    /// </summary>
+    public uint Strength
+    {
+        get => ReadUInt32LittleEndian(this._data[71..]);
+        set => WriteUInt32LittleEndian(this._data[71..], value);
+    }
+
+    /// <summary>
+    /// Gets or sets the agility.
+    /// </summary>
+    public uint Agility
+    {
+        get => ReadUInt32LittleEndian(this._data[75..]);
+        set => WriteUInt32LittleEndian(this._data[75..], value);
+    }
+
+    /// <summary>
+    /// Gets or sets the vitality.
+    /// </summary>
+    public uint Vitality
+    {
+        get => ReadUInt32LittleEndian(this._data[79..]);
+        set => WriteUInt32LittleEndian(this._data[79..], value);
+    }
+
+    /// <summary>
+    /// Gets or sets the energy.
+    /// </summary>
+    public uint Energy
+    {
+        get => ReadUInt32LittleEndian(this._data[83..]);
+        set => WriteUInt32LittleEndian(this._data[83..], value);
+    }
+
+    /// <summary>
+    /// Gets or sets the leadership.
+    /// </summary>
+    public uint Leadership
+    {
+        get => ReadUInt32LittleEndian(this._data[87..]);
+        set => WriteUInt32LittleEndian(this._data[87..], value);
+    }
+
+    /// <summary>
+    /// Performs an implicit conversion from a Span of bytes to a <see cref="StatAdvisorRequestExtended"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator StatAdvisorRequestExtendedRef(Span<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="StatAdvisorRequestExtended"/> to a Span of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Span<byte>(StatAdvisorRequestExtendedRef packet) => packet._data; 
+}

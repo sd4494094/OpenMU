@@ -27,13 +27,21 @@ requirements as messages when talking to Leo and do not immediately reset. The e
 `/reset` opens the confirmation step instead of performing a reset.
 
 A stat reset refunds invested attribute points and restores the character class's base
-attributes. It preserves the level and character reset count. Season 6 NPC 464 opens the
-native stat reset dialog. Remove equipped items before confirming the reset. Closing the
-menu or pressing Escape ends the conversation without resetting or charging, and lets
-you speak to another NPC. A rejected confirmation also releases the conversation.
-The server checks the opened NPC dialog, equipment, safe zone, level, money and any required item
-before processing the request. Repeating a confirmation after the dialog closes does
-not process another NPC reset.
+attributes. It preserves the level and character reset count. Season 6 NPC 464 uses the
+MuMain stat advisor when both client and server have the extension. Its **Stat reset**
+option shows the configured level, fee, required item, equipment rule, point refund and
+post-reset points. Only the final **Confirm stat reset** action charges and performs it;
+back, leave, Escape or a stale preview costs nothing. The server rechecks the NPC session,
+equipment, safe zone, level, money, item and quoted character state.
+
+The same advisor provides **Batch allocate**. It lists the four normal attributes that the
+current class can increase, plus Leadership for classes that support it. Players enter
+increases (not target totals), review the resulting values and remaining normal points,
+then confirm once. The server validates every row and applies the whole allocation
+atomically; it rejects an invalid row or stale preview without partial changes. Master
+points, equipment bonuses and extra fees are not included. Existing single-attribute
+commands remain available. Older clients continue to use the native stat reset dialog.
+Closing or reopening NPC 464 releases the advisor session.
 
 Fresh Season 6 configurations place NPC 464 outside the Lorencia tavern at (130,133).
 Leo remains at (130,126). Existing configurations can install **Add stat reset NPC** on the

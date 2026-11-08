@@ -5831,4 +5831,46 @@ public static class ConnectionExtensions
         }
 
         await connection.SendAsync(WritePacket).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a <see cref="StatAdvisorRequestExtended" /> to this connection.
+    /// </summary>
+    /// <param name="connection">The connection.</param>
+    /// <param name="operation">The operation.</param>
+    /// <param name="sessionId">The session id.</param>
+    /// <param name="token">The token.</param>
+    /// <param name="strength">The strength.</param>
+    /// <param name="agility">The agility.</param>
+    /// <param name="vitality">The vitality.</param>
+    /// <param name="energy">The energy.</param>
+    /// <param name="leadership">The leadership.</param>
+    /// <remarks>
+    /// Is sent by the client when: The extended client opens the stat advisor or navigates, previews or confirms an allocation or stat reset.
+    /// Causes reaction on server side: Open=0, reset preview=1, reset confirm=2, allocation form=3, allocation preview=4, allocation confirm=5, home=6. Non-open requests require the current SessionId. Confirmations require the one-use Token; the server uses its stored quote, never client amounts. Other amounts are nonnegative increases, with zero for unsupported attributes. The original F2/00 request remains unchanged.
+    /// </remarks>
+    public static async ValueTask SendStatAdvisorRequestExtendedAsync(this IConnection? connection, byte @operation, string @sessionId, string @token, uint @strength, uint @agility, uint @vitality, uint @energy, uint @leadership)
+    {
+        if (connection is null)
+        {
+            return;
+        }
+
+        int WritePacket()
+        {
+            var length = StatAdvisorRequestExtendedRef.Length;
+            var packet = new StatAdvisorRequestExtendedRef(connection.Output.GetSpan(length)[..length]);
+            packet.Operation = @operation;
+            packet.SessionId = @sessionId;
+            packet.Token = @token;
+            packet.Strength = @strength;
+            packet.Agility = @agility;
+            packet.Vitality = @vitality;
+            packet.Energy = @energy;
+            packet.Leadership = @leadership;
+
+            return packet.Header.Length;
+        }
+
+        await connection.SendAsync(WritePacket).ConfigureAwait(false);
     }}

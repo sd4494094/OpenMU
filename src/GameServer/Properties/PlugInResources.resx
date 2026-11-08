@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2789,4 +2789,6 @@
   <data name="ShowLevelingWarp_Description" xml:space="preserve">
     <value>Sends full destination names and server-calculated prices to MuMain.</value>
   </data>
+  <data name="ShowStatAdvisor_Name" xml:space="preserve"><value>Stat advisor dialog</value></data>
+  <data name="ShowStatAdvisor_Description" xml:space="preserve"><value>Sends stat reset confirmations and allocation forms to clients which request the extended workflow.</value></data>
 </root>

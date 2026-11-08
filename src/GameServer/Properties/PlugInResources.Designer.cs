@@ -8068,5 +8068,22 @@ namespace MUnique.OpenMU.GameServer.Properties {
                 return ResourceManager.GetString("ShowLevelingWarp_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Stat advisor dialog.
+        /// </summary>
+        public static string ShowStatAdvisor_Name {
+            get {
+                return ResourceManager.GetString("ShowStatAdvisor_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sends stat reset confirmations and allocation forms to clients which request the extended workflow..
+        /// </summary>
+        public static string ShowStatAdvisor_Description {
+            get {
+                return ResourceManager.GetString("ShowStatAdvisor_Description", resourceCulture);
+            }
+        }
     }
 }

@@ -4107,4 +4107,50 @@ public class PacketStructureTests
         Assert.That(4 + 16, Is.LessThanOrEqualTo(expectedLength), 
             "Field 'Data' exceeds packet boundary");
     }
+
+    /// <summary>
+    /// Tests the packet size calculation for StatAdvisorRequestExtended.
+    /// </summary>
+    [Test]
+    public void StatAdvisorRequestExtended_PacketSizeValidation()
+    {
+        // Fixed-length packet validation
+        const int expectedLength = 91;
+        var actualLength = StatAdvisorRequestExtendedRef.Length;
+        
+        Assert.That(actualLength, Is.EqualTo(expectedLength), 
+            "Packet length mismatch: declared length does not match calculated size");
+        
+        // Validate field 'Operation' boundary
+        Assert.That(4 + 1, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Operation' exceeds packet boundary");
+        
+        // Validate field 'SessionId' boundary
+        Assert.That(5 + 33, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'SessionId' exceeds packet boundary");
+        
+        // Validate field 'Token' boundary
+        Assert.That(38 + 33, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Token' exceeds packet boundary");
+        
+        // Validate field 'Strength' boundary
+        Assert.That(71 + 4, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Strength' exceeds packet boundary");
+        
+        // Validate field 'Agility' boundary
+        Assert.That(75 + 4, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Agility' exceeds packet boundary");
+        
+        // Validate field 'Vitality' boundary
+        Assert.That(79 + 4, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Vitality' exceeds packet boundary");
+        
+        // Validate field 'Energy' boundary
+        Assert.That(83 + 4, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Energy' exceeds packet boundary");
+        
+        // Validate field 'Leadership' boundary
+        Assert.That(87 + 4, Is.LessThanOrEqualTo(expectedLength), 
+            "Field 'Leadership' exceeds packet boundary");
+    }
 }

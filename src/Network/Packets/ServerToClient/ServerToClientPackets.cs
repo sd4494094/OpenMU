@@ -47361,6 +47361,99 @@ public readonly struct LevelingWarpDialogExtended
     /// <param name="contentLength">The content length in bytes of the variable 'EntriesJson' field from which the size will be calculated.</param>
     public static int GetRequiredSize(int contentLength) => contentLength + 1 + 262;
 }
+
+
+/// <summary>
+/// Is sent by the server when: After a supporting client explicitly requests the stat advisor from its current stat reset NPC conversation.
+/// Causes reaction on client side: StateJson is bounded UTF-8 JSON: SessionId and Token are 32 lowercase hex digits (Token may be empty); Page is home=0, reset preview=1, allocation=2, allocation preview=3, closed=4. Title, Message and Labels are localized. CanConfirm gates explicit confirmation. ClearInputs tells the client to discard local draft amounts. AvailablePoints is the authoritative normal point balance; Stats rows contain Id (0..4), Name, Current base value, Maximum and proposed Amount. Replies replace the current page; old sessions are ignored. Successful allocations refresh authoritative character stats separately, without incremental point acknowledgements.
+/// </summary>
+public readonly struct StatAdvisorDialogExtended
+{
+    private readonly Memory<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StatAdvisorDialogExtended"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public StatAdvisorDialogExtended(Memory<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StatAdvisorDialogExtended"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private StatAdvisorDialogExtended(Memory<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (ushort)data.Length;
+            header.SubCode = SubCode;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC2;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xF2;
+
+    /// <summary>
+    /// Gets the operation sub-code of this data packet.
+    /// The <see cref="Code" /> is used as a grouping key.
+    /// </summary>
+    public static byte SubCode => 0x03;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C2HeaderWithSubCode Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the state json.
+    /// </summary>
+    public string StateJson
+    {
+        get => this._data.Span.ExtractString(5, this._data.Length - 5, System.Text.Encoding.UTF8);
+        set => this._data.Slice(5).Span.WriteString(value, System.Text.Encoding.UTF8);
+    }
+
+    /// <summary>
+    /// Performs an implicit conversion from a Memory of bytes to a <see cref="StatAdvisorDialogExtended"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator StatAdvisorDialogExtended(Memory<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="StatAdvisorDialogExtended"/> to a Memory of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Memory<byte>(StatAdvisorDialogExtended packet) => packet._data; 
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified field content.
+    /// </summary>
+    /// <param name="content">The content of the variable 'StateJson' field from which the size will be calculated.</param>
+    public static int GetRequiredSize(string content) => System.Text.Encoding.UTF8.GetByteCount(content) + 1 + 5;
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified field content.
+    /// </summary>
+    /// <param name="contentLength">The content length in bytes of the variable 'StateJson' field from which the size will be calculated.</param>
+    public static int GetRequiredSize(int contentLength) => contentLength + 1 + 5;
+}
     /// <summary>
     /// Describes the gens type.
     /// </summary>

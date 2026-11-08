@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions;
 
+using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 
 /// <summary>
@@ -24,6 +25,7 @@ public class CloseNpcDialogAction
         if (npc != null && await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false))
         {
             player.Logger.LogDebug($"Player {player.SelectedCharacter?.Name} closes NPC {player.OpenedNpc}");
+            StatAdvisorAction.Close(player);
             player.OpenedNpc = null;
             player.Vault = null;
             if (npc.Definition.ItemCraftings.Any())

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -2538,4 +2538,6 @@
   <data name="ShowResetDialogExtendedPlugIn_Description" xml:space="preserve">
     <value>显示实际转生条件并等待玩家确认。</value>
   </data>
+  <data name="ShowStatAdvisor_Name" xml:space="preserve"><value>属性管理菜单</value></data>
+  <data name="ShowStatAdvisor_Description" xml:space="preserve"><value>向主动请求的客户端发送洗点确认和批量加点菜单。</value></data>
 </root>

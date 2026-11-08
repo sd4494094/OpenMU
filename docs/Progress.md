@@ -25,6 +25,7 @@ complexity and effort). Complexity 0 means we wont implement it.
 | *ConsumeItem*                 | 0x26              | 100%     | 5          |                                               |
 | *TalkNPC*                     | 0x30              | 100%     | 5          | MuMain reset NPC: live requirements, query, apply and explicit one-use confirmation; server extension C2 F2/01 |
 | *ResetCharacterPoint*        | 0xF2 / 0x00       | 100%     | 2          | Native stat reset NPC confirmation; optional feature |
+| *StatAdvisor*                 | 0xF2 / 0x03       | 100%     | 8          | MuMain reset review and atomic batch allocation; matching client/server required |
 | *CloseNPC*                    | 0x31              | 100%     | 1          |                                               |
 | *BuyNPCItem*                  | 0x32              | 100%     | 5          |                                               |
 | *SellNPCItem*                 | 0x33              | 100%     | 5          |                                               |

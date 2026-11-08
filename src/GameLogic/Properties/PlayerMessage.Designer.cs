@@ -3544,5 +3544,328 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("ResetNpcReviewConfirmation", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Strength.
+        /// </summary>
+        public static string AdvisorStrength {
+            get {
+                return ResourceManager.GetString("AdvisorStrength", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Agility.
+        /// </summary>
+        public static string AdvisorAgility {
+            get {
+                return ResourceManager.GetString("AdvisorAgility", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Vitality.
+        /// </summary>
+        public static string AdvisorVitality {
+            get {
+                return ResourceManager.GetString("AdvisorVitality", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Energy.
+        /// </summary>
+        public static string AdvisorEnergy {
+            get {
+                return ResourceManager.GetString("AdvisorEnergy", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leadership.
+        /// </summary>
+        public static string AdvisorLeadership {
+            get {
+                return ResourceManager.GetString("AdvisorLeadership", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Reset attributes.
+        /// </summary>
+        public static string AdvisorReset {
+            get {
+                return ResourceManager.GetString("AdvisorReset", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allocate points.
+        /// </summary>
+        public static string AdvisorAllocate {
+            get {
+                return ResourceManager.GetString("AdvisorAllocate", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Leave.
+        /// </summary>
+        public static string AdvisorLeave {
+            get {
+                return ResourceManager.GetString("AdvisorLeave", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Back.
+        /// </summary>
+        public static string AdvisorBack {
+            get {
+                return ResourceManager.GetString("AdvisorBack", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Clear.
+        /// </summary>
+        public static string AdvisorClear {
+            get {
+                return ResourceManager.GetString("AdvisorClear", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Next.
+        /// </summary>
+        public static string AdvisorNext {
+            get {
+                return ResourceManager.GetString("AdvisorNext", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm stat reset.
+        /// </summary>
+        public static string AdvisorConfirmReset {
+            get {
+                return ResourceManager.GetString("AdvisorConfirmReset", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm allocation.
+        /// </summary>
+        public static string AdvisorConfirmAllocation {
+            get {
+                return ResourceManager.GetString("AdvisorConfirmAllocation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute.
+        /// </summary>
+        public static string AdvisorAttribute {
+            get {
+                return ResourceManager.GetString("AdvisorAttribute", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Base value.
+        /// </summary>
+        public static string AdvisorCurrent {
+            get {
+                return ResourceManager.GetString("AdvisorCurrent", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Increase by.
+        /// </summary>
+        public static string AdvisorIncrease {
+            get {
+                return ResourceManager.GetString("AdvisorIncrease", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to After allocation.
+        /// </summary>
+        public static string AdvisorResult {
+            get {
+                return ResourceManager.GetString("AdvisorResult", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Available points.
+        /// </summary>
+        public static string AdvisorAvailable {
+            get {
+                return ResourceManager.GetString("AdvisorAvailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Total increase.
+        /// </summary>
+        public static string AdvisorTotal {
+            get {
+                return ResourceManager.GetString("AdvisorTotal", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remaining points.
+        /// </summary>
+        public static string AdvisorRemaining {
+            get {
+                return ResourceManager.GetString("AdvisorRemaining", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter nonnegative whole numbers within the available balance and attribute limits..
+        /// </summary>
+        public static string AdvisorInvalidInput {
+            get {
+                return ResourceManager.GetString("AdvisorInvalidInput", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Waiting for the server. Do not submit again..
+        /// </summary>
+        public static string AdvisorWaiting {
+            get {
+                return ResourceManager.GetString("AdvisorWaiting", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Choose a stat reset or allocate unspent points. Opening this menu does not charge or change your character..
+        /// </summary>
+        public static string AdvisorHomeNotice {
+            get {
+                return ResourceManager.GetString("AdvisorHomeNotice", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Enter points to ADD, not final values. Only normal stat points are used. No Zen fee, equipment removal, or logout..
+        /// </summary>
+        public static string AdvisorAllocationNotice {
+            get {
+                return ResourceManager.GetString("AdvisorAllocationNotice", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The allocation contains an invalid attribute, number, or exceeds a supported attribute limit. Nothing was allocated..
+        /// </summary>
+        public static string AdvisorInvalidAllocation {
+            get {
+                return ResourceManager.GetString("AdvisorInvalidAllocation", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allocate at least one point without exceeding your available normal points. Nothing was allocated..
+        /// </summary>
+        public static string AdvisorInsufficientPoints {
+            get {
+                return ResourceManager.GetString("AdvisorInsufficientPoints", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This confirmation is invalid or expired. Return and request a new preview..
+        /// </summary>
+        public static string AdvisorExpired {
+            get {
+                return ResourceManager.GetString("AdvisorExpired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your character or rules changed after the preview. Return and review a new preview. Nothing was applied..
+        /// </summary>
+        public static string AdvisorStateChanged {
+            get {
+                return ResourceManager.GetString("AdvisorStateChanged", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allocation completed and saved. The values below are the current server values..
+        /// </summary>
+        public static string AdvisorApplied {
+            get {
+                return ResourceManager.GetString("AdvisorApplied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Allocation completed, but saving is pending. Do not repeat the allocation; contact an administrator..
+        /// </summary>
+        public static string AdvisorAppliedSavePending {
+            get {
+                return ResourceManager.GetString("AdvisorAppliedSavePending", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to This allocation was already processed. It has not been applied again..
+        /// </summary>
+        public static string AdvisorAlreadyApplied {
+            get {
+                return ResourceManager.GetString("AdvisorAlreadyApplied", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Required level: {0}; cost: {1} Zen..
+        /// </summary>
+        public static string AdvisorResetRequirements {
+            get {
+                return ResourceManager.GetString("AdvisorResetRequirements", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Refund: {0} invested points; unspent points after reset: {1}. Level and reset count remain unchanged..
+        /// </summary>
+        public static string AdvisorResetRefund {
+            get {
+                return ResourceManager.GetString("AdvisorResetRefund", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove all equipment before confirming. Attributes return to class base values..
+        /// </summary>
+        public static string AdvisorResetEquipment {
+            get {
+                return ResourceManager.GetString("AdvisorResetEquipment", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Required item: {0} x1..
+        /// </summary>
+        public static string AdvisorResetItem {
+            get {
+                return ResourceManager.GetString("AdvisorResetItem", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Only Confirm stat reset charges and performs the reset. Back or Leave costs nothing..
+        /// </summary>
+        public static string AdvisorResetNotice {
+            get {
+                return ResourceManager.GetString("AdvisorResetNotice", resourceCulture);
+            }
+        }
     }
 }

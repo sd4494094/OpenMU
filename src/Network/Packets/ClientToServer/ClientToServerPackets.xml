@@ -4452,6 +4452,22 @@
         </Field>
       </Fields>
     </Packet>
+    <Packet>
+      <HeaderType>C1HeaderWithSubCode</HeaderType><Code>F2</Code><SubCode>03</SubCode>
+      <Name>StatAdvisorRequestExtended</Name><Length>91</Length><Direction>ClientToServer</Direction>
+      <SentWhen>The extended client opens the stat advisor or navigates, previews or confirms an allocation or stat reset.</SentWhen>
+      <CausedReaction>Open=0, reset preview=1, reset confirm=2, allocation form=3, allocation preview=4, allocation confirm=5, home=6. Non-open requests require the current SessionId. Confirmations require the one-use Token; the server uses its stored quote, never client amounts. Other amounts are nonnegative increases, with zero for unsupported attributes. The original F2/00 request remains unchanged.</CausedReaction>
+      <Fields>
+        <Field><Index>4</Index><Type>Byte</Type><Name>Operation</Name></Field>
+        <Field><Index>5</Index><Type>String</Type><Name>SessionId</Name><Length>33</Length></Field>
+        <Field><Index>38</Index><Type>String</Type><Name>Token</Name><Length>33</Length></Field>
+        <Field><Index>71</Index><Type>IntegerLittleEndian</Type><Name>Strength</Name></Field>
+        <Field><Index>75</Index><Type>IntegerLittleEndian</Type><Name>Agility</Name></Field>
+        <Field><Index>79</Index><Type>IntegerLittleEndian</Type><Name>Vitality</Name></Field>
+        <Field><Index>83</Index><Type>IntegerLittleEndian</Type><Name>Energy</Name></Field>
+        <Field><Index>87</Index><Type>IntegerLittleEndian</Type><Name>Leadership</Name></Field>
+      </Fields>
+    </Packet>
   </Packets>
   <Enums>
     <Enum>

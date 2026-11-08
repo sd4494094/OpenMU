@@ -9893,4 +9893,20 @@ public class PacketStructureTests
         Assert.That(calculatedSize, Is.GreaterThanOrEqualTo(expectedMinSize), 
             "GetRequiredSize calculation incorrect for string field");
     }
+
+    /// <summary>
+    /// Tests the packet size calculation for StatAdvisorDialogExtended.
+    /// </summary>
+    [Test]
+    public void StatAdvisorDialogExtended_PacketSizeValidation()
+    {
+        // Variable-length packet validation
+        // Test GetRequiredSize method with sample data
+        const string testString = "TestData";
+        var calculatedSize = StatAdvisorDialogExtendedRef.GetRequiredSize(testString);
+        var expectedMinSize = Encoding.UTF8.GetByteCount(testString) + 1 + 5;
+        
+        Assert.That(calculatedSize, Is.GreaterThanOrEqualTo(expectedMinSize), 
+            "GetRequiredSize calculation incorrect for string field");
+    }
 }

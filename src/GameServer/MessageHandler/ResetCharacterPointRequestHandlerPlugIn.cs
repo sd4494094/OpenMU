@@ -27,11 +27,37 @@ internal class ResetCharacterPointRequestHandlerPlugIn : IPacketHandlerPlugIn
     /// <inheritdoc />
     public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
     {
+        if (packet.Length == StatAdvisorRequestExtended.Length && packet.Span[0] == 0xC1
+            && packet.Span[1] == StatAdvisorRequestExtended.Length && packet.Span[2] == StatAdvisorRequestExtended.Code
+            && packet.Span[3] == StatAdvisorRequestExtended.SubCode)
+        {
+            StatAdvisorRequestExtended request = packet;
+            if (packet.Span[37] != 0 || packet.Span[70] != 0)
+            {
+                return;
+            }
+
+            var values = new[] { request.Strength, request.Agility, request.Vitality, request.Energy, request.Leadership };
+            if (values.Any(value => value > int.MaxValue))
+            {
+                return;
+            }
+
+            await StatAdvisorAction.HandleAsync(player, request.Operation, request.SessionId, request.Token,
+                values.Select(value => (int)value).ToArray()).ConfigureAwait(false);
+            return;
+        }
+
         if (packet.Length != ResetCharacterPointRequest.Length
             || packet.Span[0] != 0xC1
             || packet.Span[1] != ResetCharacterPointRequest.Length
             || packet.Span[2] != ResetCharacterPointRequest.Code
             || packet.Span[3] != ResetCharacterPointRequest.SubCode)
+        {
+            return;
+        }
+
+        if (StatAdvisorAction.IsActive(player))
         {
             return;
         }

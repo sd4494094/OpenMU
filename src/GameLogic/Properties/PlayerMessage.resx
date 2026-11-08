@@ -1291,4 +1291,40 @@ Inventory Extensions: {18}</value>
   <data name="ResetNpcReviewConfirmation" xml:space="preserve">
     <value>Review the conditions below, then choose Confirm reset to proceed.</value>
   </data>
+  <data name="AdvisorStrength" xml:space="preserve"><value>Strength</value></data>
+  <data name="AdvisorAgility" xml:space="preserve"><value>Agility</value></data>
+  <data name="AdvisorVitality" xml:space="preserve"><value>Vitality</value></data>
+  <data name="AdvisorEnergy" xml:space="preserve"><value>Energy</value></data>
+  <data name="AdvisorLeadership" xml:space="preserve"><value>Leadership</value></data>
+  <data name="AdvisorReset" xml:space="preserve"><value>Reset attributes</value></data>
+  <data name="AdvisorAllocate" xml:space="preserve"><value>Allocate points</value></data>
+  <data name="AdvisorLeave" xml:space="preserve"><value>Leave</value></data>
+  <data name="AdvisorBack" xml:space="preserve"><value>Back</value></data>
+  <data name="AdvisorClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="AdvisorNext" xml:space="preserve"><value>Next</value></data>
+  <data name="AdvisorConfirmReset" xml:space="preserve"><value>Confirm stat reset</value></data>
+  <data name="AdvisorConfirmAllocation" xml:space="preserve"><value>Confirm allocation</value></data>
+  <data name="AdvisorAttribute" xml:space="preserve"><value>Attribute</value></data>
+  <data name="AdvisorCurrent" xml:space="preserve"><value>Base value</value></data>
+  <data name="AdvisorIncrease" xml:space="preserve"><value>Increase by</value></data>
+  <data name="AdvisorResult" xml:space="preserve"><value>After allocation</value></data>
+  <data name="AdvisorAvailable" xml:space="preserve"><value>Available points</value></data>
+  <data name="AdvisorTotal" xml:space="preserve"><value>Total increase</value></data>
+  <data name="AdvisorRemaining" xml:space="preserve"><value>Remaining points</value></data>
+  <data name="AdvisorInvalidInput" xml:space="preserve"><value>Enter nonnegative whole numbers within the available balance and attribute limits.</value></data>
+  <data name="AdvisorWaiting" xml:space="preserve"><value>Waiting for the server. Do not submit again.</value></data>
+  <data name="AdvisorHomeNotice" xml:space="preserve"><value>Choose a stat reset or allocate unspent points. Opening this menu does not charge or change your character.</value></data>
+  <data name="AdvisorAllocationNotice" xml:space="preserve"><value>Enter points to ADD, not final values. Only normal stat points are used. No Zen fee, equipment removal, or logout.</value></data>
+  <data name="AdvisorInvalidAllocation" xml:space="preserve"><value>The allocation contains an invalid attribute, number, or exceeds a supported attribute limit. Nothing was allocated.</value></data>
+  <data name="AdvisorInsufficientPoints" xml:space="preserve"><value>Allocate at least one point without exceeding your available normal points. Nothing was allocated.</value></data>
+  <data name="AdvisorExpired" xml:space="preserve"><value>This confirmation is invalid or expired. Return and request a new preview.</value></data>
+  <data name="AdvisorStateChanged" xml:space="preserve"><value>Your character or rules changed after the preview. Return and review a new preview. Nothing was applied.</value></data>
+  <data name="AdvisorApplied" xml:space="preserve"><value>Allocation completed and saved. The values below are the current server values.</value></data>
+  <data name="AdvisorAppliedSavePending" xml:space="preserve"><value>Allocation completed, but saving is pending. Do not repeat the allocation; contact an administrator.</value></data>
+  <data name="AdvisorAlreadyApplied" xml:space="preserve"><value>This allocation was already processed. It has not been applied again.</value></data>
+  <data name="AdvisorResetRequirements" xml:space="preserve"><value>Required level: {0}; cost: {1} Zen.</value></data>
+  <data name="AdvisorResetRefund" xml:space="preserve"><value>Refund: {0} invested points; unspent points after reset: {1}. Level and reset count remain unchanged.</value></data>
+  <data name="AdvisorResetEquipment" xml:space="preserve"><value>Remove all equipment before confirming. Attributes return to class base values.</value></data>
+  <data name="AdvisorResetItem" xml:space="preserve"><value>Required item: {0} x1.</value></data>
+  <data name="AdvisorResetNotice" xml:space="preserve"><value>Only Confirm stat reset charges and performs the reset. Back or Leave costs nothing.</value></data>
 </root>

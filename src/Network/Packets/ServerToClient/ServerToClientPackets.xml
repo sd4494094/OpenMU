@@ -16655,6 +16655,13 @@
         </Field>
       </Fields>
     </Packet>
+    <Packet>
+      <HeaderType>C2HeaderWithSubCode</HeaderType><Code>F2</Code><SubCode>03</SubCode>
+      <Name>StatAdvisorDialogExtended</Name><Direction>ServerToClient</Direction>
+      <SentWhen>After a supporting client explicitly requests the stat advisor from its current stat reset NPC conversation.</SentWhen>
+      <CausedReaction>StateJson is bounded UTF-8 JSON: SessionId and Token are 32 lowercase hex digits (Token may be empty); Page is home=0, reset preview=1, allocation=2, allocation preview=3, closed=4. Title, Message and Labels are localized. CanConfirm gates explicit confirmation. ClearInputs tells the client to discard local draft amounts. AvailablePoints is the authoritative normal point balance; Stats rows contain Id (0..4), Name, Current base value, Maximum and proposed Amount. Replies replace the current page; old sessions are ignored. Successful allocations refresh authoritative character stats separately, without incremental point acknowledgements.</CausedReaction>
+      <Fields><Field><Index>5</Index><Type>String</Type><Name>StateJson</Name></Field></Fields>
+    </Packet>
   </Packets>
   <Enums>
     <Enum>

@@ -10549,4 +10549,32 @@ public static class ConnectionExtensions
         }
 
         await connection.SendAsync(WritePacket).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends a <see cref="StatAdvisorDialogExtended" /> to this connection.
+    /// </summary>
+    /// <param name="connection">The connection.</param>
+    /// <param name="stateJson">The state json.</param>
+    /// <remarks>
+    /// Is sent by the server when: After a supporting client explicitly requests the stat advisor from its current stat reset NPC conversation.
+    /// Causes reaction on client side: StateJson is bounded UTF-8 JSON: SessionId and Token are 32 lowercase hex digits (Token may be empty); Page is home=0, reset preview=1, allocation=2, allocation preview=3, closed=4. Title, Message and Labels are localized. CanConfirm gates explicit confirmation. ClearInputs tells the client to discard local draft amounts. AvailablePoints is the authoritative normal point balance; Stats rows contain Id (0..4), Name, Current base value, Maximum and proposed Amount. Replies replace the current page; old sessions are ignored. Successful allocations refresh authoritative character stats separately, without incremental point acknowledgements.
+    /// </remarks>
+    public static async ValueTask SendStatAdvisorDialogExtendedAsync(this IConnection? connection, string @stateJson)
+    {
+        if (connection is null)
+        {
+            return;
+        }
+
+        int WritePacket()
+        {
+            var length = StatAdvisorDialogExtendedRef.GetRequiredSize(stateJson);
+            var packet = new StatAdvisorDialogExtendedRef(connection.Output.GetSpan(length)[..length]);
+            packet.StateJson = @stateJson;
+
+            return packet.Header.Length;
+        }
+
+        await connection.SendAsync(WritePacket).ConfigureAwait(false);
     }}
