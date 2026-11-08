@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.Interfaces;
 
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
 using System.Linq.Expressions;
@@ -79,10 +80,18 @@ public static class LocalizedStringResourceExtensions
             ArgumentNullException.ThrowIfNull(resourceProperty);
             if (resourceProperty.Body is not MemberExpression { Member: PropertyInfo { PropertyType: var propertyType, GetMethod.IsStatic: true, DeclaringType: { } resourceType } property }
                 || propertyType != typeof(string)
-                || resourceType.GetProperty("ResourceManager", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(null) is not ResourceManager resourceManager)
+                || resourceType.GetProperty("ResourceManager", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic) is not { } managerProperty
+                || !typeof(ResourceManager).IsAssignableFrom(managerProperty.PropertyType))
             {
                 throw new ArgumentException("Expected a static string property of a resource class, e.g. () => MapNames.Lorencia.", nameof(resourceProperty));
             }
+
+            // Generated resource getters lazily assign a field without synchronization. Keep one manager
+            // per resource type even when parallel game servers receive different first-use instances.
+            var resourceManager = ResourceManagersByType.GetOrAdd(
+                resourceType,
+                _ => new Lazy<ResourceManager>(() => managerProperty.GetValue(null) as ResourceManager
+                    ?? throw new ArgumentException("The resource manager must not be null.", nameof(resourceProperty)))).Value;
 
             if (!LocalizedStringResources.TryGetName(resourceManager, out _))
             {
@@ -112,6 +121,8 @@ public static class LocalizedStringResourceExtensions
     }
 
 #pragma warning restore SA1101
+
+    private static readonly ConcurrentDictionary<Type, Lazy<ResourceManager>> ResourceManagersByType = new();
 
     private static readonly ConditionalWeakTable<ResourceManager, IReadOnlyList<CultureInfo>> CulturesCache = new();
 

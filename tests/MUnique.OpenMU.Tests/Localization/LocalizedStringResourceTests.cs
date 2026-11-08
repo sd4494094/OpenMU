@@ -122,4 +122,18 @@ public class LocalizedStringResourceTests
         Assert.That(result.SourceStamp, Is.Null);
         Assert.That(result.GetOwnTranslation(CultureInfo.GetCultureInfo("zh-CN")), Is.EqualTo("勇者大陆"));
     }
+    /// <summary>Concurrent first use keeps a stable source even if the generated getter creates multiple managers.</summary>
+    [Test]
+    public void FromResource_ConcurrentManagerInstances_UseOneSource()
+    {
+        var values = new LocalizedString[32];
+        Parallel.For(0, values.Length, index => values[index] = LocalizedString.FromResource(() => RecreatedCaptions.Lorencia));
+        foreach (var value in values)
+        {
+            Assert.That(value.SourceKey, Is.EqualTo("RecreatedCaptions/Lorencia"));
+            Assert.That(value.GetOwnTranslation(CultureInfo.GetCultureInfo("zh-CN")), Is.EqualTo("勇者大陆"));
+            Assert.That(value.GetFromSource(), Is.EqualTo(value));
+        }
+    }
+
 }
