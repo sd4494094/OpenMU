@@ -61,8 +61,8 @@ public class LevelingWarpDataTest
         var spawn = configuration.Maps.Single(m => m.Number == 0).MonsterSpawns.Single(s => s.MonsterDefinition == npc);
         Assert.That((spawn.X1, spawn.Y1), Is.EqualTo((LevelingWarpInitialization.NpcX, LevelingWarpInitialization.NpcY)));
         var data = LevelingWarpInitialization.CreateDestinations(context, configuration);
-        Assert.That(data.Destinations.Count, Is.EqualTo(26));
-        Assert.That(data.Destinations.Select(d => d.Number).Distinct().Count(), Is.EqualTo(26));
+        Assert.That(data.Destinations.Count, Is.EqualTo(28));
+        Assert.That(data.Destinations.Select(d => d.Number).Distinct().Count(), Is.EqualTo(28));
         foreach (var entry in data.Destinations)
         {
             var gate = entry.Gate!;
@@ -72,7 +72,62 @@ public class LevelingWarpDataTest
             Assert.That(gate.Y1, Is.EqualTo(gate.Y2));
             Assert.That(entry.Costs, Is.GreaterThanOrEqualTo(0));
         }
+
+        var yetiRooms = data.Destinations.Where(entry => entry.Number is 23 or 24).OrderBy(entry => entry.Number).ToArray();
+        Assert.That(yetiRooms.Select(entry => (entry.Gate!.Map!.Number, entry.Gate.X1, entry.Gate.Y1)),
+            Is.EqualTo(new[] { ((short)2, (byte)195, (byte)165), ((short)2, (byte)37, (byte)25) }));
+        Assert.That(yetiRooms.Select(entry => entry.LevelRequirement), Is.All.EqualTo(20));
+        Assert.That(yetiRooms.Select(entry => entry.Costs), Is.All.EqualTo(2000));
     }
+
+    /// <summary>Upgrades an existing default list without replacing owner-edited values or adding duplicates.</summary>
+    [Test]
+    public async Task VersionThreeAddsOnlyMissingYetiDestinationsAsync()
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        await new DataInitialization(provider, NullLoggerFactory.Instance).CreateInitialDataAsync(1, false).ConfigureAwait(false);
+        using var context = provider.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var feature = configuration.PlugInConfigurations.Single(p => p.TypeId == typeof(LevelingWarpFeaturePlugIn).GUID);
+        var entries = JsonNode.Parse(feature.CustomConfiguration!)!;
+        var destinations = entries["Destinations"]!["$values"]!.AsArray();
+        foreach (var number in new[] { 23, 24 })
+        {
+            var entry = destinations.Single(node => node!["Number"]!.GetValue<int>() == number)!;
+            var gateId = entry["Gate"]!["$ref"]!.GetValue<string>();
+            destinations.Remove(entry);
+            var gate = configuration.Maps.SelectMany(map => map.ExitGates).Single(candidate => ((MUnique.OpenMU.Persistence.IIdentifiable)candidate).Id.ToString() == gateId);
+            gate.Map!.ExitGates.Remove(gate);
+        }
+
+        var existing = destinations.Single(entry => entry!["Number"]!.GetValue<int>() == 1)!;
+        existing["Costs"] = 54321;
+        feature.CustomConfiguration = entries.ToJsonString();
+        feature.IsActive = true;
+        var warpList = configuration.WarpList.ToArray();
+        var gateCount = configuration.Maps.Sum(map => map.ExitGates.Count);
+        var update = new AddLevelingWarpNpcPlugIn();
+        var installed = (await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Single(item => item.Key == update.Key);
+        installed.Version = 2;
+
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+
+        Assert.That(installed.Version, Is.EqualTo(3));
+        Assert.That(feature.IsActive, Is.True);
+        Assert.That(configuration.WarpList, Is.EqualTo(warpList));
+        Assert.That(configuration.Maps.Sum(map => map.ExitGates.Count), Is.EqualTo(gateCount + 2));
+        var upgraded = JsonNode.Parse(feature.CustomConfiguration!)!["Destinations"]!["$values"]!.AsArray();
+        Assert.That(upgraded.Count, Is.EqualTo(28));
+        Assert.That(upgraded.Single(entry => entry!["Number"]!.GetValue<int>() == 1)!["Costs"]!.GetValue<int>(), Is.EqualTo(54321));
+        Assert.That(upgraded.Where(entry => entry!["Number"]!.GetValue<int>() is 23 or 24).Count(), Is.EqualTo(2));
+        var once = feature.CustomConfiguration;
+
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+
+        Assert.That(configuration.Maps.Sum(map => map.ExitGates.Count), Is.EqualTo(gateCount + 2));
+        Assert.That(feature.CustomConfiguration, Is.EqualTo(once));
+    }
+
     /// <summary>An existing database without this optional service receives it without changing public warps.</summary>
     [Test]
     public async Task ExistingConfigurationReceivesMissingOptionalServiceAsync()
@@ -129,11 +184,11 @@ public class LevelingWarpDataTest
         feature.CustomConfiguration = document.ToJsonString();
         var before = JsonNode.Parse(feature.CustomConfiguration)!;
         var update = new AddLevelingWarpNpcPlugIn();
-        Assert.That(update.Version, Is.EqualTo(2));
+        Assert.That(update.Version, Is.EqualTo(3));
         var installed = (await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Single(u => u.Key == update.Key);
-        installed.Version = 1;
+        installed.Version = 2;
         await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
-        Assert.That(installed.Version, Is.EqualTo(2));
+        Assert.That(installed.Version, Is.EqualTo(3));
         var after = JsonNode.Parse(feature.CustomConfiguration!)!;
         var updatedEntry = after["Destinations"]!["$values"]!.AsArray().Single(d => d!["Number"]!.GetValue<int>() == 14)!;
         Assert.That(new LocalizedString(updatedEntry["Description"]!.GetValue<string>()).GetTranslation(chinese),

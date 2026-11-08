@@ -18,11 +18,13 @@ and the Zen price. Clicking an enabled row immediately requests travel. **Close*
 or Escape leaves without charging. No typed command or confirmation is needed.
 Unsupported clients receive an unavailable message and their conversation closes.
 
-Initial data contains 22 leveling locations and four boss locations. Each has its
-own non-respawn exit gate, and is absent from the public WarpList. Initial levels
-and fees are copied from the corresponding public move at installation time;
-subsequent changes to the two lists are independent. Ordinary class level reductions,
-map requirements and gate-entry plugins still apply.
+Initial data contains 24 leveling locations and four boss locations. Each has its
+own non-respawn exit gate, and is absent from the public WarpList. The two Yeti Room
+destinations are on Devias (map 2), at the verified walkable tiles **195, 165** and
+**37, 25**. Their level and Zen requirements follow the ordinary Devias move at the
+time of installation. Other initial levels and fees are copied from their matching
+public moves; subsequent changes to the two lists are independent. Ordinary class
+level reductions, map requirements and gate-entry plugins still apply.
 
 Operators may reorder or translate rows freely. Keep each destination **Number**
 stable and never reuse a deleted number for another location. **Name** identifies the

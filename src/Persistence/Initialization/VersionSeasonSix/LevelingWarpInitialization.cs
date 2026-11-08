@@ -29,6 +29,9 @@ public static class LevelingWarpInitialization
     /// <summary>The default town-street Y coordinate.</summary>
     public const byte NpcY = 131;
 
+    private const int YetiRoomOneNumber = 23;
+    private const int YetiRoomTwoNumber = 24;
+
     /// <summary>Ensures the NPC and its outdoor spawn without altering existing placements.</summary>
     /// <param name="context">The configuration context.</param>
     /// <param name="configuration">The configuration.</param>
@@ -75,6 +78,7 @@ public static class LevelingWarpInitialization
         }
 
         RefineDefaultDescription(feature);
+        EnsureYetiDestinations(context, configuration, feature);
 
         var talk = GetOrCreate(context, configuration, typeof(LevelingWarpNpcPlugIn).GUID);
         if (string.IsNullOrEmpty(talk.CustomConfiguration) || HasNoNpc(talk.CustomConfiguration))
@@ -112,11 +116,62 @@ public static class LevelingWarpInitialization
         Add(context, configuration, result, 20, 10, "Icarus", "天空之城", "Mega Crust Area", "恶灵王聚集点", 30, 100, 23);
         Add(context, configuration, result, 21, 10, "Icarus", "天空之城", "Phantom Knight Area", "幻影骑士聚集点", 40, 133, 23);
         Add(context, configuration, result, 22, 10, "Icarus", "天空之城", "Drakan Area", "红魔龙聚集点", 47, 190, 23);
+        Add(context, configuration, result, YetiRoomOneNumber, 2, "Devias", "冰风谷", "Yeti Room No. 1", "雪人房1号", 195, 165, 4);
+        Add(context, configuration, result, YetiRoomTwoNumber, 2, "Devias", "冰风谷", "Yeti Room No. 2", "雪人房2号", 37, 25, 4);
         Add(context, configuration, result, 101, 7, "Atlans", "亚特兰蒂斯", "Boss: Hydra", "首领·海魔希特拉", 224, 203, 13);
         Add(context, configuration, result, 102, 8, "Tarkan", "死亡沙漠", "Boss: Zaikan", "首领·魔王扎坎", 6, 241, 22);
         Add(context, configuration, result, 103, 8, "Tarkan", "死亡沙漠", "Boss: Death Beam Knight", "首领·炽炎魔", 156, 225, 22);
         Add(context, configuration, result, 104, 10, "Icarus", "天空之城", "Boss: Phoenix of Darkness", "首领·天魔菲尼斯", 30, 235, 23);
         return result;
+    }
+
+    private static void EnsureYetiDestinations(IContext context, GameConfiguration configuration, PlugInConfiguration feature)
+    {
+        var document = JsonNode.Parse(feature.CustomConfiguration!);
+        var destinations = GetDestinationArray(document);
+        if (destinations is null)
+        {
+            return;
+        }
+
+        var existingNumbers = destinations
+            .Where(entry => entry?["Number"] is not null)
+            .Select(entry => entry!["Number"]!.GetValue<int>())
+            .ToHashSet();
+        var missingNumbers = new[] { YetiRoomOneNumber, YetiRoomTwoNumber }
+            .Where(number => !existingNumbers.Contains(number))
+            .ToArray();
+        if (missingNumbers.Length == 0)
+        {
+            return;
+        }
+
+        var additions = new LevelingWarpConfiguration();
+        if (missingNumbers.Contains(YetiRoomOneNumber))
+        {
+            Add(context, configuration, additions, YetiRoomOneNumber, 2, "Devias", "冰风谷", "Yeti Room No. 1", "雪人房1号", 195, 165, 4);
+        }
+
+        if (missingNumbers.Contains(YetiRoomTwoNumber))
+        {
+            Add(context, configuration, additions, YetiRoomTwoNumber, 2, "Devias", "冰风谷", "Yeti Room No. 2", "雪人房2号", 37, 25, 4);
+        }
+
+        var serialized = new PlugInConfiguration();
+        serialized.SetConfiguration(additions, new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+        var serializedDestinations = GetDestinationArray(JsonNode.Parse(serialized.CustomConfiguration!))!;
+        foreach (var entry in serializedDestinations)
+        {
+            destinations.Add(entry?.DeepClone());
+        }
+
+        feature.CustomConfiguration = document!.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    private static JsonArray? GetDestinationArray(JsonNode? document)
+    {
+        var destinations = document?["Destinations"];
+        return destinations is JsonObject ? destinations["$values"] as JsonArray : destinations as JsonArray;
     }
 
     private static void RefineDefaultDescription(PlugInConfiguration feature)
