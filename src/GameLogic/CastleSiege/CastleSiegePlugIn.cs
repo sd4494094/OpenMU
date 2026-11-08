@@ -11,6 +11,7 @@ using System.Threading;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.CastleSiege.NPC;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Pathfinding;
 using MUnique.OpenMU.PlugIns;
 
@@ -640,7 +641,7 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
 
         if (context.SentReadyCountdownMinutes.Add(remainingMinutes))
         {
-            await context.GameContext.SendGlobalNotificationAsync($"Castle Siege starts in {remainingMinutes} minute(s).").ConfigureAwait(false);
+            await context.GameContext.SendGlobalNotificationAsync(LocalizedString.FromResource(() => PlayerMessage.CastleSiegeStartsInMinutes), remainingMinutes).ConfigureAwait(false);
         }
     }
 
@@ -648,15 +649,15 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
     {
         var message = context.CurrentState switch
         {
-            CastleSiegeState.RegisterGuild => "Castle Siege guild registration is open.",
-            CastleSiegeState.RegisterMark => "Castle Siege mark registration is open.",
-            CastleSiegeState.Idle3 or CastleSiegeState.Notify => "Castle Siege preparations are in progress.",
-            CastleSiegeState.Start => "Castle Siege is in progress.",
-            _ => string.Empty,
+            CastleSiegeState.RegisterGuild => LocalizedString.FromResource(() => PlayerMessage.CastleSiegeGuildRegistrationOpen),
+            CastleSiegeState.RegisterMark => LocalizedString.FromResource(() => PlayerMessage.CastleSiegeMarkRegistrationOpen),
+            CastleSiegeState.Idle3 or CastleSiegeState.Notify => LocalizedString.FromResource(() => PlayerMessage.CastleSiegePreparationsInProgress),
+            CastleSiegeState.Start => LocalizedString.FromResource(() => PlayerMessage.CastleSiegeInProgress),
+            _ => (LocalizedString?)null,
         };
 
-        return string.IsNullOrEmpty(message)
+        return message is null
             ? ValueTask.CompletedTask
-            : context.GameContext.SendGlobalNotificationAsync(message);
+            : context.GameContext.SendGlobalNotificationAsync(message.Value);
     }
 }

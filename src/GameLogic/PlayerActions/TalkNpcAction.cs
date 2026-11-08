@@ -1,4 +1,4 @@
-﻿// <copyright file="TalkNpcAction.cs" company="MUnique">
+// <copyright file="TalkNpcAction.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -153,7 +153,7 @@ public class TalkNpcAction
 
         if (!quests.Any())
         {
-            await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync("I have no quests for you.", player.OpenedNpc)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(player.GetLocalizedMessage(nameof(PlayerMessage.NpcNoQuests)), player.OpenedNpc)).ConfigureAwait(false);
             player.OpenedNpc = null;
             await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false);
             return;
@@ -162,7 +162,7 @@ public class TalkNpcAction
         if (quests.All(quest => quest.MinimumCharacterLevel > player.Level))
         {
             await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(
-                "I have nothing to do for you. Come back with more power.",
+                player.GetLocalizedMessage(nameof(PlayerMessage.NpcQuestLevelTooLow)),
                 player.OpenedNpc)).ConfigureAwait(false);
             player.OpenedNpc = null;
             await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false);
@@ -175,7 +175,7 @@ public class TalkNpcAction
         if (questState?.LastFinishedQuest?.Number >= maxQuestNumber)
         {
             await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(
-                "I have nothing to do for you. You solved all my quests already.",
+                player.GetLocalizedMessage(nameof(PlayerMessage.NpcAllQuestsCompleted)),
                 player.OpenedNpc)).ConfigureAwait(false);
             player.OpenedNpc = null;
             await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false);
@@ -189,13 +189,13 @@ public class TalkNpcAction
     {
         if (player.Level < 100)
         {
-            await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync("Your level should be at least level 100", player.OpenedNpc!)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(player.GetLocalizedMessage(nameof(PlayerMessage.NpcGuildMinimumLevel), 100), player.OpenedNpc!)).ConfigureAwait(false);
             return false;
         }
 
         if (player.GuildStatus != null)
         {
-            await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync("You already belong to a guild", player.OpenedNpc!)).ConfigureAwait(false);
+            await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(p => p.ShowMessageOfObjectAsync(player.GetLocalizedMessage(nameof(PlayerMessage.NpcAlreadyInGuild)), player.OpenedNpc!)).ConfigureAwait(false);
             return false;
         }
 

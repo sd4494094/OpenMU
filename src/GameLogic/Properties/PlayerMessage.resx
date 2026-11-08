@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1236,5 +1236,53 @@ Inventory Extensions: {18}</value>
   </data>
   <data name="LevelingWarpRequirements" xml:space="preserve">
     <value>You do not meet the teleport requirements, or the destination is unavailable.</value>
+  </data>
+  <data name="CastleSiegeGuildRegistrationOpen" xml:space="preserve">
+    <value>Castle Siege guild registration is open.</value>
+  </data>
+  <data name="CastleSiegeMarkRegistrationOpen" xml:space="preserve">
+    <value>Castle Siege mark registration is open.</value>
+  </data>
+  <data name="CastleSiegePreparationsInProgress" xml:space="preserve">
+    <value>Castle Siege preparations are in progress.</value>
+  </data>
+  <data name="CastleSiegeInProgress" xml:space="preserve">
+    <value>Castle Siege is in progress.</value>
+  </data>
+  <data name="CastleSiegeStartsInMinutes" xml:space="preserve">
+    <value>Castle Siege starts in {0} minute(s).</value>
+  </data>
+  <data name="NpcNoQuests" xml:space="preserve">
+    <value>I have no quests for you.</value>
+  </data>
+  <data name="NpcQuestLevelTooLow" xml:space="preserve">
+    <value>I have nothing to do for you. Come back with more power.</value>
+  </data>
+  <data name="NpcAllQuestsCompleted" xml:space="preserve">
+    <value>I have nothing to do for you. You solved all my quests already.</value>
+  </data>
+  <data name="NpcGuildMinimumLevel" xml:space="preserve">
+    <value>Your level should be at least level {0}</value>
+  </data>
+  <data name="NpcAlreadyInGuild" xml:space="preserve">
+    <value>You already belong to a guild</value>
+  </data>
+  <data name="ItemRegistrationMissingItem" xml:space="preserve">
+    <value>You don't have the required item in your inventory.</value>
+  </data>
+  <data name="ItemRegistrationMoneyLimit" xml:space="preserve">
+    <value>You have reached the maximum inventory money limit.</value>
+  </data>
+  <data name="ItemRegistrationRewardClaimed" xml:space="preserve">
+    <value>Registered {0}/{0} items! Reward claimed.</value>
+  </data>
+  <data name="ItemRegistrationTotal" xml:space="preserve">
+    <value>Total items registered all-time: {0}.</value>
+  </data>
+  <data name="ItemRegistrationProgress" xml:space="preserve">
+    <value>Registered {0}/{1} items.</value>
+  </data>
+  <data name="ItemRegistrationUnavailable" xml:space="preserve">
+    <value>Registration for this NPC is not yet available. It can be expanded in the future.</value>
   </data>
 </root>

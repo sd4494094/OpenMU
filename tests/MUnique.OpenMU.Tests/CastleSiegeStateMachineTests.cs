@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -864,6 +865,52 @@ public class CastleSiegeStateMachineTests
     }
 
     /// <summary>
+    /// Verifies every announced state resolves independently for Chinese and English recipients.
+    /// </summary>
+    /// <param name="utcTime">The scheduled time.</param>
+    /// <param name="chinese">The expected Chinese text.</param>
+    /// <param name="english">The expected English text.</param>
+    [TestCase("2026-08-03T12:00:00Z", "攻城战战盟报名已开放。", "Castle Siege guild registration is open.")]
+    [TestCase("2026-08-05T12:00:00Z", "攻城战城主标识登记已开放。", "Castle Siege mark registration is open.")]
+    [TestCase("2026-08-06T12:00:00Z", "攻城战正在筹备中。", "Castle Siege preparations are in progress.")]
+    [TestCase("2026-08-07T12:00:00Z", "攻城战正在筹备中。", "Castle Siege preparations are in progress.")]
+    [TestCase("2026-08-08T21:00:00Z", "攻城战正在进行中。", "Castle Siege is in progress.")]
+    public async ValueTask StateNotificationsAreLocalizedAsync(string utcTime, string chinese, string english)
+    {
+        foreach (var (culture, expected) in new[] { ("zh-CN", chinese), ("en", english), ("zh-CN", chinese) })
+        {
+            var fixture = await CreateFixtureAsync(cultureName: culture).ConfigureAwait(false);
+            var timeProvider = new ManualTimeProvider(DateTimeOffset.Parse(utcTime, CultureInfo.InvariantCulture));
+            var plugIn = new CastleSiegePlugIn(timeProvider);
+            await plugIn.ExecuteTaskAsync(fixture.GameContext.Object).ConfigureAwait(false);
+            var context = plugIn.GetContext(fixture.GameContext.Object)!;
+            timeProvider.Advance(context.NextNotificationUtc - timeProvider.GetUtcNow().UtcDateTime);
+            await plugIn.ExecuteTaskAsync(fixture.GameContext.Object).ConfigureAwait(false);
+
+            Assert.That(fixture.Notifications, Does.Contain(expected));
+            fixture.GameContext.Verify(game => game.SendGlobalNotificationAsync(It.IsAny<string>()), Times.Never);
+        }
+    }
+
+    /// <summary>
+    /// Verifies countdown arguments survive localization without changing notification cadence.
+    /// </summary>
+    [Test]
+    public async ValueTask ReadyCountdownIsLocalizedAsync()
+    {
+        var fixture = await CreateFixtureAsync(cultureName: "zh-CN").ConfigureAwait(false);
+        var timeProvider = new ManualTimeProvider(new DateTimeOffset(2026, 8, 8, 19, 30, 0, TimeSpan.Zero));
+        var plugIn = new CastleSiegePlugIn(timeProvider);
+        await plugIn.ExecuteTaskAsync(fixture.GameContext.Object).ConfigureAwait(false);
+        await plugIn.ExecuteTaskAsync(fixture.GameContext.Object).ConfigureAwait(false);
+        timeProvider.Advance(TimeSpan.FromMinutes(25));
+        await plugIn.ExecuteTaskAsync(fixture.GameContext.Object).ConfigureAwait(false);
+
+        Assert.That(fixture.Notifications, Is.EqualTo(new[] { "攻城战将在 30 分钟后开始。", "攻城战将在 5 分钟后开始。" }));
+        fixture.GameContext.Verify(game => game.SendGlobalNotificationAsync(It.IsAny<string>()), Times.Never);
+    }
+
+    /// <summary>
     /// Verifies that a disabled or missing configuration is handled without creating runtime state.
     /// </summary>
     [Test]
@@ -1021,7 +1068,7 @@ public class CastleSiegeStateMachineTests
         return (await context.GetAsync<CastleSiegeData>().ConfigureAwait(false)).Single().Guilds.ToList();
     }
 
-    private static async ValueTask<TestFixture> CreateFixtureAsync(bool createSiegeData = true)
+    private static async ValueTask<TestFixture> CreateFixtureAsync(bool createSiegeData = true, string cultureName = "en")
     {
         var persistenceContextProvider = new InMemoryPersistenceContextProvider();
         using var context = persistenceContextProvider.CreateNewContext();
@@ -1061,6 +1108,13 @@ public class CastleSiegeStateMachineTests
         gameContext
             .Setup(game => game.SendGlobalNotificationAsync(It.IsAny<string>()))
             .Callback<string>(notifications.Add)
+            .Returns(ValueTask.CompletedTask);
+
+        var culture = CultureInfo.GetCultureInfo(cultureName);
+        gameContext
+            .Setup(game => game.SendGlobalNotificationAsync(It.IsAny<LocalizedString>(), It.IsAny<object?[]>()))
+            .Callback<LocalizedString, object?[]>((message, arguments) =>
+                notifications.Add(string.Format(culture, message.GetTranslation(culture)!, arguments)))
             .Returns(ValueTask.CompletedTask);
 
         return new(

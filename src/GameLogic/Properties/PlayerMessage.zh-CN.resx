@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+﻿<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1177,5 +1177,53 @@ PK状态：{14}
   </data>
   <data name="LevelingWarpRequirements" xml:space="preserve">
     <value>等级、金币或地图进入条件不符，或目的地暂时不可用。</value>
+  </data>
+  <data name="CastleSiegeGuildRegistrationOpen" xml:space="preserve">
+    <value>攻城战战盟报名已开放。</value>
+  </data>
+  <data name="CastleSiegeMarkRegistrationOpen" xml:space="preserve">
+    <value>攻城战城主标识登记已开放。</value>
+  </data>
+  <data name="CastleSiegePreparationsInProgress" xml:space="preserve">
+    <value>攻城战正在筹备中。</value>
+  </data>
+  <data name="CastleSiegeInProgress" xml:space="preserve">
+    <value>攻城战正在进行中。</value>
+  </data>
+  <data name="CastleSiegeStartsInMinutes" xml:space="preserve">
+    <value>攻城战将在 {0} 分钟后开始。</value>
+  </data>
+  <data name="NpcNoQuests" xml:space="preserve">
+    <value>我这里没有适合你的任务。</value>
+  </data>
+  <data name="NpcQuestLevelTooLow" xml:space="preserve">
+    <value>你目前还无法接受这里的任务，提升实力后再来吧。</value>
+  </data>
+  <data name="NpcAllQuestsCompleted" xml:space="preserve">
+    <value>你已经完成了我这里的所有任务。</value>
+  </data>
+  <data name="NpcGuildMinimumLevel" xml:space="preserve">
+    <value>创建战盟需要达到 {0} 级。</value>
+  </data>
+  <data name="NpcAlreadyInGuild" xml:space="preserve">
+    <value>你已经加入了战盟。</value>
+  </data>
+  <data name="ItemRegistrationMissingItem" xml:space="preserve">
+    <value>背包中没有登记所需的物品。</value>
+  </data>
+  <data name="ItemRegistrationMoneyLimit" xml:space="preserve">
+    <value>身上金币已达上限，无法领取奖励。</value>
+  </data>
+  <data name="ItemRegistrationRewardClaimed" xml:space="preserve">
+    <value>已登记 {0}/{0} 件物品！奖励已领取。</value>
+  </data>
+  <data name="ItemRegistrationTotal" xml:space="preserve">
+    <value>累计登记物品：{0} 件。</value>
+  </data>
+  <data name="ItemRegistrationProgress" xml:space="preserve">
+    <value>已登记 {0}/{1} 件物品。</value>
+  </data>
+  <data name="ItemRegistrationUnavailable" xml:space="preserve">
+    <value>该 NPC 暂未开放物品登记。</value>
   </data>
 </root>

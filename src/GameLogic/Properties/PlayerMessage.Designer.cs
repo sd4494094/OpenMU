@@ -3384,5 +3384,148 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("LevelingWarpRequirements", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Castle Siege guild registration is open..
+        /// </summary>
+        public static string CastleSiegeGuildRegistrationOpen {
+            get {
+                return ResourceManager.GetString("CastleSiegeGuildRegistrationOpen", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Castle Siege mark registration is open..
+        /// </summary>
+        public static string CastleSiegeMarkRegistrationOpen {
+            get {
+                return ResourceManager.GetString("CastleSiegeMarkRegistrationOpen", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Castle Siege preparations are in progress..
+        /// </summary>
+        public static string CastleSiegePreparationsInProgress {
+            get {
+                return ResourceManager.GetString("CastleSiegePreparationsInProgress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Castle Siege is in progress..
+        /// </summary>
+        public static string CastleSiegeInProgress {
+            get {
+                return ResourceManager.GetString("CastleSiegeInProgress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Castle Siege starts in {0} minute(s)..
+        /// </summary>
+        public static string CastleSiegeStartsInMinutes {
+            get {
+                return ResourceManager.GetString("CastleSiegeStartsInMinutes", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to I have no quests for you..
+        /// </summary>
+        public static string NpcNoQuests {
+            get {
+                return ResourceManager.GetString("NpcNoQuests", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to I have nothing to do for you. Come back with more power..
+        /// </summary>
+        public static string NpcQuestLevelTooLow {
+            get {
+                return ResourceManager.GetString("NpcQuestLevelTooLow", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to I have nothing to do for you. You solved all my quests already..
+        /// </summary>
+        public static string NpcAllQuestsCompleted {
+            get {
+                return ResourceManager.GetString("NpcAllQuestsCompleted", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Your level should be at least level {0}.
+        /// </summary>
+        public static string NpcGuildMinimumLevel {
+            get {
+                return ResourceManager.GetString("NpcGuildMinimumLevel", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You already belong to a guild.
+        /// </summary>
+        public static string NpcAlreadyInGuild {
+            get {
+                return ResourceManager.GetString("NpcAlreadyInGuild", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You don't have the required item in your inventory..
+        /// </summary>
+        public static string ItemRegistrationMissingItem {
+            get {
+                return ResourceManager.GetString("ItemRegistrationMissingItem", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You have reached the maximum inventory money limit..
+        /// </summary>
+        public static string ItemRegistrationMoneyLimit {
+            get {
+                return ResourceManager.GetString("ItemRegistrationMoneyLimit", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Registered {0}/{0} items! Reward claimed..
+        /// </summary>
+        public static string ItemRegistrationRewardClaimed {
+            get {
+                return ResourceManager.GetString("ItemRegistrationRewardClaimed", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Total items registered all-time: {0}..
+        /// </summary>
+        public static string ItemRegistrationTotal {
+            get {
+                return ResourceManager.GetString("ItemRegistrationTotal", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Registered {0}/{1} items..
+        /// </summary>
+        public static string ItemRegistrationProgress {
+            get {
+                return ResourceManager.GetString("ItemRegistrationProgress", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Registration for this NPC is not yet available. It can be expanded in the future..
+        /// </summary>
+        public static string ItemRegistrationUnavailable {
+            get {
+                return ResourceManager.GetString("ItemRegistrationUnavailable", resourceCulture);
+            }
+        }
     }
 }

@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using System.Globalization;
 using System.Threading.Tasks;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
@@ -64,6 +65,24 @@ public class ItemRegistrationTest
         var registeredStat = player.SelectedCharacter!.Attributes
             .FirstOrDefault(a => a.Definition == GameLogic.Attributes.Stats.RegisteredRenas);
         Assert.That(registeredStat?.Value ?? 0, Is.EqualTo(0));
+    }
+
+    /// <summary>
+    /// Verifies the missing-item response is localized for the requesting player.
+    /// </summary>
+    [Test]
+    public async Task MissingItemResponseIsLocalizedAsync()
+    {
+        var player = await CreatePlayerWithPlugInAsync().ConfigureAwait(false);
+        player.Culture = CultureInfo.GetCultureInfo("zh-CN");
+        var npc = new NonPlayerCharacter(new MonsterSpawnArea(), new MonsterDefinition { Number = 236 }, player.CurrentMap!);
+        player.OpenedNpc = npc;
+
+        await this._action.RegisterAsync(player).ConfigureAwait(false);
+
+        Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMessagePlugIn>()!).Verify(
+            view => view.ShowMessageAsync("背包中没有登记所需的物品。", Interfaces.MessageType.BlueNormal), Times.Once);
+        Assert.That(player.Inventory!.Items, Is.Empty);
     }
 
     /// <summary>

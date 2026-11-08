@@ -39,7 +39,7 @@ public abstract class BaseItemRegistrationStrategy : IItemRegistrationStrategy
         var item = player.Inventory?.Items.FirstOrDefault(i => i.Definition?.Group == rule.AcceptedItemGroup && i.Definition?.Number == rule.AcceptedItemNumber);
         if (item is null)
         {
-            await player.ShowBlueMessageAsync("You don't have the required item in your inventory.").ConfigureAwait(false);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemRegistrationMissingItem)).ConfigureAwait(false);
             await this.OnMissingItemAsync(player).ConfigureAwait(false);
             return;
         }
@@ -56,7 +56,7 @@ public abstract class BaseItemRegistrationStrategy : IItemRegistrationStrategy
 
         if (willCompleteRegistration && rule.RewardZen > 0 && (long)player.Money + rule.RewardZen > player.GameContext.Configuration.MaximumInventoryMoney)
         {
-            await player.ShowBlueMessageAsync("You have reached the maximum inventory money limit.").ConfigureAwait(false);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemRegistrationMoneyLimit)).ConfigureAwait(false);
             await this.OnRegistrationCompletedAsync(player).ConfigureAwait(false);
             return;
         }
@@ -135,12 +135,12 @@ public abstract class BaseItemRegistrationStrategy : IItemRegistrationStrategy
                 }
             }
 
-            await player.ShowBlueMessageAsync($"Registered {requiredItemsCount}/{requiredItemsCount} items! Reward claimed.").ConfigureAwait(false);
-            await player.ShowBlueMessageAsync($"Total items registered all-time: {totalRegistered}.").ConfigureAwait(false);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemRegistrationRewardClaimed), requiredItemsCount).ConfigureAwait(false);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemRegistrationTotal), totalRegistered).ConfigureAwait(false);
         }
         else
         {
-            await player.ShowBlueMessageAsync($"Registered {currentRegistered}/{requiredItemsCount} items.").ConfigureAwait(false);
+            await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.ItemRegistrationProgress), currentRegistered, requiredItemsCount).ConfigureAwait(false);
         }
 
         await this.OnRegistrationCompletedAsync(player).ConfigureAwait(false);
