@@ -134,15 +134,18 @@ public static class LevelingWarpInitialization
         }
 
         // Match only the released default text and stable destination number, preserving owner settings and references.
-        var oldDescription = new LocalizedString("Five Spots").WithTranslation(CultureInfo.GetCultureInfo("zh-CN"), "五点").Value;
+        var chinese = CultureInfo.GetCultureInfo("zh-CN");
+        var oldDescription = new LocalizedString("Five Spots").WithTranslation(chinese, "五点").Value;
+        var oldChineseDescription = new LocalizedString("五点").WithTranslation(chinese, "五点").Value;
         foreach (var entry in destinations)
         {
             if (entry?["Number"]?.GetValue<int>() == 14
                 && entry["Description"] is JsonValue description
                 && description.TryGetValue<string>(out var text)
-                && text == oldDescription)
+                && (text == oldDescription || text == oldChineseDescription))
             {
-                entry["Description"] = new LocalizedString("Five Spots").WithTranslation(CultureInfo.GetCultureInfo("zh-CN"), "五点练级区").Value;
+                var neutralDescription = text == oldChineseDescription ? "五点练级区" : "Five Spots";
+                entry["Description"] = new LocalizedString(neutralDescription).WithTranslation(chinese, "五点练级区").Value;
                 feature.CustomConfiguration = document!.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
             }
         }

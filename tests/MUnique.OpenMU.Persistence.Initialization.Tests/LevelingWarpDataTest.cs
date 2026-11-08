@@ -103,9 +103,12 @@ public class LevelingWarpDataTest
 
     /// <summary>Repairs only the previous default wording, retaining owner configuration and gate identities.</summary>
     /// <param name="customDescription">Whether the owner has customized the description.</param>
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task VersionTwoRefinesOnlyOldDefaultDescriptionAsync(bool customDescription)
+    /// <param name="chineseNeutral">Whether the installed client uses Chinese in the neutral language too.</param>
+    [TestCase(false, false)]
+    [TestCase(false, true)]
+    [TestCase(true, false)]
+    [TestCase(true, true)]
+    public async Task VersionTwoRefinesOnlyOldDefaultDescriptionAsync(bool customDescription, bool chineseNeutral)
     {
         var provider = new InMemoryPersistenceContextProvider();
         await new DataInitialization(provider, NullLoggerFactory.Instance).CreateInitialDataAsync(1, false).ConfigureAwait(false);
@@ -118,7 +121,7 @@ public class LevelingWarpDataTest
         var chinese = CultureInfo.GetCultureInfo("zh-CN");
         var current = new LocalizedString(entry["Description"]!.GetValue<string>());
         Assert.That(current.GetTranslation(chinese), Is.EqualTo("五点练级区"));
-        var oldDescription = new LocalizedString("Five Spots").WithTranslation(chinese, customDescription ? "自定义海底练级点" : "五点").Value;
+        var oldDescription = new LocalizedString(chineseNeutral ? "五点" : "Five Spots").WithTranslation(chinese, customDescription ? "自定义海底练级点" : "五点").Value;
         entry["Description"] = oldDescription;
         entry["Costs"] = 55555;
         entry["IsEnabled"] = false;
@@ -135,6 +138,8 @@ public class LevelingWarpDataTest
         var updatedEntry = after["Destinations"]!["$values"]!.AsArray().Single(d => d!["Number"]!.GetValue<int>() == 14)!;
         Assert.That(new LocalizedString(updatedEntry["Description"]!.GetValue<string>()).GetTranslation(chinese),
             Is.EqualTo(customDescription ? "自定义海底练级点" : "五点练级区"));
+        Assert.That(new LocalizedString(updatedEntry["Description"]!.GetValue<string>()).ValueInNeutralLanguage,
+            Is.EqualTo(chineseNeutral ? customDescription ? "五点" : "五点练级区" : "Five Spots"));
         Assert.That(feature.IsActive, Is.True);
         updatedEntry["Description"] = oldDescription;
         Assert.That(JsonNode.DeepEquals(before, after), Is.True, "Only the old default description may change.");
