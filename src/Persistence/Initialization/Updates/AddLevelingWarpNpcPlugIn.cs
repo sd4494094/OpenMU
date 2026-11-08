@@ -33,6 +33,12 @@ public class AddLevelingWarpNpcPlugIn : UpdatePlugInBase
     public override DateTime CreatedAt => new(2026, 11, 7, 12, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc/>
+    public override int Version => 2;
+
+    /// <inheritdoc/>
+    public override DateTime UpdatedAt => new(2026, 11, 8, 6, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc/>
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
     {
         LevelingWarpInitialization.EnsureConfiguration(context, gameConfiguration);

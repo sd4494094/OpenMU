@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.LevelingWarp;
@@ -73,6 +74,8 @@ public static class LevelingWarpInitialization
             feature.SetConfiguration(CreateDestinations(context, configuration), new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
         }
 
+        RefineDefaultDescription(feature);
+
         var talk = GetOrCreate(context, configuration, typeof(LevelingWarpNpcPlugIn).GUID);
         if (string.IsNullOrEmpty(talk.CustomConfiguration) || HasNoNpc(talk.CustomConfiguration))
         {
@@ -100,7 +103,7 @@ public static class LevelingWarpInitialization
         Add(context, configuration, result, 11, 4, "Lost Tower Floor 7", "失落之塔七层", "Corner No. 1", "一号拐角", 45, 87, 20);
         Add(context, configuration, result, 12, 4, "Lost Tower Floor 7", "失落之塔七层", "Hall", "大厅", 14, 103, 20);
         Add(context, configuration, result, 13, 4, "Lost Tower Floor 7", "失落之塔七层", "Corner No. 2", "二号拐角", 50, 112, 20);
-        Add(context, configuration, result, 14, 7, "Atlans Area 1", "亚特兰蒂斯一区", "Five Spots", "五点", 71, 18, 11);
+        Add(context, configuration, result, 14, 7, "Atlans Area 1", "亚特兰蒂斯一区", "Five Spots", "五点练级区", 71, 18, 11);
         Add(context, configuration, result, 15, 7, "Atlans", "亚特兰蒂斯", "Shallow Magic Area", "浅海魔区", 224, 187, 13);
         Add(context, configuration, result, 16, 8, "Tarkan", "死亡沙漠", "Iron Wheel Area", "铁轮战士聚集点", 59, 71, 21);
         Add(context, configuration, result, 17, 8, "Tarkan", "死亡沙漠", "Death Beam Knight Area", "破坏骑士聚集点", 56, 126, 21);
@@ -114,6 +117,35 @@ public static class LevelingWarpInitialization
         Add(context, configuration, result, 103, 8, "Tarkan", "死亡沙漠", "Boss: Death Beam Knight", "首领·炽炎魔", 156, 225, 22);
         Add(context, configuration, result, 104, 10, "Icarus", "天空之城", "Boss: Phoenix of Darkness", "首领·天魔菲尼斯", 30, 235, 23);
         return result;
+    }
+
+    private static void RefineDefaultDescription(PlugInConfiguration feature)
+    {
+        var document = JsonNode.Parse(feature.CustomConfiguration!);
+        var entries = document?["Destinations"];
+        if (entries is JsonObject)
+        {
+            entries = entries["$values"];
+        }
+
+        if (entries is not JsonArray destinations)
+        {
+            return;
+        }
+
+        // Match only the released default text and stable destination number, preserving owner settings and references.
+        var oldDescription = new LocalizedString("Five Spots").WithTranslation(CultureInfo.GetCultureInfo("zh-CN"), "五点").Value;
+        foreach (var entry in destinations)
+        {
+            if (entry?["Number"]?.GetValue<int>() == 14
+                && entry["Description"] is JsonValue description
+                && description.TryGetValue<string>(out var text)
+                && text == oldDescription)
+            {
+                entry["Description"] = new LocalizedString("Five Spots").WithTranslation(CultureInfo.GetCultureInfo("zh-CN"), "五点练级区").Value;
+                feature.CustomConfiguration = document!.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+            }
+        }
     }
 
     private static bool HasNoNpc(string json)
