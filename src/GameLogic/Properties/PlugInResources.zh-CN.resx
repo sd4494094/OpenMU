@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1778,4 +1778,6 @@
   <data name="MediumEliteHealingPotionConsumeHandlerPlugIn_Description" xml:space="preserve">
     <value>处理中瓶精华治疗药水的使用和消耗，立即恢复部分生命值。</value>
   </data>
+  <data name="CreatorGoddessNpc_Name" xml:space="preserve"><value>创世神·艾莉雅</value></data>
+  <data name="CreatorGoddessNpc_Description" xml:space="preserve"><value>提供创世神的问候，不占用玩家对话状态。</value></data>
 </root>

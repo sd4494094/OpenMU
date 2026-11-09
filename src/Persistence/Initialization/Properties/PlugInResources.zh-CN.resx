@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:element name="root" ns1:IsDataSet="true">
@@ -457,4 +457,6 @@
   <data name="AddStatResetNpcPlugIn_Description" xml:space="preserve">
     <value>在勇者大陆酒馆外（130，133）添加艾琳及属性重置窗口，或迁移原来的室内或喷泉旁默认位置；保留服主自定义位置，洗点功能仍需由服主自行开启。</value>
   </data>
+  <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>添加创世神·艾莉雅</value></data>
+  <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>在勇者大陆（147,133）诺亚附近添加创世神，保留已有位置和设置。</value></data>
 </root>

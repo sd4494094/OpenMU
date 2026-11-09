@@ -5126,5 +5126,22 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("LevelingWarpRequest_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Creator Goddess Aria.
+        /// </summary>
+        public static string CreatorGoddessNpc_Name {
+            get {
+                return ResourceManager.GetString("CreatorGoddessNpc_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provides a greeting from the decorative creator goddess without leaving a conversation open..
+        /// </summary>
+        public static string CreatorGoddessNpc_Description {
+            get {
+                return ResourceManager.GetString("CreatorGoddessNpc_Description", resourceCulture);
+            }
+        }
     }
 }

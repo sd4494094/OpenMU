@@ -3867,5 +3867,13 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("AdvisorResetNotice", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to May the light of creation guide your journey..
+        /// </summary>
+        public static string CreatorGoddessGreeting {
+            get {
+                return ResourceManager.GetString("CreatorGoddessGreeting", resourceCulture);
+            }
+        }
     }
 }

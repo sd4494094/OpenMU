@@ -1327,4 +1327,5 @@ Inventory Extensions: {18}</value>
   <data name="AdvisorResetEquipment" xml:space="preserve"><value>Remove all equipment before confirming. Attributes return to class base values.</value></data>
   <data name="AdvisorResetItem" xml:space="preserve"><value>Required item: {0} x1.</value></data>
   <data name="AdvisorResetNotice" xml:space="preserve"><value>Only Confirm stat reset charges and performs the reset. Back or Leave costs nothing.</value></data>
+  <data name="CreatorGoddessGreeting" xml:space="preserve"><value>May the light of creation guide your journey.</value></data>
 </root>

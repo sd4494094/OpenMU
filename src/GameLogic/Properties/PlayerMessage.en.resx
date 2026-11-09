@@ -1268,4 +1268,5 @@ PK状态：{14}
   <data name="AdvisorResetEquipment" xml:space="preserve"><value>确认前请卸下全部装备；洗点后属性恢复为职业初始值。</value></data>
   <data name="AdvisorResetItem" xml:space="preserve"><value>需要物品：{0}×1。</value></data>
   <data name="AdvisorResetNotice" xml:space="preserve"><value>只有点击“确认洗点”才会扣费执行；返回或离开不会扣费。</value></data>
+  <data name="CreatorGoddessGreeting" xml:space="preserve"><value>愿创世之光，照亮你的旅途。</value></data>
 </root>

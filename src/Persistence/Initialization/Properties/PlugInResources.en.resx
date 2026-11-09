@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>添加创世神·艾莉雅</value></data>
+  <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>在勇者大陆（147,133）诺亚附近添加创世神，保留已有位置和设置。</value></data>
+</root>

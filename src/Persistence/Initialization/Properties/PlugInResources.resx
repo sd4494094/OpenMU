@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
 	<!-- 
 		Microsoft ResX Schema
@@ -440,4 +440,6 @@
   <data name="AddLevelingWarp_Description" xml:space="preserve">
     <value>Adds the optional NPC, independent destination list and non-respawn landing gates; keeps the ordinary move list unchanged.</value>
   </data>
+  <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>Add Creator Goddess Aria</value></data>
+  <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>Adds the decorative creator goddess at Lorencia (147,133) beside Noah, preserving existing placements and settings.</value></data>
 </root>

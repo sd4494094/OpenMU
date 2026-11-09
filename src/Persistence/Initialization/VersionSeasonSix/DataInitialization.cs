@@ -1,4 +1,4 @@
-// <copyright file="DataInitialization.cs" company="MUnique">
+﻿// <copyright file="DataInitialization.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -50,7 +50,11 @@ public class DataInitialization : DataInitializationBase
     protected override IGameMapsInitializer GameMapsInitializer => new GameMapsInitializer(this.Context, this.GameConfiguration);
 
     /// <inheritdoc />
-    protected override void ConfigureVersionPlugIns() => LevelingWarpInitialization.EnsureConfiguration(this.Context, this.GameConfiguration);
+    protected override void ConfigureVersionPlugIns()
+    {
+        LevelingWarpInitialization.EnsureConfiguration(this.Context, this.GameConfiguration);
+        CreatorGoddessInitialization.EnsureConfiguration(this.Context, this.GameConfiguration);
+    }
 
     /// <inheritdoc />
     protected override void CreateGameClientDefinition()

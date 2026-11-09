@@ -3333,5 +3333,13 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("LevelingWarpGuide", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Creator Goddess Aria.
+        /// </summary>
+        public static string CreatorGoddessAria {
+            get {
+                return ResourceManager.GetString("CreatorGoddessAria", resourceCulture);
+            }
+        }
     }
 }

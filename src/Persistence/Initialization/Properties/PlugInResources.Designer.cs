@@ -1059,5 +1059,22 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddLevelingWarp_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Add Creator Goddess Aria.
+        /// </summary>
+        public static string AddCreatorGoddessNpc_Name {
+            get {
+                return ResourceManager.GetString("AddCreatorGoddessNpc_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the decorative creator goddess at Lorencia (147,133) beside Noah, preserving existing placements and settings..
+        /// </summary>
+        public static string AddCreatorGoddessNpc_Description {
+            get {
+                return ResourceManager.GetString("AddCreatorGoddessNpc_Description", resourceCulture);
+            }
+        }
     }
 }

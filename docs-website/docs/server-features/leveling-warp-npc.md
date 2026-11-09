@@ -46,3 +46,25 @@ fee and whether the character was placed; they do not prove the client finished 
 
 Before releasing customized locations, test the actual client landing, movement,
 visibility and reopening another NPC after cancellation or travel.
+
+## Creator Goddess Aria
+
+The matching private client adds **创世神·艾莉雅 (Aria)**, a female decorative NPC
+at **Lorencia 147, 133**, east of Noah. Her independent wire number is **711** and
+client model slot is **220**. Her model combines adapted native MU geometry, animated
+wings, a halo and raised flying poses; the concept artwork is a visual direction,
+not a screenshot of the finished low-poly model.
+
+Existing Season 6 installations use the optional **Add creator goddess NPC** update.
+Fresh configuration includes her by default. The **Creator goddess NPC** talk plugin
+can be disabled independently. Initialization preserves an existing NPC's naming,
+placements and plugin activation. This update does not add gameplay rewards or
+teleport destinations. Clicking her shows a localized greeting and immediately
+releases the NPC conversation, so another NPC can be opened afterwards.
+
+Install the matching client executable, monster definitions, private Aria model and
+textures, and Lorencia minimap **before enabling her server spawn**. Older clients
+have no binding for number 711. Keep private model assets outside the public Git
+repository and preserve licensed source assets. Back up changed files with the game
+closed; verify hover motion, name, Tab marker, selection bounds, greeting and nearby
+NPC access in the actual client after publication.

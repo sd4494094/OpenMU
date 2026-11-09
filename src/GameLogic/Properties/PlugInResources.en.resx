@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="CreatorGoddessNpc_Name" xml:space="preserve"><value>创世神·艾莉雅</value></data>
+  <data name="CreatorGoddessNpc_Description" xml:space="preserve"><value>提供创世神的问候，不占用玩家对话状态。</value></data>
+</root>
