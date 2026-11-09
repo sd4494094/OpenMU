@@ -1,4 +1,4 @@
-﻿<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='utf-8'?>
 <root xmlns:ns1="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:schema id="root">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -1269,4 +1269,12 @@ PK状态：{14}
   <data name="AdvisorResetItem" xml:space="preserve"><value>需要物品：{0}×1。</value></data>
   <data name="AdvisorResetNotice" xml:space="preserve"><value>只有点击“确认洗点”才会扣费执行；返回或离开不会扣费。</value></data>
   <data name="CreatorGoddessGreeting" xml:space="preserve"><value>愿创世之光，照亮你的旅途。</value></data>
+  <data name="AriaUsage" xml:space="preserve"><value>输入 /Aria 问题，与艾莉雅聊天；/Aria 忘记我 可清除记忆。</value></data>
+  <data name="AriaUnavailable" xml:space="preserve"><value>艾莉雅暂时无法回应，请稍后再试。</value></data>
+  <data name="AriaInvalidQuestion" xml:space="preserve"><value>请进入游戏后，输入一个简短的问题。</value></data>
+  <data name="AriaBusy" xml:space="preserve"><value>艾莉雅正在回应，请稍后再问。</value></data>
+  <data name="AriaFailure" xml:space="preserve"><value>神谕的联系暂时中断了，请稍后再问我。</value></data>
+  <data name="AriaForgotten" xml:space="preserve"><value>你与艾莉雅的对话记录和记忆已清除。</value></data>
+  <data name="AriaSender" xml:space="preserve"><value>艾莉雅</value></data>
+  <data name="CreatorGoddessAiGreeting" xml:space="preserve"><value>愿创世之光，照亮你的旅途。输入 /Aria 问题，可与我交谈。</value></data>
 </root>

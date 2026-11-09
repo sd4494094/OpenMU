@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1860,4 +1860,6 @@
   </data>
   <data name="CreatorGoddessNpc_Name" xml:space="preserve"><value>Creator Goddess Aria</value></data>
   <data name="CreatorGoddessNpc_Description" xml:space="preserve"><value>Provides a greeting from the decorative creator goddess without leaving a conversation open.</value></data>
+  <data name="AriaChat_Name" xml:space="preserve"><value>Aria private AI conversation</value></data>
+  <data name="AriaChat_Description" xml:space="preserve"><value>Chats privately with Aria using shared aliases and character-isolated memory. Requires host configuration.</value></data>
 </root>

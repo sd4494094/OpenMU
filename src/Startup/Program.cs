@@ -480,6 +480,8 @@ internal sealed class Program : IAsyncDisposable
             .AddNetworkObservation()
             .AddControllers().AddApplicationPart(typeof(ServerController).Assembly);
 
+        MUnique.OpenMU.Startup.Aria.AriaServiceRegistration.AddAria(builder.Services, builder.Configuration);
+
         this.AddActorControlEndpoint(builder.Services);
 
         var host = builder.Build();

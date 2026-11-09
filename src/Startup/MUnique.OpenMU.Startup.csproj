@@ -53,6 +53,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Aria/*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
   <Target Name="FixNetSdkDiscoverAssetsBug" BeforeTargets="ResolveBuildCompressedStaticWebAssetsConfiguration">
     <!-- Workaround for:
    The "DiscoverPrecompressedAssets" task failed unexpectedly.

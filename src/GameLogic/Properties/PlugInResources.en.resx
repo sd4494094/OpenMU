@@ -1,5 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <data name="CreatorGoddessNpc_Name" xml:space="preserve"><value>创世神·艾莉雅</value></data>
   <data name="CreatorGoddessNpc_Description" xml:space="preserve"><value>提供创世神的问候，不占用玩家对话状态。</value></data>
+  <data name="AriaChat_Name" xml:space="preserve"><value>艾莉雅私人AI对话</value></data>
+  <data name="AriaChat_Description" xml:space="preserve"><value>使用四个命令别名与艾莉雅私聊，按角色隔离记忆；需要配置服务端模型连接。</value></data>
 </root>

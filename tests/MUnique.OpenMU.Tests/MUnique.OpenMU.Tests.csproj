@@ -39,6 +39,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Startup\MUnique.OpenMU.Startup.csproj" />
     <ProjectReference Include="..\..\src\AttributeSystem\MUnique.OpenMU.AttributeSystem.csproj" />
     <ProjectReference Include="..\..\src\DataModel\MUnique.OpenMU.DataModel.csproj" />
     <ProjectReference Include="..\..\src\Discord\MUnique.OpenMU.Discord.csproj" />

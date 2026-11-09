@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.NPC;
 
 using System.Runtime.InteropServices;
+using MUnique.OpenMU.GameLogic.Aria;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 using MUnique.OpenMU.PlugIns;
@@ -22,6 +23,15 @@ public class CreatorGoddessNpcPlugIn : NpcTalkPlugInBase
     /// </summary>
     public const short NpcNumber = 711;
 
+    private readonly IAriaChatService? _chatService;
+
+    /// <summary>Initializes a new instance of the <see cref="CreatorGoddessNpcPlugIn"/> class.</summary>
+    /// <param name="chatService">The optional, separately enabled AI conversation integration.</param>
+    public CreatorGoddessNpcPlugIn(IAriaChatService? chatService = null)
+    {
+        this._chatService = chatService;
+    }
+
     /// <inheritdoc/>
     public override short DefaultNpcNumber => NpcNumber;
 
@@ -31,6 +41,6 @@ public class CreatorGoddessNpcPlugIn : NpcTalkPlugInBase
         eventArgs.HasBeenHandled = true;
         eventArgs.LeavesDialogOpen = false;
         await player.InvokeViewPlugInAsync<IShowMessageOfObjectPlugIn>(view => view.ShowMessageOfObjectAsync(
-            player.GetLocalizedMessage(nameof(Properties.PlayerMessage.CreatorGoddessGreeting)), npc)).ConfigureAwait(false);
+            player.GetLocalizedMessage(this._chatService is null ? nameof(Properties.PlayerMessage.CreatorGoddessGreeting) : "CreatorGoddessAiGreeting"), npc)).ConfigureAwait(false);
     }
 }
