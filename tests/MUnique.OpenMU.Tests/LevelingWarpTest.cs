@@ -30,6 +30,7 @@ public class LevelingWarpTest
     {
         var player = await CreateAsync().ConfigureAwait(false);
         var entries = GetEntries(player);
+        Assert.That(GetInvocation(player).Arguments[1], Is.EqualTo("传送使者·诺亚"));
         Assert.That(entries.Single().Name, Is.EqualTo("地下城二层"));
         Assert.That(entries.Single().Description, Is.EqualTo("幽灵房"));
         Assert.That(player.Money, Is.EqualTo(1000));

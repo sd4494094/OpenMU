@@ -12,9 +12,10 @@ Enable both **Leveling travel feature** and **Leveling travel NPC** plugins afte
 reviewing their custom configuration. Disabling either prevents new travel requests.
 The NPC talk configuration selects the NPC; the feature configuration owns the list.
 
-The matching MuMain client shows a scrollable list. Each row displays the full map
-and floor name, a location description, the character's effective required level
-and the Zen price. Clicking an enabled row immediately requests travel. **Close**
+The matching MuMain client shows a fixed right-side NPC panel headed by the NPC's
+localized name. Each scrollable row shows the full map/floor name and location
+description. Hover over the row to read its effective required level and Zen price;
+the exit button stays visible while scrolling. Clicking an enabled row immediately requests travel. **Close**
 or Escape leaves without charging. No typed command or confirmation is needed.
 Unsupported clients receive an unavailable message and their conversation closes.
 

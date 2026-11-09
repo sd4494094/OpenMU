@@ -54,7 +54,7 @@ public static class LevelingWarpAction
         var quotes = session.Destinations.Values.Select(d => Quote(player, d)).ToArray();
         await player.InvokeViewPlugInAsync<IShowLevelingWarpDialogPlugIn>(view => view.ShowLevelingWarpDialogAsync(
             session.Token,
-            player.GetLocalizedMessage(nameof(PlayerMessage.LevelingWarpTitle)),
+            npc.Definition.Designation.GetTranslation(player.Culture) ?? string.Empty,
             player.GetLocalizedMessage(nameof(PlayerMessage.LevelingWarpClose)),
             player.GetLocalizedMessage(nameof(PlayerMessage.LevelingWarpLevel)),
             player.GetLocalizedMessage(nameof(PlayerMessage.LevelingWarpZen)),

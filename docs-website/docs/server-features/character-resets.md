@@ -57,3 +57,9 @@ these rules. The optional `/resetstats` chat command has its own configuration s
 
 The Chinese display names used by this server are 洗点师·艾琳 and 转生导师·里奥;
 clients require matching name data to display them.
+
+The matching MuMain update presents Leo and Erin in fixed right-side NPC panels,
+with the same frame, name heading and text size as ordinary NPC conversations.
+The allocation page keeps instructions, editable fields and review actions visible.
+Chinese deployments using this repository's English-account compatibility resources
+also receive the advisor's Chinese labels and messages without changing account language.

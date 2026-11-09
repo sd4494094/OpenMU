@@ -23,6 +23,36 @@ using MonsterSpawnArea = MUnique.OpenMU.Persistence.BasicModel.MonsterSpawnArea;
 [TestFixture]
 public class StatAdvisorTest
 {
+    /// <summary>The site's English-account compatibility view includes every new advisor resource.</summary>
+    [TestCase("en")]
+    [TestCase("en-US")]
+    [TestCase("zh-CN")]
+    public async Task AdvisorPagesUseTheConfiguredChineseCompatibilityResourcesAsync(string culture)
+    {
+        var player = await CreatePlayerAsync().ConfigureAwait(false);
+        player.Culture = CultureInfo.GetCultureInfo(culture);
+        await OpenNpcAsync(player).ConfigureAwait(false);
+        await StatAdvisorAction.HandleAsync(player, 0, string.Empty, string.Empty, new int[5]).ConfigureAwait(false);
+        var home = ReadDialog(player);
+        Assert.That(home.Labels["Reset"], Is.EqualTo("洗点"));
+        Assert.That(home.Labels["Allocate"], Is.EqualTo("批量加点"));
+        Assert.That(home.Message, Does.Contain("请选择洗点"));
+        await StatAdvisorAction.HandleAsync(player, 3, home.SessionId, string.Empty, new int[5]).ConfigureAwait(false);
+        var allocation = ReadDialog(player);
+        Assert.That(allocation.Message, Does.Contain("填写本次增加"));
+        Assert.That(allocation.Stats.First().Name, Is.EqualTo("力量"));
+        var resources = new System.Resources.ResourceManager(
+            "MUnique.OpenMU.GameLogic.Properties.PlayerMessage", typeof(StatAdvisorAction).Assembly);
+        var chinese = CultureInfo.GetCultureInfo("zh-CN");
+        foreach (System.Collections.DictionaryEntry entry in resources.GetResourceSet(chinese, true, false)!)
+        {
+            if (entry.Key is string key && key.StartsWith("Advisor", StringComparison.Ordinal))
+            {
+                Assert.That(resources.GetString(key, player.Culture), Is.EqualTo(entry.Value), key);
+            }
+        }
+    }
+
     /// <summary>Shows the server quote before charging or refunding points.</summary>
     [Test]
     public async Task ResetPreviewDoesNotChangeAnythingUntilConfirmedAsync()
