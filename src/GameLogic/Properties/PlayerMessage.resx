@@ -1336,4 +1336,7 @@ Inventory Extensions: {18}</value>
   <data name="AriaForgotten" xml:space="preserve"><value>Your conversation history and memory with Aria have been cleared.</value></data>
   <data name="AriaSender" xml:space="preserve"><value>Aria</value></data>
   <data name="CreatorGoddessAiGreeting" xml:space="preserve"><value>May creation light your journey. Speak to me with /Aria and your question.</value></data>
+  <data name="AriaQuestionEcho" xml:space="preserve">
+    <value>To Aria: {0}</value>
+  </data>
 </root>

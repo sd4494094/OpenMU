@@ -15,6 +15,54 @@ public static class AriaChatText
     /// <summary>Conservative UTF-8 budget for the original C1 chat message.</summary>
     public const int MaximumBytes = 240;
 
+    /// <summary>
+    /// Splits completed text for the narrow legacy chat panel, including its sender label.
+    /// </summary>
+    /// <param name="text">The complete message, without channel prefixes.</param>
+    /// <param name="sender">The displayed sender.</param>
+    /// <returns>Ordered lines; concatenating them preserves the complete message.</returns>
+    /// <remarks>
+    /// The supported client wraps at most twice and treats spaces as word boundaries.
+    /// Keep each packet below its 90-byte receive buffer and use a conservative
+    /// 40-column display budget, reserving space for the sender and separator.
+    /// Wide Unicode elements count as two columns. This is a compatibility bound,
+    /// not a change to the model's total answer budget.
+    /// </remarks>
+    public static IReadOnlyList<string> SplitForChat(string text, string sender)
+    {
+        var lines = new List<string>();
+        var senderWidth = sender.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
+        var available = Math.Max(8, 40 - senderWidth - 3);
+        var line = new StringBuilder();
+        var columns = 0;
+        var bytes = 0;
+        var elements = StringInfo.GetTextElementEnumerator(text);
+        while (elements.MoveNext())
+        {
+            var element = elements.GetTextElement();
+            var width = element.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
+            var size = Encoding.UTF8.GetByteCount(element);
+            if (line.Length > 0 && (columns + width > available || bytes + size > 80))
+            {
+                lines.Add(line.ToString());
+                line.Clear();
+                columns = 0;
+                bytes = 0;
+            }
+
+            line.Append(element);
+            columns += width;
+            bytes += size;
+        }
+
+        if (line.Length > 0)
+        {
+            lines.Add(line.ToString());
+        }
+
+        return lines;
+    }
+
     /// <summary>Normalizes and bounds an answer without splitting a Unicode text element.</summary>
     /// <param name="text">The model output.</param>
     /// <returns>A single bounded plain text answer.</returns>

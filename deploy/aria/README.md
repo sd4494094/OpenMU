@@ -80,7 +80,11 @@ snapshot, recent messages and the summary. It receives no account password,
 management credential or complete character inventory. Logs contain timing
 and error types, not question bodies or keys.
 
-Replies use one normal chat packet addressed only to the requesting connection.
+Questions are echoed only to the requesting connection. Completed replies are
+sent together as bounded normal-chat lines, each with the NPC sender. Splitting
+preserves the complete normalized answer and includes the sender in a conservative
+40-column display budget (wide characters count twice), with at most 80 UTF-8
+bytes per packet for the legacy client's 90-byte chat buffer.
 This avoids a known wide-character indexing risk in the candidate MuMain
 client's whisper receiver. NPC sender names and reply byte limits are bounded
 for the original protocol. Verify both supported clients before claiming visual

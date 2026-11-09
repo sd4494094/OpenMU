@@ -1277,4 +1277,7 @@ PK状态：{14}
   <data name="AriaForgotten" xml:space="preserve"><value>你与艾莉雅的对话记录和记忆已清除。</value></data>
   <data name="AriaSender" xml:space="preserve"><value>艾莉雅</value></data>
   <data name="CreatorGoddessAiGreeting" xml:space="preserve"><value>愿创世之光，照亮你的旅途。输入 /Aria 问题，可与我交谈。</value></data>
+  <data name="AriaQuestionEcho" xml:space="preserve">
+    <value>对艾莉雅：{0}</value>
+  </data>
 </root>

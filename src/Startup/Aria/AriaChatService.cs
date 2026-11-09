@@ -342,7 +342,14 @@ public sealed class AriaChatService : BackgroundService, IAriaChatService
             {
                 var text = answer ?? request.Player.GetLocalizedMessage(resource!);
                 var sender = request.Player.GetLocalizedMessage("AriaSender");
-                await request.Player.InvokeViewPlugInAsync<IChatViewPlugIn>(view => view.ChatMessageAsync(text, sender, ChatMessageType.Normal)).ConfigureAwait(false);
+                // Send the completed answer together, using bounded display lines.
+                // The normalized answer has no channel-control prefixes.
+                foreach (var line in AriaChatText.SplitForChat(text, sender))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    await request.Player.InvokeViewPlugInAsync<IChatViewPlugIn>(
+                        view => view.ChatMessageAsync(line, sender, ChatMessageType.Normal)).ConfigureAwait(false);
+                }
             }
             },
             cancellationToken).ConfigureAwait(false);

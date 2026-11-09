@@ -17,8 +17,9 @@ conversation and help through these equivalent commands:
 Use normal chat mode and a space after the command. Clicking Aria also explains
 how to start a conversation. You may ask from other maps.
 
-All aliases share the same conversation. Only you receive Aria's answer. She
-replies once after the complete answer is ready; another question must wait
+All aliases share the same conversation. Your submitted question is echoed only
+to you, and only you receive Aria's answer. She waits until the complete answer
+is ready, then sends it together as short lines that fit the game chat panel; another question must wait
 until the current request finishes. If the service is busy or unavailable, try
 again later.
 

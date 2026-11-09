@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 
 using MUnique.OpenMU.GameLogic.Aria;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>Shares Aria aliases without waiting for the model in the packet handler.</summary>
@@ -35,6 +36,18 @@ public abstract class AriaChatCommandPlugInBase : IChatCommandPlugIn, IDisabledB
         if (resource is not null)
         {
             await player.ShowLocalizedBlueMessageAsync(resource).ConfigureAwait(false);
+        }
+        else
+        {
+            // Commands do not pass through normal chat echo. Echo only to this player,
+            // using a localized prefix so question text cannot select another channel.
+            var echo = string.Format(player.GetLocalizedMessage("AriaQuestionEcho"), question);
+            foreach (var line in AriaChatText.SplitForChat(echo, player.Name))
+            {
+                var displayLine = line.Length > 0 && "~@$#".Contains(line[0]) ? " " + line : line;
+                await player.InvokeViewPlugInAsync<IChatViewPlugIn>(
+                    view => view.ChatMessageAsync(displayLine, player.Name, ChatMessageType.Normal)).ConfigureAwait(false);
+            }
         }
     }
 }
