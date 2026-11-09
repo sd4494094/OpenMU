@@ -34,13 +34,15 @@ post-reset points. Only the final **Confirm stat reset** action charges and perf
 back, leave, Escape or a stale preview costs nothing. The server rechecks the NPC session,
 equipment, safe zone, level, money, item and quoted character state.
 
-The same advisor provides **Batch allocate**. It lists the four normal attributes that the
-current class can increase, plus Leadership for classes that support it. Players enter
-increases (not target totals), review the resulting values and remaining normal points,
-then confirm once. The server validates every row and applies the whole allocation
-atomically; it rejects an invalid row or stale preview without partial changes. Master
-points, equipment bonuses and extra fees are not included. Existing single-attribute
-commands remain available. Older clients continue to use the native stat reset dialog.
+The same advisor offers a separate **Increase** option for Strength, Agility,
+Vitality and Energy, plus Leadership only for classes that support it. Select one
+attribute, enter the number of points to add, then review and confirm that increase.
+Each request changes only that attribute through the same action used by the existing
+single-attribute add commands. It does not reload the map or move the character.
+The server rejects requests containing multiple attributes, invalid amounts,
+insufficient normal points, exceeded limits or stale confirmations.
+Master points and equipment bonuses are not included. Existing commands remain
+available. Older clients continue to use the native stat reset dialog.
 Closing or reopening NPC 464 releases the advisor session.
 
 Fresh Season 6 configurations place NPC 464 outside the Lorencia tavern at (130,133).

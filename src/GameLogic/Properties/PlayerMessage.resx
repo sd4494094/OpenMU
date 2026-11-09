@@ -1297,7 +1297,7 @@ Inventory Extensions: {18}</value>
   <data name="AdvisorEnergy" xml:space="preserve"><value>Energy</value></data>
   <data name="AdvisorLeadership" xml:space="preserve"><value>Leadership</value></data>
   <data name="AdvisorReset" xml:space="preserve"><value>Reset attributes</value></data>
-  <data name="AdvisorAllocate" xml:space="preserve"><value>Allocate points</value></data>
+  <data name="AdvisorAllocate" xml:space="preserve"><value>Increase</value></data>
   <data name="AdvisorLeave" xml:space="preserve"><value>Leave</value></data>
   <data name="AdvisorBack" xml:space="preserve"><value>Back</value></data>
   <data name="AdvisorClear" xml:space="preserve"><value>Clear</value></data>
@@ -1313,13 +1313,13 @@ Inventory Extensions: {18}</value>
   <data name="AdvisorRemaining" xml:space="preserve"><value>Remaining points</value></data>
   <data name="AdvisorInvalidInput" xml:space="preserve"><value>Enter nonnegative whole numbers within the available balance and attribute limits.</value></data>
   <data name="AdvisorWaiting" xml:space="preserve"><value>Waiting for the server. Do not submit again.</value></data>
-  <data name="AdvisorHomeNotice" xml:space="preserve"><value>Choose a stat reset or allocate unspent points. Opening this menu does not charge or change your character.</value></data>
-  <data name="AdvisorAllocationNotice" xml:space="preserve"><value>Enter points to ADD, not final values. Only normal stat points are used. No Zen fee, equipment removal, or logout.</value></data>
-  <data name="AdvisorInvalidAllocation" xml:space="preserve"><value>The allocation contains an invalid attribute, number, or exceeds a supported attribute limit. Nothing was allocated.</value></data>
-  <data name="AdvisorInsufficientPoints" xml:space="preserve"><value>Allocate at least one point without exceeding your available normal points. Nothing was allocated.</value></data>
+  <data name="AdvisorHomeNotice" xml:space="preserve"><value>Choose a stat reset or one attribute to increase. Enter an increase, not a target value. Opening the menu does not change your character.</value></data>
+  <data name="AdvisorAllocationNotice" xml:space="preserve"><value>Enter points to add to this attribute, not its final value. One attribute per request; normal stat points only. No Zen fee, relocation, or logout.</value></data>
+  <data name="AdvisorInvalidAllocation" xml:space="preserve"><value>Increase only one supported attribute per request, within its limit. Nothing was allocated.</value></data>
+  <data name="AdvisorInsufficientPoints" xml:space="preserve"><value>Enter at least one point, without exceeding your available normal points. Nothing was allocated.</value></data>
   <data name="AdvisorExpired" xml:space="preserve"><value>This confirmation is invalid or expired. Return and request a new preview.</value></data>
   <data name="AdvisorStateChanged" xml:space="preserve"><value>Your character or rules changed after the preview. Return and review a new preview. Nothing was applied.</value></data>
-  <data name="AdvisorApplied" xml:space="preserve"><value>Allocation completed and saved. The values below are the current server values.</value></data>
+  <data name="AdvisorApplied" xml:space="preserve"><value>This attribute increase was completed and saved. The values below are the current server values.</value></data>
   <data name="AdvisorAppliedSavePending" xml:space="preserve"><value>Allocation completed, but saving is pending. Do not repeat the allocation; contact an administrator.</value></data>
   <data name="AdvisorAlreadyApplied" xml:space="preserve"><value>This allocation was already processed. It has not been applied again.</value></data>
   <data name="AdvisorResetRequirements" xml:space="preserve"><value>Required level: {0}; cost: {1} Zen.</value></data>

@@ -7,7 +7,7 @@ namespace MUnique.OpenMU.GameLogic.Resets;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.GameLogic.NPC;
-using MUnique.OpenMU.GameLogic.Views.Character;
+using MUnique.OpenMU.GameLogic.PlayerActions.Character;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 using MUnique.OpenMU.Interfaces;
 
@@ -135,14 +135,25 @@ public static class StatAdvisorAction
             return;
         }
 
-        ApplyAllocation(player, session.Amounts);
+        // Use the same action and incremental reply as /add str (and the other stat commands).
+        // CharacterInformation is a world-entry packet, not an in-world stat refresh.
+        var index = Array.FindIndex(session.Amounts, amount => amount > 0);
+        var amount = checked((ushort)session.Amounts[index]);
+        var pointsBefore = player.SelectedCharacter!.LevelUpPoints;
+        await new IncreaseStatsAction().IncreaseStatsAsync(player, StatAdvisorRules.Attributes[index], amount).ConfigureAwait(false);
+        if (player.SelectedCharacter.LevelUpPoints != pointsBefore - amount)
+        {
+            await ShowAsync(player, session, 2, player.GetLocalizedMessage("AdvisorInvalidAllocation")).ConfigureAwait(false);
+            return;
+        }
+
         session.CompletedToken = token;
         session.Amounts = new int[StatAdvisorRules.Attributes.Length];
         session.ClearInputs = true;
 
         // Packet handlers and ordinary stat/chat requests already share this player's reentrant
-        // persistence lock. Validation and every write above run without yielding, and saving
-        // observes the complete allocation rather than a partially modified character.
+        // persistence lock. The shared action validates and writes the selected
+        // attribute before its incremental reply; saving observes the complete operation.
         var saved = false;
         try
         {
@@ -150,37 +161,10 @@ public static class StatAdvisorAction
         }
         catch (Exception exception)
         {
-            player.Logger.LogError(exception, "Could not save the batch attribute allocation for player {Player}.", player);
+            player.Logger.LogError(exception, "Could not save the single attribute allocation for player {Player}.", player);
         }
 
-        await player.InvokeViewPlugInAsync<IUpdateCharacterStatsPlugIn>(v => v.UpdateCharacterStatsAsync()).ConfigureAwait(false);
-        await player.InvokeViewPlugInAsync<IUpdateCharacterBaseStatsPlugIn>(v => v.UpdateCharacterBaseStatsAsync()).ConfigureAwait(false);
         await ShowAsync(player, session, 2, player.GetLocalizedMessage(saved ? "AdvisorApplied" : "AdvisorAppliedSavePending")).ConfigureAwait(false);
-    }
-
-    private static void ApplyAllocation(Player player, int[] amounts)
-    {
-        var before = StatAdvisorRules.GetStats(player);
-        var points = player.SelectedCharacter!.LevelUpPoints;
-        try
-        {
-            foreach (var row in before)
-            {
-                player.Attributes![StatAdvisorRules.Attributes[row.Id]] = row.Current + amounts[row.Id];
-            }
-
-            player.SelectedCharacter.LevelUpPoints = points - amounts.Sum();
-        }
-        catch
-        {
-            foreach (var row in before)
-            {
-                player.Attributes![StatAdvisorRules.Attributes[row.Id]] = row.Current;
-            }
-
-            player.SelectedCharacter.LevelUpPoints = points;
-            throw;
-        }
     }
 
     private static ValueTask ShowAsync(Player player, Session session, int page, string feedback)

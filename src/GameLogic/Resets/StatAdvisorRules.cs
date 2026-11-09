@@ -45,7 +45,7 @@ internal static class StatAdvisorRules
         return result;
     }
 
-    /// <summary>Validates the complete allocation without changing character data.</summary>
+    /// <summary>Validates a single attribute increase without changing character data.</summary>
     /// <param name="player">The player whose points and class are checked.</param>
     /// <param name="amounts">The proposed amounts for the stable attribute indices.</param>
     /// <returns>An empty string when valid, otherwise a localized failure.</returns>
@@ -54,6 +54,12 @@ internal static class StatAdvisorRules
         if (player.CurrentMiniGame is not null)
         {
             return player.GetLocalizedMessage(nameof(PlayerMessage.AddingMultiplePointsWhileMiniGameNotAllowed));
+        }
+
+        // Keep the existing wire layout for compatibility, but accept only one attribute per request.
+        if (amounts.Count(amount => amount != 0) > 1)
+        {
+            return player.GetLocalizedMessage("AdvisorInvalidAllocation");
         }
 
         var stats = GetStats(player);

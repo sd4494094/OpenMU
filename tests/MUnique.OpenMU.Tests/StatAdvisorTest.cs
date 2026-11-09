@@ -19,7 +19,7 @@ using MUnique.OpenMU.PlugIns;
 using MonsterDefinition = MUnique.OpenMU.Persistence.BasicModel.MonsterDefinition;
 using MonsterSpawnArea = MUnique.OpenMU.Persistence.BasicModel.MonsterSpawnArea;
 
-/// <summary>Verifies the explicit reset confirmation and atomic batch point workflow.</summary>
+/// <summary>Verifies the explicit reset confirmation and single-attribute point workflow.</summary>
 [TestFixture]
 public class StatAdvisorTest
 {
@@ -35,11 +35,11 @@ public class StatAdvisorTest
         await StatAdvisorAction.HandleAsync(player, 0, string.Empty, string.Empty, new int[5]).ConfigureAwait(false);
         var home = ReadDialog(player);
         Assert.That(home.Labels["Reset"], Is.EqualTo("洗点"));
-        Assert.That(home.Labels["Allocate"], Is.EqualTo("批量加点"));
+        Assert.That(home.Labels["Allocate"], Is.EqualTo("增加"));
         Assert.That(home.Message, Does.Contain("请选择洗点"));
         await StatAdvisorAction.HandleAsync(player, 3, home.SessionId, string.Empty, new int[5]).ConfigureAwait(false);
         var allocation = ReadDialog(player);
-        Assert.That(allocation.Message, Does.Contain("填写本次增加"));
+        Assert.That(allocation.Message, Does.Contain("填写此属性"));
         Assert.That(allocation.Stats.First().Name, Is.EqualTo("力量"));
         var resources = new System.Resources.ResourceManager(
             "MUnique.OpenMU.GameLogic.Properties.PlayerMessage", typeof(StatAdvisorAction).Assembly);
@@ -111,9 +111,9 @@ public class StatAdvisorTest
         Assert.That(player.SelectedCharacter!.LevelUpPoints, Is.EqualTo(7));
     }
 
-    /// <summary>Applies a confirmed allocation once across every supported base attribute.</summary>
+    /// <summary>Applies a confirmed single-attribute allocation once without sending world-entry information.</summary>
     [Test]
-    public async Task BatchAllocationAppliesAllAttributesAndConsumesOnlyNormalPointsOnceAsync()
+    public async Task SingleAllocationUsesTheOrdinaryReplyAndConsumesPointsOnceAsync()
     {
         var player = await CreatePlayerAsync().ConfigureAwait(false);
         await OpenNpcAsync(player).ConfigureAwait(false);
@@ -124,7 +124,7 @@ public class StatAdvisorTest
         var form = ReadDialog(player);
         Assert.That(form.Stats, Has.Count.EqualTo(4));
 
-        int[] amounts = [2, 3, 0, 2, 0];
+        int[] amounts = [2, 0, 0, 0, 0];
         await StatAdvisorAction.HandleAsync(player, 4, home.SessionId, string.Empty, amounts).ConfigureAwait(false);
         var preview = ReadDialog(player);
         Assert.That(preview.Page, Is.EqualTo(3));
@@ -136,19 +136,24 @@ public class StatAdvisorTest
         await StatAdvisorAction.HandleAsync(player, 5, home.SessionId, preview.Token, new int[5]).ConfigureAwait(false);
 
         Assert.That(player.Attributes![Stats.BaseStrength], Is.EqualTo(30));
-        Assert.That(player.Attributes[Stats.BaseAgility], Is.EqualTo(23));
+        Assert.That(player.Attributes[Stats.BaseAgility], Is.EqualTo(20));
         Assert.That(player.Attributes[Stats.BaseVitality], Is.EqualTo(25));
-        Assert.That(player.Attributes[Stats.BaseEnergy], Is.EqualTo(12));
-        Assert.That(player.SelectedCharacter.LevelUpPoints, Is.Zero);
+        Assert.That(player.Attributes[Stats.BaseEnergy], Is.EqualTo(10));
+        Assert.That(player.SelectedCharacter.LevelUpPoints, Is.EqualTo(5));
+        Mock.Get(player.ViewPlugIns.GetPlugIn<MUnique.OpenMU.GameLogic.Views.Character.IStatIncreaseResultPlugIn>()!)
+            .Verify(v => v.StatIncreaseResultAsync(Stats.BaseStrength, 2), Times.Once);
+        Mock.Get(player.ViewPlugIns.GetPlugIn<MUnique.OpenMU.GameLogic.Views.Character.IUpdateCharacterStatsPlugIn>()!)
+            .Verify(v => v.UpdateCharacterStatsAsync(), Times.Once); // Only the original world entry.
         Assert.That(ReadDialog(player).ClearInputs, Is.True);
     }
 
     /// <summary>Rejects unsupported, negative, empty and over-budget allocations.</summary>
     [TestCase(new[] { 0, 0, 0, 0, 0 })]
     [TestCase(new[] { 8, 0, 0, 0, 0 })]
+    [TestCase(new[] { 1, 1, 1, 1, 0 })]
     [TestCase(new[] { -1, 1, 0, 0, 0 })]
     [TestCase(new[] { 0, 0, 0, 0, 1 })]
-    public async Task InvalidBatchPreviewCannotBeConfirmedAsync(int[] amounts)
+    public async Task InvalidOrMultipleAttributePreviewCannotBeConfirmedAsync(int[] amounts)
     {
         var player = await CreatePlayerAsync().ConfigureAwait(false);
         await OpenNpcAsync(player).ConfigureAwait(false);

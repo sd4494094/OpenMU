@@ -7,17 +7,23 @@ namespace MUnique.OpenMU.Tests;
 using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.NPC;
+using MUnique.OpenMU.GameLogic.PlayerActions;
+using MUnique.OpenMU.GameLogic.Resets;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.GameServer;
 using MUnique.OpenMU.GameServer.RemoteView;
 using MUnique.OpenMU.GameServer.RemoteView.Character;
+using MUnique.OpenMU.GameServer.RemoteView.NPC;
 using MUnique.OpenMU.GameServer.RemoteView.World;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Network;
@@ -154,6 +160,72 @@ public class MapDiscriminatorRemoteViewTests
     }
 
     /// <summary>
+    /// Four separate NPC increases emit ordinary stat acknowledgements, never another world entry,
+    /// relocation or duplicate acknowledgement, even when the confirmation is clicked twice.
+    /// </summary>
+    [Test]
+    public async Task AdvisorIncreasesDoNotReinitializeTheClientWorldAsync()
+    {
+        var (player, output, _) = await CreatePlayerInWorldAsync(ExtendedClient, 0, enterOnStage: false).ConfigureAwait(false);
+        player.SelectedCharacter!.LevelUpPoints = 7;
+        var map = player.CurrentMap;
+        var position = player.Position;
+        var spawn = new BasicModel.MonsterSpawnArea
+        {
+            X1 = position.X, X2 = position.X, Y1 = position.Y, Y2 = position.Y,
+        };
+        var definition = new BasicModel.MonsterDefinition
+        {
+            Number = 464, NpcWindow = NpcWindow.StatReInitializer, ObjectKind = NpcObjectKind.PassiveNpc,
+        };
+        var npc = new NonPlayerCharacter(spawn, definition, map!);
+        await new TalkNpcAction().TalkToNpcAsync(player, npc).ConfigureAwait(false);
+        await StatAdvisorAction.HandleAsync(player, 0, string.Empty, string.Empty, new int[5]).ConfigureAwait(false);
+        var session = ReadAdvisorField("SessionId");
+        var initial = StatAdvisorRules.GetStats(player).Select(s => s.Current).ToArray();
+
+        for (var index = 0; index < 4; index++)
+        {
+            var amounts = new int[5];
+            amounts[index] = 1;
+            await StatAdvisorAction.HandleAsync(player, 4, session, string.Empty, amounts).ConfigureAwait(false);
+            var token = ReadAdvisorField("Token");
+            Assert.That(token, Is.Not.Empty);
+            await StatAdvisorAction.HandleAsync(player, 5, session, token, new int[5]).ConfigureAwait(false);
+            await StatAdvisorAction.HandleAsync(player, 5, session, token, new int[5]).ConfigureAwait(false);
+
+            Assert.That(player.CurrentMap, Is.SameAs(map));
+            Assert.That(player.Position, Is.EqualTo(position));
+            Assert.That(player.OpenedNpc, Is.SameAs(npc));
+            Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.NpcDialogOpened));
+        }
+
+        var packets = ReadPackets(output);
+        Assert.That(packets.Count(p => p[2] == CharacterInformationCode && p[3] == CharacterInformationSubCode), Is.EqualTo(1), "Only initial world entry");
+        Assert.That(packets.Any(p => p[2] == MapChangedCode), Is.False, "No relocation");
+        var increases = packets.Where(p => p[2] == CharacterStatIncreaseResponseExtended.Code
+            && p[3] == CharacterStatIncreaseResponseExtended.SubCode).ToArray();
+        Assert.That(increases, Has.Length.EqualTo(4));
+        for (var index = 0; index < increases.Length; index++)
+        {
+            CharacterStatIncreaseResponseExtended reply = increases[index].AsMemory();
+            Assert.That((int)reply.Attribute, Is.EqualTo(index));
+            Assert.That(reply.AddedAmount, Is.EqualTo(1));
+        }
+
+        Assert.That(StatAdvisorRules.GetStats(player).Select(s => s.Current), Is.EqualTo(initial.Select(s => s + 1)));
+        Assert.That(player.SelectedCharacter.LevelUpPoints, Is.EqualTo(3));
+
+        string ReadAdvisorField(string name)
+        {
+            var packet = ReadPackets(output).Last(p => p[0] == 0xC2 && p[3] == 0xF2 && p[4] == 0x03);
+            var json = Encoding.UTF8.GetString(packet, 5, packet.Length - 6);
+            using var document = JsonDocument.Parse(json);
+            return document.RootElement.GetProperty(name).GetString()!;
+        }
+    }
+
+    /// <summary>
     /// Creates a remote player, which entered the world on map 0 or on a map with the number of Devil Square and
     /// the specified discriminator, with the plugins of the original and the extended client.
     /// </summary>
@@ -173,6 +245,8 @@ public class MapDiscriminatorRemoteViewTests
         plugInManager.RegisterPlugIn<IViewPlugIn, TeleportPlugIn>();
         plugInManager.RegisterPlugIn<IViewPlugIn, TeleportExtendedPlugIn>();
         plugInManager.RegisterPlugIn<IViewPlugIn, UpdateCharacterStatsExtendedPlugIn>();
+        plugInManager.RegisterPlugIn<IViewPlugIn, StatIncreaseResultExtendedPlugIn>();
+        plugInManager.RegisterPlugIn<IViewPlugIn, ShowStatAdvisorExtendedPlugIn>();
 
         var mapInitializer = new MapInitializer(configuration, new NullLogger<MapInitializer>(), NullDropGenerator.Instance, null);
         var gameServerContext = new GameServerContext(
