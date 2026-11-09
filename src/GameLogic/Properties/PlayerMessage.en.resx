@@ -1237,8 +1237,8 @@ PK状态：{14}
   <data name="AdvisorVitality" xml:space="preserve"><value>体力</value></data>
   <data name="AdvisorEnergy" xml:space="preserve"><value>智力</value></data>
   <data name="AdvisorLeadership" xml:space="preserve"><value>统率</value></data>
-  <data name="AdvisorReset" xml:space="preserve"><value>洗点</value></data>
-  <data name="AdvisorAllocate" xml:space="preserve"><value>增加</value></data>
+  <data name="AdvisorReset" xml:space="preserve"><value>洗点（重置属性）</value></data>
+  <data name="AdvisorAllocate" xml:space="preserve"><value>{0}加点</value></data>
   <data name="AdvisorLeave" xml:space="preserve"><value>离开</value></data>
   <data name="AdvisorBack" xml:space="preserve"><value>返回</value></data>
   <data name="AdvisorClear" xml:space="preserve"><value>清空</value></data>
@@ -1253,9 +1253,9 @@ PK状态：{14}
   <data name="AdvisorTotal" xml:space="preserve"><value>本次合计</value></data>
   <data name="AdvisorRemaining" xml:space="preserve"><value>分配后剩余</value></data>
   <data name="AdvisorInvalidInput" xml:space="preserve"><value>请输入非负整数，且不得超过可用点数和属性上限。</value></data>
-  <data name="AdvisorWaiting" xml:space="preserve"><value>正在等待服务器处理，请勿重复提交。</value></data>
-  <data name="AdvisorHomeNotice" xml:space="preserve"><value>请选择洗点，或选择一种属性加点。每次只增加一个属性，输入的是增加点数。打开菜单不会扣费或修改角色。</value></data>
-  <data name="AdvisorAllocationNotice" xml:space="preserve"><value>填写此属性本次增加的点数，并非最终属性值。一次只处理一个属性；使用普通属性点，不收金币，不会移动角色或退出游戏。</value></data>
+  <data name="AdvisorWaiting" xml:space="preserve"><value>处理中…</value></data>
+  <data name="AdvisorHomeNotice" xml:space="preserve"><value>请选择洗点或属性加点。加点时填写本次增加的点数。</value></data>
+  <data name="AdvisorAllocationNotice" xml:space="preserve"><value>填写本次增加的点数，并非最终属性值。每次只加一种属性，不收金币。</value></data>
   <data name="AdvisorInvalidAllocation" xml:space="preserve"><value>每次只能增加一种属性。请检查数量、职业限制和属性上限；本次未加点。</value></data>
   <data name="AdvisorInsufficientPoints" xml:space="preserve"><value>请填写至少1点，且不能超过可用普通属性点；本次未加点。</value></data>
   <data name="AdvisorExpired" xml:space="preserve"><value>该确认已失效，请返回后重新查看并确认。</value></data>

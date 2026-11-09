@@ -34,12 +34,12 @@ public class StatAdvisorTest
         await OpenNpcAsync(player).ConfigureAwait(false);
         await StatAdvisorAction.HandleAsync(player, 0, string.Empty, string.Empty, new int[5]).ConfigureAwait(false);
         var home = ReadDialog(player);
-        Assert.That(home.Labels["Reset"], Is.EqualTo("洗点"));
-        Assert.That(home.Labels["Allocate"], Is.EqualTo("增加"));
+        Assert.That(home.Labels["Reset"], Is.EqualTo("洗点（重置属性）"));
+        Assert.That(home.Labels["Allocate"], Is.EqualTo("{0}加点"));
         Assert.That(home.Message, Does.Contain("请选择洗点"));
         await StatAdvisorAction.HandleAsync(player, 3, home.SessionId, string.Empty, new int[5]).ConfigureAwait(false);
         var allocation = ReadDialog(player);
-        Assert.That(allocation.Message, Does.Contain("填写此属性"));
+        Assert.That(allocation.Message, Does.Contain("填写本次增加的点数"));
         Assert.That(allocation.Stats.First().Name, Is.EqualTo("力量"));
         var resources = new System.Resources.ResourceManager(
             "MUnique.OpenMU.GameLogic.Properties.PlayerMessage", typeof(StatAdvisorAction).Assembly);
