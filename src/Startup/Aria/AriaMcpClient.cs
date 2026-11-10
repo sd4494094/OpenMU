@@ -40,7 +40,7 @@ public sealed class AriaMcpClient : IAriaToolClient
                 CertificateChainPolicy = new X509ChainPolicy
                 {
                     TrustMode = X509ChainTrustMode.CustomRootTrust,
-                    CustomTrustStore = { X509Certificate2.CreateFromPemFile(options.RootCertificateFile) },
+                    CustomTrustStore = { X509Certificate2.CreateFromPem(File.ReadAllText(options.RootCertificateFile)) },
                     RevocationMode = X509RevocationMode.NoCheck,
                 },
             };

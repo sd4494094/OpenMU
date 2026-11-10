@@ -7,6 +7,8 @@ namespace MUnique.OpenMU.Tests;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
@@ -243,6 +245,26 @@ public class AriaMcpTest
         using var arguments = JsonDocument.Parse("{\"mapNumber\":2}");
         var result = await new AriaMcpClient(http, Options()).CallAsync("spawns_list", arguments.RootElement, CancellationToken.None).ConfigureAwait(false);
         Assert.That(result.GetProperty("total").GetInt32(), Is.EqualTo(1));
+    }
+
+    /// <summary>Loading a public root CA must never require access to its private key.</summary>
+    [Test]
+    public async Task CustomCaLoadsFromCertificateOnlyPemAsync()
+    {
+        using var key = RSA.Create(2048);
+        var request = new CertificateRequest("CN=Aria test root", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+        var path = Path.GetTempFileName();
+        try
+        {
+            await File.WriteAllTextAsync(path, certificate.ExportCertificatePem()).ConfigureAwait(false);
+            using var handler = AriaMcpClient.CreateHandler(new AriaMcpOptions { RootCertificateFile = path });
+            Assert.That(handler, Is.Not.Null);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 
     private static AriaChatOptions Options()
