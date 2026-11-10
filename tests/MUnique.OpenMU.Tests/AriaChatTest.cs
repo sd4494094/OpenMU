@@ -58,7 +58,7 @@ public class AriaChatTest
     {
         var text = "data: {\"type\":\"response.output_text.delta\",\"delta\":\"不能发送这段\"}\n\n" + terminal;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-        Assert.ThrowsAsync<InvalidDataException>(async () =>
+        Assert.ThrowsAsync(terminal.Contains("response.", StringComparison.Ordinal) ? typeof(InvalidDataException) : typeof(EndOfStreamException), async () =>
             await AriaModelClient.ReadCompletedAsync(stream, CancellationToken.None).ConfigureAwait(false));
     }
 
@@ -215,6 +215,45 @@ public class AriaChatTest
             store.Verify(value => value.AppendAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never());
             Mock.Get(player.ViewPlugIns.GetPlugIn<IChatViewPlugIn>()!).Verify(
                 view => view.ChatMessageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ChatMessageType>()), Times.Never());
+        }
+        finally
+        {
+            await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+            File.Delete(prompt);
+        }
+    }
+
+    /// <summary>A model retry creates only one stored turn and one private final answer.</summary>
+    [Test]
+    public async Task RetriedModelStoresAndDeliversOnlyOnceAsync()
+    {
+        var player = await CreateIdentifiedPlayerAsync().ConfigureAwait(false);
+        var attempts = 0;
+        using var handler = new TestHandler(_ => Task.FromResult(++attempts == 1
+            ? new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            : new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(StreamAnswer("你好，勇者。"), Encoding.UTF8, "text/event-stream"),
+            }));
+        using var http = new HttpClient(handler);
+        var prompt = Path.GetTempFileName();
+        await File.WriteAllTextAsync(prompt, "You are Aria. Give a short private answer.").ConfigureAwait(false);
+        var options = new AriaChatOptions { Enabled = true, ApiKey = "test-key", Endpoint = "http://localhost/v1/responses", PromptFile = prompt };
+        var store = CreateStore();
+        using var service = new AriaChatService(options, store.Object, new AriaModelClient(http, options), NullLogger<AriaChatService>.Instance);
+        try
+        {
+            await service.StartAsync(CancellationToken.None).ConfigureAwait(false);
+            await WaitReadyAsync(service).ConfigureAwait(false);
+            await new AriaChatCommandPlugIn(service).HandleCommandAsync(player, "/Aria 你好").ConfigureAwait(false);
+            var chat = Mock.Get(player.ViewPlugIns.GetPlugIn<IChatViewPlugIn>()!);
+            await WaitForAsync(() => chat.Invocations.Count >= 2).ConfigureAwait(false);
+            await service.StopAsync(CancellationToken.None).ConfigureAwait(false);
+            Assert.That(attempts, Is.EqualTo(2));
+            Assert.That(chat.Invocations.Count, Is.EqualTo(2));
+            Assert.That(chat.Invocations[1].Arguments[0], Is.EqualTo("你好，勇者。"));
+            store.Verify(value => value.AppendAsync(
+                It.IsAny<Guid>(), "aria", "你好", "你好，勇者。", It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once());
         }
         finally
         {

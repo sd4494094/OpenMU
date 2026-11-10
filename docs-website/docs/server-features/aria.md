@@ -31,8 +31,16 @@ The server sends relevant conversation and character context to its configured
 AI provider.
 
 Aria cannot grant items, change attributes, teleport you or perform GM actions.
-Her help is based on available server information; if a rule is unknown, she
-should ask for clarification instead of inventing a server-specific answer.
+She can answer general MU Season 6 Episode 3 questions from model knowledge.
+Verified server information takes precedence over general rules; she must not
+present an unverified rule as a confirmed setting of this server. Her answers
+remain short, with clause-aware line breaks for the narrow chat panel.
+
+Transient connection failures and HTTP 500/502/503/504 responses are retried
+once after a short randomized delay, within the original request deadline
+(default 30 seconds). Authentication, billing/rate-limit errors and explicit
+failed/incomplete model output are not retried. A retry never publishes partial
+text or repeats the player echo, conversation storage or final reply.
 
 Operators can find configuration, migration and recovery instructions in
 [`deploy/aria/README.md`](https://github.com/sd4494094/OpenMU/blob/dev/deploy/aria/README.md).

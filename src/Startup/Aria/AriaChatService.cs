@@ -230,6 +230,7 @@ public sealed class AriaChatService : BackgroundService, IAriaChatService
             source.CancelAfter(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero);
             var token = source.Token;
             var stopwatch = Stopwatch.StartNew();
+            this._logger.LogInformation("Aria request dequeued after {QueueMs} ms.", (DateTimeOffset.UtcNow - request.CreatedAt).TotalMilliseconds);
             var answered = false;
             try
             {
@@ -283,6 +284,7 @@ public sealed class AriaChatService : BackgroundService, IAriaChatService
             {
                 if (!answered && !request.Cancellation.IsCancellationRequested && !stoppingToken.IsCancellationRequested)
                 {
+                    this._logger.LogWarning("Aria request deadline expired after {ElapsedMs} ms of processing.", stopwatch.ElapsedMilliseconds);
                     await this.DeliverFailureAsync(request).ConfigureAwait(false);
                 }
             }

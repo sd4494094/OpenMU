@@ -33,31 +33,39 @@ public static class AriaChatText
         var lines = new List<string>();
         var senderWidth = sender.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
         var available = Math.Max(8, 40 - senderWidth - 3);
-        var line = new StringBuilder();
-        var columns = 0;
-        var bytes = 0;
-        var elements = StringInfo.GetTextElementEnumerator(text);
-        while (elements.MoveNext())
+        var elements = new List<string>();
+        var enumerator = StringInfo.GetTextElementEnumerator(text);
+        while (enumerator.MoveNext())
         {
-            var element = elements.GetTextElement();
-            var width = element.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
-            var size = Encoding.UTF8.GetByteCount(element);
-            if (line.Length > 0 && (columns + width > available || bytes + size > 80))
-            {
-                lines.Add(line.ToString());
-                line.Clear();
-                columns = 0;
-                bytes = 0;
-            }
-
-            line.Append(element);
-            columns += width;
-            bytes += size;
+            elements.Add(enumerator.GetTextElement());
         }
 
-        if (line.Length > 0)
+        for (var start = 0; start < elements.Count;)
         {
-            lines.Add(line.ToString());
+            var end = start;
+            var columns = 0;
+            var bytes = 0;
+            while (end < elements.Count)
+            {
+                var width = elements[end].EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
+                var size = Encoding.UTF8.GetByteCount(elements[end]);
+                if (end > start && (columns + width > available || bytes + size > 80))
+                {
+                    break;
+                }
+
+                columns += width;
+                bytes += size;
+                end++;
+            }
+
+            if (end < elements.Count)
+            {
+                end = FindLineBreak(elements, start, end);
+            }
+
+            lines.Add(string.Concat(elements.Skip(start).Take(end - start)));
+            start = end;
         }
 
         return lines;
@@ -120,4 +128,61 @@ public static class AriaChatText
 
         return result.Append('…').ToString();
     }
+
+    private static int FindLineBreak(IReadOnlyList<string> elements, int start, int end)
+    {
+        // Prefer a complete clause; do not strand closing punctuation on the next line.
+        var preferred = -1;
+        for (var index = start + 1; index <= end; index++)
+        {
+            var previous = elements[index - 1];
+            if (!IsClosingPunctuation(elements[index]) && !IsOpeningPunctuation(previous)
+                && (char.IsWhiteSpace(previous, 0) || IsClosingPunctuation(previous))
+                && !IsNumericSeparator(elements, index - 1))
+            {
+                preferred = index;
+            }
+        }
+
+        if (preferred > start)
+        {
+            return preferred;
+        }
+
+        // Keep an ASCII word/coordinate intact if it fits on the following line.
+        var cut = end;
+        while (cut > start + 1 && (IsClosingPunctuation(elements[cut]) || IsOpeningPunctuation(elements[cut - 1])))
+        {
+            cut--;
+        }
+
+        if (IsAsciiToken(elements[cut - 1]) && IsAsciiToken(elements[cut]))
+        {
+            var tokenStart = cut - 1;
+            while (tokenStart > start && IsAsciiToken(elements[tokenStart - 1]))
+            {
+                tokenStart--;
+            }
+
+            if (tokenStart > start)
+            {
+                cut = tokenStart;
+            }
+        }
+
+        return cut;
+    }
+
+    private static bool IsClosingPunctuation(string element)
+        => element.Length == 1 && "，。！？；：、,.!?;:）】》」』”’)]}>…".Contains(element[0]);
+
+    private static bool IsOpeningPunctuation(string element)
+        => element.Length == 1 && "（【《「『“‘([{<".Contains(element[0]);
+
+    private static bool IsAsciiToken(string element)
+        => element.Length == 1 && (char.IsAsciiLetterOrDigit(element[0]) || element[0] is '_' or '-' or '.' or ',' or ':');
+
+    private static bool IsNumericSeparator(IReadOnlyList<string> elements, int index)
+        => index > 0 && index + 1 < elements.Count && elements[index] is "," or "." or ":"
+            && char.IsDigit(elements[index - 1], 0) && char.IsDigit(elements[index + 1], 0);
 }

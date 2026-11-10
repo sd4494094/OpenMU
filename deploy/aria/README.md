@@ -77,13 +77,21 @@ database backups or logs retained by an upstream provider.
 
 The model receives the player's name, class, level, map, a small active quest
 snapshot, recent messages and the summary. It receives no account password,
-management credential or complete character inventory. Logs contain timing
-and error types, not question bodies or keys.
+management credential or complete character inventory. Logs contain timing, HTTP status, model-call correlation identifiers, attempt
+counts and error types, not question bodies or keys. Transient connection errors
+and HTTP 500/502/503/504 are retried once with 300–700 ms jitter, respecting a
+server Retry-After header. Both attempts share the original end-to-end deadline
+(default 30 seconds), including queue time. Cancellation never starts a new
+attempt. Explicit failed/incomplete model events, invalid requests, authentication
+and ambiguous 429/quota responses are not retried. Keep upstream/CPA automatic
+retries disabled to avoid multiplying attempts.
 
 Questions are echoed only to the requesting connection. Completed replies are
 sent together as bounded normal-chat lines, each with the NPC sender. Splitting
 preserves the complete normalized answer and includes the sender in a conservative
-40-column display budget (wide characters count twice), with at most 80 UTF-8
+40-column display budget (wide characters count twice), preferring clause and
+space boundaries and keeping closing punctuation off the next line. ASCII
+words and coordinates are kept together when they fit. There are at most 80 UTF-8
 bytes per packet for the legacy client's 90-byte chat buffer.
 This avoids a known wide-character indexing risk in the candidate MuMain
 client's whisper receiver. NPC sender names and reply byte limits are bounded
