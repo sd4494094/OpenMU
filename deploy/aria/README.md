@@ -113,3 +113,55 @@ Never point tests at production. Transport tests check the low reasoning
 parameter and reject partial/incomplete SSE responses. Player tests check the
 non-blocking path, private reply and logout cancellation. Manual checks should
 also cover all aliases, a remembered name after relogin and memory deletion.
+
+
+## Optional read-only MCP gameplay connection
+
+Enable only for Aria, using a **separate Viewer API key** whose allowed MCP tools
+are exactly:
+
+```text
+rates_get,drops_explain,spawns_list,content_list,events_schedule
+```
+
+Supply private host configuration (never put the key in Git, the prompt, CPA,
+or the game client):
+
+```text
+Aria__Mcp__Enabled=true
+Aria__Mcp__Endpoint=https://<wireguard-address>/mcp
+Aria__Mcp__ApiKey=<dedicated-viewer-key>
+Aria__Mcp__RootCertificateFile=/app/aria-private/openmu-mcp-root-ca.pem
+Aria__Mcp__TimeoutSeconds=6
+```
+
+Mount only the public root CA as a read-only file readable by the container user.
+The CA private key is never mounted. Omit RootCertificateFile for an endpoint
+trusted by the operating system. HTTPS and a credential-free fixed URL are
+required; custom CA trust retains host-name verification. Redirects, HTTP
+fallback and proxy environment discovery are disabled on this MCP client.
+
+The application independently permits only the five names and bounded arguments,
+even if the remote key is accidentally widened. Pages default to 10 rows and are
+capped at 20, text filters at 64 characters, offsets at 1000, and identifiers at
+0..32767. Unknown and duplicate arguments are rejected. MCP uses the project's
+existing SDK version and stateless Streamable HTTP endpoint; each query opens
+and disposes its own protocol client while sharing HTTP connection pooling.
+Response buffering is capped at 128 KiB. Queries have a local 1..10 second
+timeout (default 6) inside the shared conversation deadline, no automatic tool
+retries and no cross-player result cache. The response loop permits at most
+three tool rounds and four queries, then disables tools for a final answer.
+Model transport retries apply to each model HTTP hop and do not rerun completed
+queries. The total request deadline still bounds every hop.
+
+Only sanitized errors reach the model. Structured successful results are limited
+to 8 KiB each and 16 KiB combined; rows are removed with explicit truncation
+metadata instead of cutting JSON. Logs contain approved tool name, duration,
+output size and exception type, never arguments, result bodies or credentials.
+The trusted prompt treats returned names as untrusted data, explains pagination
+and drop limitations, and prevents historic server settings from being treated
+as live facts. Memory-summary requests do not receive tools.
+
+To disable just this integration, set Aria__Mcp__Enabled=false and recreate the
+application container. Chat, model reasoning settings and PostgreSQL memory remain
+available. No database migration or game configuration update is required.

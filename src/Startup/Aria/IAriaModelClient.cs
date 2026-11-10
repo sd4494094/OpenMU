@@ -15,4 +15,12 @@ public interface IAriaModelClient
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>Only a successful final answer.</returns>
     ValueTask<string> CompleteAsync(string instructions, IReadOnlyList<AriaMessage> messages, CancellationToken cancellationToken);
+
+    /// <summary>Summarizes memory without offering any gameplay tools.</summary>
+    /// <param name="instructions">The summary instructions.</param>
+    /// <param name="messages">The detached conversations.</param>
+    /// <param name="cancellationToken">The shared deadline.</param>
+    /// <returns>The summary text only.</returns>
+    ValueTask<string> CompleteSummaryAsync(string instructions, IReadOnlyList<AriaMessage> messages, CancellationToken cancellationToken)
+        => this.CompleteAsync(instructions, messages, cancellationToken);
 }

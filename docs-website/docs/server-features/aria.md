@@ -45,3 +45,24 @@ text or repeats the player echo, conversation storage or final reply.
 Operators can find configuration, migration and recovery instructions in
 [`deploy/aria/README.md`](https://github.com/sd4494094/OpenMU/blob/dev/deploy/aria/README.md).
 This feature does not enable or reconfigure AI player bots.
+
+
+## Optional server gameplay queries
+
+When the operator enables Aria's dedicated MCP connection, she can query current
+experience multipliers, spawn configuration, content activation and event schedules,
+and explain candidate drop groups for a specified monster and map. She uses only
+five read-only gameplay tools. Account data, other players, generic configuration,
+logs and administration operations are not available to her.
+
+The drop query is not an item-to-all-monsters search. A group's configured chance
+is not a final item probability, dynamic quest drops may be missing, and a page
+or truncated result does not prove an item cannot drop. If a query fails, Aria
+must distinguish missing server information from general Season 6 knowledge.
+
+Queries share the existing conversation deadline, with at most four calls over
+three tool rounds, followed by an answer-only turn. Each page is at most 20 rows
+(default 10), and tool output totals at most 16 KiB. Tool results are treated as
+data and are not added to long-term player summaries. Only the final short answer
+is sent and stored as part of the normal conversation; intermediate tool outputs
+and model preludes are not displayed. Casual conversation makes no MCP calls.

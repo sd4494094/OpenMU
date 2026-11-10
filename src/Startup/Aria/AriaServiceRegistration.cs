@@ -33,6 +33,19 @@ public static class AriaServiceRegistration
             throw new ArgumentException("Aria endpoint must be an absolute HTTP(S) URL without embedded credentials.");
         }
 
+        if (options.Mcp.Enabled)
+        {
+            if (!Uri.TryCreate(options.Mcp.Endpoint, UriKind.Absolute, out var mcpEndpoint)
+                || mcpEndpoint.Scheme != "https" || !string.IsNullOrEmpty(mcpEndpoint.UserInfo)
+                || string.IsNullOrWhiteSpace(options.Mcp.ApiKey))
+            {
+                throw new ArgumentException("Aria MCP requires a fixed HTTPS endpoint and a dedicated API key.");
+            }
+
+            services.AddHttpClient<IAriaToolClient, AriaMcpClient>(client => client.Timeout = Timeout.InfiniteTimeSpan)
+                .ConfigurePrimaryHttpMessageHandler(() => AriaMcpClient.CreateHandler(options.Mcp));
+        }
+
         services.AddSingleton(options);
         services.AddSingleton<IAriaMemoryStore>(provider =>
         {

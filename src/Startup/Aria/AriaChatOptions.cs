@@ -43,6 +43,9 @@ public sealed class AriaChatOptions
     /// <summary>Gets or sets the per-character cooldown.</summary>
     public int CooldownSeconds { get; set; } = 3;
 
+    /// <summary>Gets or sets the separate read-only gameplay connection.</summary>
+    public AriaMcpOptions Mcp { get; set; } = new();
+
     /// <summary>Gets or sets raw conversation retention.</summary>
     public int RetentionDays { get; set; } = 30;
 }
