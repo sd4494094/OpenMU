@@ -15,6 +15,15 @@ public static class AriaChatText
     /// <summary>Conservative UTF-8 budget for the original C1 chat message.</summary>
     public const int MaximumBytes = 240;
 
+    /// <summary>Display budget including the sender, calibrated to the existing chat panel.</summary>
+    private const int DisplayColumns = 64;
+
+    /// <summary>Payload headroom below the supported client's 90-byte receive buffer.</summary>
+    private const int MaximumLineBytes = 80;
+
+    /// <summary>Only seek a natural boundary within four wide characters of a full line.</summary>
+    private const int NaturalBreakSearchColumns = 8;
+
     /// <summary>
     /// Splits completed text for the narrow legacy chat panel, including its sender label.
     /// </summary>
@@ -24,15 +33,17 @@ public static class AriaChatText
     /// <remarks>
     /// The supported client wraps at most twice and treats spaces as word boundaries.
     /// Keep each packet below its 90-byte receive buffer and use a conservative
-    /// 40-column display budget, reserving space for the sender and separator.
+    /// 64-column display budget, reserving space for the sender and separator.
     /// Wide Unicode elements count as two columns. This is a compatibility bound,
-    /// not a change to the model's total answer budget.
+    /// not a change to the model's total answer budget. The byte budget allows
+    /// at most 26 plain Chinese characters per packet; only nearby punctuation
+    /// is preferred, so an early clause does not leave most of a line empty.
     /// </remarks>
     public static IReadOnlyList<string> SplitForChat(string text, string sender)
     {
         var lines = new List<string>();
         var senderWidth = sender.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
-        var available = Math.Max(8, 40 - senderWidth - 3);
+        var available = Math.Max(8, DisplayColumns - senderWidth - 3);
         var elements = new List<string>();
         var enumerator = StringInfo.GetTextElementEnumerator(text);
         while (enumerator.MoveNext())
@@ -49,7 +60,7 @@ public static class AriaChatText
             {
                 var width = elements[end].EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
                 var size = Encoding.UTF8.GetByteCount(elements[end]);
-                if (end > start && (columns + width > available || bytes + size > 80))
+                if (end > start && (columns + width > available || bytes + size > MaximumLineBytes))
                 {
                     break;
                 }
@@ -131,22 +142,20 @@ public static class AriaChatText
 
     private static int FindLineBreak(IReadOnlyList<string> elements, int start, int end)
     {
-        // Prefer a complete clause; do not strand closing punctuation on the next line.
-        var preferred = -1;
-        for (var index = start + 1; index <= end; index++)
+        // Prefer the closest natural boundary only near the fitted line's end.
+        // Earlier punctuation must not recreate the short lines seen in the client.
+        var remainingColumns = 0;
+        for (var index = end; index > start && remainingColumns <= NaturalBreakSearchColumns; index--)
         {
             var previous = elements[index - 1];
             if (!IsClosingPunctuation(elements[index]) && !IsOpeningPunctuation(previous)
                 && (char.IsWhiteSpace(previous, 0) || IsClosingPunctuation(previous))
                 && !IsNumericSeparator(elements, index - 1))
             {
-                preferred = index;
+                return index;
             }
-        }
 
-        if (preferred > start)
-        {
-            return preferred;
+            remainingColumns += previous.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1);
         }
 
         // Keep an ASCII word/coordinate intact if it fits on the following line.

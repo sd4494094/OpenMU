@@ -31,18 +31,81 @@ public class AriaReliabilityTest
         {
             Assert.That("，。！？；：、,.!?;:）】》」』”’)]}>…", Does.Not.Contain(line[..1]));
             Assert.That(Encoding.UTF8.GetByteCount(line), Is.LessThanOrEqualTo(80));
-            Assert.That(line.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1) + 9, Is.LessThanOrEqualTo(40));
+            Assert.That(line.EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1) + 9, Is.LessThanOrEqualTo(64));
         }
     }
 
-    /// <summary>Chooses clause boundaries and preserves a coordinate spanning the old cut.</summary>
+    /// <summary>A complete short answer is no longer split at an early comma.</summary>
     [Test]
-    public void UsesNaturalBoundaryBeforeHardCut()
+    public void ShortAnswerUsesOneLine()
     {
-        var lines = AriaChatText.SplitForChat("通常去失落之塔，击杀任务范围内的怪物。", "艾莉雅");
-        Assert.That(lines[0], Is.EqualTo("通常去失落之塔，"));
-        lines = AriaChatText.SplitForChat("甲乙丙丁戊己庚辛壬癸甲乙18,106附近。", "艾莉雅");
+        const string text = "通常去失落之塔，击杀任务范围内的怪物。";
+        Assert.That(AriaChatText.SplitForChat(text, "艾莉雅"), Is.EqualTo(new[] { text }));
+    }
+
+    /// <summary>The unchanged byte buffer permits 26 Chinese characters per full line.</summary>
+    [Test]
+    public void FullChineseAnswerUsesTwentySixCharacterLines()
+    {
+        var text = new string('中', 80);
+        var lines = AriaChatText.SplitForChat(text, "艾莉雅");
+        Assert.That(lines.Select(line => line.Length), Is.EqualTo(new[] { 26, 26, 26, 2 }));
+        Assert.That(string.Concat(lines), Is.EqualTo(text));
+        Assert.That(AriaChatText.Constrain(text), Is.EqualTo(text));
+    }
+
+    /// <summary>Only punctuation near the byte-limited edge may shorten a full line.</summary>
+    [Test]
+    public void EarlyCommaDoesNotWasteTheLine()
+    {
+        var text = new string('中', 7) + "，" + new string('文', 40);
+        var lines = AriaChatText.SplitForChat(text, "艾莉雅");
+        Assert.That(lines[0].Length, Is.EqualTo(26));
+        Assert.That(string.Concat(lines), Is.EqualTo(text));
+    }
+
+    /// <summary>The closest clause end near the edge takes priority over a hard cut.</summary>
+    [Test]
+    public void UsesPunctuationNearTheRightEdge()
+    {
+        var first = new string('中', 23) + "，";
+        var text = first + new string('文', 20);
+        var lines = AriaChatText.SplitForChat(text, "艾莉雅");
+        Assert.That(lines[0], Is.EqualTo(first));
+        Assert.That(string.Concat(lines), Is.EqualTo(text));
+    }
+
+    /// <summary>A closing mark at the byte edge stays with its preceding character.</summary>
+    [Test]
+    public void ClosingPunctuationDoesNotStartTheNextLine()
+    {
+        var text = new string('中', 26) + "。" + new string('文', 10);
+        var lines = AriaChatText.SplitForChat(text, "艾莉雅");
+        Assert.That(lines[0].Length, Is.EqualTo(25));
+        Assert.That(lines[1], Does.StartWith("中。"));
+        Assert.That(string.Concat(lines), Is.EqualTo(text));
+    }
+
+    /// <summary>Coordinates spanning the byte limit are kept together.</summary>
+    [Test]
+    public void CoordinateSpanningTheByteLimitRemainsIntact()
+    {
+        var text = new string('中', 24) + "18,106附近。";
+        var lines = AriaChatText.SplitForChat(text, "艾莉雅");
         Assert.That(lines.Any(line => line.Contains("18,106", StringComparison.Ordinal)), Is.True);
+        Assert.That(string.Concat(lines), Is.EqualTo(text));
+    }
+
+    /// <summary>The screenshot's short lines now share the available packet space.</summary>
+    [Test]
+    public void ScreenshotJobChangeAnswerUsesFewerLongerLines()
+    {
+        const string text = "剑士150级可找冰风谷赛维娜，完成帝王之书与断魂之剑任务，转职为骑士；220级再完成荣誉戒指任务，可使用连击。";
+        var lines = AriaChatText.SplitForChat(text, "艾莉雅");
+        Assert.That(lines.Count, Is.LessThanOrEqualTo(3));
+        Assert.That(lines[0].Length, Is.GreaterThanOrEqualTo(22));
+        Assert.That(string.Concat(lines), Is.EqualTo(text));
+        Assert.That(lines.All(line => Encoding.UTF8.GetByteCount(line) <= 80), Is.True);
     }
 
     /// <summary>Retries temporary HTTP failures once, retaining the same model request.</summary>

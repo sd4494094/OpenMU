@@ -34,7 +34,12 @@ Aria cannot grant items, change attributes, teleport you or perform GM actions.
 She can answer general MU Season 6 Episode 3 questions from model knowledge.
 Verified server information takes precedence over general rules; she must not
 present an unverified rule as a confirmed setting of this server. Her answers
-remain short, with clause-aware line breaks for the narrow chat panel.
+remain limited to 80 characters in total. Completed replies use wider lines
+(up to 26 plain Chinese characters within the existing packet byte budget).
+Punctuation is preferred only near a full line's end, so an early comma does not
+create an unnecessarily short line. Player question echoes use the same wrapping.
+This is server-side formatting; the existing client chat system is unchanged.
+Actual visible width still depends on the client's font and window size.
 
 Transient connection failures and HTTP 500/502/503/504 responses are retried
 once after a short randomized delay, within the original request deadline

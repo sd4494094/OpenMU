@@ -102,12 +102,12 @@ public class AriaChatTest
         Assert.That(AriaChatText.Constrain(new string('中', 80)), Is.EqualTo(new string('中', 80)));
     }
 
-    /// <summary>Preserves complete mixed-language content within narrow chat lines and byte buffers.</summary>
+    /// <summary>Preserves complete mixed-language content within wider chat lines and byte buffers.</summary>
     /// <param name="text">The message.</param>
     /// <param name="sender">The sender label.</param>
     [TestCase("你好，Will。愿勇者大陆的风伴你前行，若旅途中有什么疑问，或只是想找人聊天，都可以来找我。", "艾莉雅")]
     [TestCase("@@测试聊天前缀；" + "中文English123，中文English123，中文English123，中文English123。", "LongName10")]
-    [TestCase("甲乙e\u0301丙丁戊己庚辛壬癸甲乙丙丁戊己庚辛壬癸", "艾莉雅")]
+    [TestCase("甲乙e\u0301丙丁戊己庚辛壬癸甲乙丙丁戊己庚辛壬癸甲乙丙丁戊己庚辛壬癸", "艾莉雅")]
     public void CompletedMessagesFitDisplayLines(string text, string sender)
     {
         var lines = AriaChatText.SplitForChat(text, sender);
@@ -117,7 +117,7 @@ public class AriaChatTest
         {
             Assert.That(Encoding.UTF8.GetByteCount(line), Is.LessThanOrEqualTo(80));
             var width = (line + sender).EnumerateRunes().Sum(rune => rune.Value > 0xFF ? 2 : 1) + 3;
-            Assert.That(width, Is.LessThanOrEqualTo(40));
+            Assert.That(width, Is.LessThanOrEqualTo(64));
             Assert.That(char.IsLowSurrogate(line[0]), Is.False);
             Assert.That(char.GetUnicodeCategory(line[0]), Is.Not.EqualTo(System.Globalization.UnicodeCategory.NonSpacingMark));
         }
