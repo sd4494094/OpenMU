@@ -314,12 +314,17 @@ src/AdminPanel/wwwroot/content/js/app.js.map
 # Data
 .data/
 /out/
+/downloads/
+/.local_docs/
+/.acchived/
+/.tmp/
 
 # Mac OS filesystem files
 .DS_Store
 
 # AI
 .opencode/
+.claude/
 # Keys which are generated when the server runs locally.
 data-protection-keys/
 
