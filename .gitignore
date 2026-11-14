@@ -336,3 +336,6 @@ data-protection-keys/
 
 # The archive of the network observation, when the server is started from the repository.
 captures/
+
+# Reviewed bot character-name inventory.
+!src/GameLogic/Bots/CharacterNames.txt

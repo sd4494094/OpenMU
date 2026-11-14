@@ -18,6 +18,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Bots/CharacterNames.txt" LogicalName="MUnique.OpenMU.GameLogic.Bots.CharacterNames.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="PlugIns\InvasionEvents\" />
   </ItemGroup>
 

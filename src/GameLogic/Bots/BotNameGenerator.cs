@@ -4,89 +4,62 @@
 
 namespace MUnique.OpenMU.GameLogic.Bots;
 
-using System.Globalization;
 using System.Threading;
 using MUnique.OpenMU.Persistence;
 
-/// <summary>
-/// Generates pronounceable, realistic-looking character names for bots.
-/// </summary>
+/// <summary>Allocates complete reviewed nicknames without synthesizing suffixes or fallback names.</summary>
 /// <remarks>
-/// Names are built procedurally from syllables so the generator scales to thousands of unique
-/// names while still looking like names a real player might pick. Every generated name satisfies
-/// the default character name rules (3-10 alphanumeric characters), so bots blend in with players;
-/// the bot nature is tracked by <see cref="DataModel.Entities.Account.IsBot"/>, never by the name.
+/// Existing characters keep their persisted names. An inventory is finite: exhausting it must never
+/// change an existing character or silently escape the reviewed list. The database's unique name index
+/// remains the final concurrency boundary; the elected generator in BotServerPartition owns allocation.
 /// </remarks>
 internal sealed class BotNameGenerator
 {
-    private static readonly string[] Starts =
-    {
-        "Dra", "Kar", "Mil", "Tho", "Zan", "Bel", "Gor", "Vyn", "Ael", "Mor",
-        "Run", "Syl", "Tor", "Kra", "Fen", "Lyr", "Nyx", "Ori", "Var", "Eld",
-        "Bro", "Cyn", "Dar", "Hal", "Ith", "Jor", "Kae", "Lor", "Mag", "Nor",
-        "Pyr", "Rha", "Ser", "Ulr", "Wyn", "Xan", "Yor", "Zel", "Ari", "Cae",
-    };
+    private readonly List<string> _availableNames;
 
-    private static readonly string[] Middles =
+    /// <summary>Initializes a new instance of the <see cref="BotNameGenerator"/> class with a shuffled, validated inventory.</summary>
+    /// <param name="names">The configured names, or the reviewed default when empty.</param>
+    internal BotNameGenerator(IEnumerable<string>? names = null)
     {
-        string.Empty, string.Empty, string.Empty,
-        "a", "e", "i", "o", "ia", "ae", "an", "or", "el", "yn", "ar",
-    };
-
-    private static readonly string[] Ends =
-    {
-        "dor", "lin", "rik", "gar", "wyn", "ric", "mir", "dan", "eth", "ron",
-        "ana", "ella", "ix", "ael", "oth", "ara", "une", "is", "ius", "wen",
-    };
-
-    private readonly IRandomizer _randomizer = Rand.GetRandomizer();
-
-    /// <summary>
-    /// Generates a name which is not yet used, neither within this run nor in the database.
-    /// </summary>
-    /// <param name="context">The context used to check name availability.</param>
-    /// <param name="reserved">The set of names already handed out in this run; the returned name is added to it.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A unique, valid character name.</returns>
-    public async ValueTask<string> GenerateUniqueAsync(IPlayerContext context, ISet<string> reserved, CancellationToken cancellationToken = default)
-    {
-        for (var attempt = 0; attempt < 500; attempt++)
+        this._availableNames = BotNameCatalog.Validate(names).ToList();
+        for (var index = this._availableNames.Count - 1; index > 0; index--)
         {
-            var name = this.BuildName(attempt);
-            if (!reserved.Add(name))
+            var other = Rand.NextInt(0, index + 1);
+            (this._availableNames[index], this._availableNames[other]) = (this._availableNames[other], this._availableNames[index]);
+        }
+    }
+
+    /// <summary>Allocates an unused name, optionally preserving the requested elf build.</summary>
+    /// <param name="context">The shared character-name lookup.</param>
+    /// <param name="reserved">Names already allocated in this generation pass.</param>
+    /// <param name="requiredVariant">The required build variant, or null for either.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A name from the inventory, reserved for the caller.</returns>
+    public async ValueTask<string> GenerateUniqueAsync(IPlayerContext context, ISet<string> reserved, int? requiredVariant = null, CancellationToken cancellationToken = default)
+    {
+        for (var index = this._availableNames.Count - 1; index >= 0; index--)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var name = this._availableNames[index];
+            if (requiredVariant is { } variant && BotBuild.GetVariant(name) != variant)
             {
                 continue;
             }
 
+            if (reserved.Contains(name))
+            {
+                this._availableNames.RemoveAt(index);
+                continue;
+            }
+
             var existing = await context.GetAccountByCharacterNameAsync(name, cancellationToken).ConfigureAwait(false);
-            if (existing is null)
+            this._availableNames.RemoveAt(index);
+            if (existing is null && reserved.Add(name))
             {
                 return name;
             }
         }
 
-        throw new InvalidOperationException("Could not generate a unique bot character name after many attempts.");
-    }
-
-    private string BuildName(int attempt)
-    {
-        var start = Starts.SelectRandom(this._randomizer)!;
-        var middle = Middles.SelectRandom(this._randomizer)!;
-        var end = Ends.SelectRandom(this._randomizer)!;
-        var name = start + middle + end;
-
-        // Once the simple name space gets crowded, append a digit to keep finding free names
-        // without ever exceeding the 10 character limit.
-        if (attempt > 30)
-        {
-            var suffix = (attempt % 10).ToString(CultureInfo.InvariantCulture);
-            name = (name.Length >= 10 ? name[..9] : name) + suffix;
-        }
-        else if (name.Length > 10)
-        {
-            name = name[..10];
-        }
-
-        return char.ToUpperInvariant(name[0]) + name[1..].ToLowerInvariant();
+        throw new InvalidOperationException("No unused reviewed bot nickname remains for the requested build. Extend the nickname inventory before generating more bots.");
     }
 }

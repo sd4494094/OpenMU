@@ -66,6 +66,13 @@ public class BotConfiguration
     public int MinOnlineSharePercent { get; set; } = 60;
 
     /// <summary>
+    /// Gets or sets the complete nickname inventory for newly generated characters.
+    /// Empty or missing settings use the reviewed embedded defaults, including existing installations.
+    /// </summary>
+    [Display(Name = nameof(MUnique.OpenMU.GameLogic.Properties.BotNamingResources.CharacterNamesCaption), Description = nameof(MUnique.OpenMU.GameLogic.Properties.BotNamingResources.CharacterNamesDescription), ResourceType = typeof(MUnique.OpenMU.GameLogic.Properties.BotNamingResources))]
+    public string CharacterNames { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the number of bot accounts. Together with <see cref="MaxCharactersPerAccount"/>
     /// this defines the generated bot population, e.g. 10 accounts × 5 characters = 50 bot characters.
     /// </summary>
@@ -163,6 +170,14 @@ public class BotConfiguration
     /// <remarks>Deliberately a method, like <see cref="GetEffectiveCharactersPerAccount"/>.</remarks>
     public int GetEffectivePotionStockCharges()
         => Math.Clamp(this.PotionStockCharges, 10, 255);
+
+    /// <summary>
+    /// Parses the optional complete nickname inventory without hiding duplicate entries.
+    /// </summary>
+    /// <returns>The trimmed names; an empty result selects the reviewed embedded inventory.</returns>
+    public IReadOnlyList<string> ParseCharacterNames()
+        => (this.CharacterNames ?? string.Empty)
+            .Split([',', '，', ';', '；', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     /// <summary>
     /// Parses <see cref="ProofOfConceptAccounts"/> into the distinct, trimmed login names.

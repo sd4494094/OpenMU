@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="CharacterNamesCaption" xml:space="preserve"><value>Reviewed character nicknames</value></data>
+  <data name="CharacterNamesDescription" xml:space="preserve"><value>Optional complete nickname inventory, separated by commas or line breaks. Empty uses the 500 reviewed defaults (475 Chinese and 25 English). Names must be unique and fit ten UTF-8 bytes. Only new bots use this inventory; existing names remain unchanged. Exhaustion stops generation; no suffixes or fallback names are synthesized.</value></data>
+</root>

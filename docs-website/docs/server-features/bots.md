@@ -61,6 +61,11 @@ The *Bots* feature plugin, in the "Feature Plugins" section of the
 [Plugins page](../admin-panel/plugins.md) of the admin panel:
 
 - **`Enabled`** — spawns the bots after the server has started. Off by default.
+- **`Reviewed character nicknames`** — optional comma-separated complete nickname inventory (line breaks are also accepted in JSON configuration).
+  Empty or missing settings use 500 reviewed defaults: 475 contain simplified
+  Chinese and 25 are English. Each name is allocated only once in the shared
+  character database. Only new characters use the inventory; existing bots keep
+  their names and progress.
 - **`Number of accounts`** — how many bot accounts to maintain.
 - **`Characters per account`** — how many characters each account animates at
   once (at most five).
@@ -94,6 +99,36 @@ The *Bots* feature plugin, in the "Feature Plugins" section of the
   and switches the feature off. It works with the feature enabled or disabled;
   the switch-off is what makes it a purge, since the same pass would otherwise
   create the population again right after deleting it. Clears itself afterwards.
+
+## Nickname inventory and capacity
+
+Nicknames are selected as complete entries, shuffled before allocation. The
+generator checks names already reserved in its generation pass and names owned
+by any account in the shared database. All game servers share that namespace.
+It never combines syllables, adds an unreviewed numeric suffix or falls back
+to generated English names. A few English nicknames are intentional inventory
+entries, not a fallback mode.
+
+Inventory entries use common Han characters and ASCII letters/digits, and
+must fit the unchanged ten-byte UTF-8 name fields. Three common Chinese
+characters fit; four do not. Duplicates, reserved administrative prefixes and
+invalid entries reject the configured inventory before any account is created.
+These bot settings do not change human character-creation rules.
+
+The default inventory has **500 names**, not an unlimited naming space.
+Names owned by real players or previous bots reduce that capacity, and energy
+elf planning also requires names for its requested build variant. If the
+inventory cannot complete an account, generation stops with an operator error
+before attaching that account; previously saved accounts remain available.
+Review and extend the inventory before increasing the population past its free
+capacity. Adding an inventory setting does not regenerate existing accounts.
+
+Names continue to determine each newly created bot's stable build and vitality
+target. Required elf builds are matched before selecting a name and initializing
+its stats. Never rename existing bots in the database to localize them: that
+would change those choices. Renaming existing bots requires a separate migration
+which first persists their gameplay identity. The internal bot account login
+names and the explicit IsBot flag remain unchanged.
 
 ## What a bot does
 

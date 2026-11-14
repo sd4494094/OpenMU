@@ -45,7 +45,6 @@ internal sealed class BotGenerator
 
     private readonly IGameContext _gameContext;
     private readonly ILogger _logger;
-    private readonly BotNameGenerator _nameGenerator = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BotGenerator"/> class.
@@ -123,6 +122,7 @@ internal sealed class BotGenerator
         var maxSeededResets = resetConfiguration?.ResetLimit is > 0 ? resetConfiguration.ResetLimit.Value : 0;
 
         using var context = this._gameContext.PersistenceContextProvider.CreateNewPlayerContext(this._gameContext.Configuration);
+        var nameGenerator = new BotNameGenerator(BotFeaturePlugIn.GetConfiguration(this._gameContext)?.ParseCharacterNames());
         var reservedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var created = 0;
 
@@ -163,24 +163,34 @@ internal sealed class BotGenerator
                 continue;
             }
 
+            // Reserve a whole account before attaching persistent entities. A finite inventory
+            // must not leave a half-created account when its last free nickname is exhausted.
+            var planned = new List<(CharacterClass Class, string Name)>();
+            for (var slot = 0; slot < perAccount; slot++)
+            {
+                var characterClass = classQueue.Count > 0 ? classQueue.Dequeue() : creatableClasses.SelectRandom()!;
+                var wantSupport = BotBuild.IsElf(characterClass) && buffersAssigned < bufferQuota;
+                var variant = BotBuild.IsElf(characterClass) ? BotBuild.WantedVariant(wantSupport) : (int?)null;
+                var name = await nameGenerator.GenerateUniqueAsync(context, reservedNames, variant, cancellationToken).ConfigureAwait(false);
+                if (BotBuild.IsSupportElf(characterClass, name))
+                {
+                    buffersAssigned++;
+                }
+
+                planned.Add((characterClass, name));
+            }
+
             var account = context.CreateNew<Account>();
             account.LoginName = loginName;
             account.PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString(), BotPasswordWorkFactor);
             account.IsBot = true;
             account.Vault = context.CreateNew<ItemStorage>();
 
-            for (byte slot = 0; slot < perAccount; slot++)
+            for (byte slot = 0; slot < planned.Count; slot++)
             {
-                var characterClass = classQueue.Count > 0 ? classQueue.Dequeue() : creatableClasses.SelectRandom()!;
+                var (characterClass, name) = planned[slot];
                 var level = profile.GetStartLevel(minLevel, maxLevel);
                 var seededResets = profile.GetSeededResets(maxSeededResets);
-                var wantSupport = BotBuild.IsElf(characterClass) && buffersAssigned < bufferQuota;
-                var name = await this.GenerateBuildNameAsync(context, reservedNames, characterClass, wantSupport, cancellationToken).ConfigureAwait(false);
-                if (BotBuild.IsSupportElf(characterClass, name))
-                {
-                    buffersAssigned++;
-                }
-
                 this.CreateCharacter(context, account, name, characterClass, level, slot, experienceTable, seededResets, profile.StarterItemLevel, profile.EquipStarterArmor, resetConfiguration);
             }
 
@@ -390,40 +400,6 @@ internal sealed class BotGenerator
         var firstCyclePoints = Math.Max(0, resetConfiguration.RequiredLevel - 1) * pointsPerLevel;
         var laterCyclesPoints = (seededResets - 1) * Math.Max(0, resetConfiguration.RequiredLevel - resetConfiguration.LevelAfterReset) * pointsPerLevel;
         return resetPoints + firstCyclePoints + laterCyclesPoints + currentCyclePoints;
-    }
-
-    /// <summary>
-    /// Draws a name with the wanted elf variant. Other classes keep any name.
-    /// </summary>
-    private async ValueTask<string> GenerateBuildNameAsync(
-        IPlayerContext context,
-        ISet<string> reservedNames,
-        CharacterClass characterClass,
-        bool wantSupport,
-        CancellationToken cancellationToken)
-    {
-        var rejected = new List<string>();
-        var name = await this._nameGenerator.GenerateUniqueAsync(context, reservedNames, cancellationToken).ConfigureAwait(false);
-        if (BotBuild.IsElf(characterClass))
-        {
-            var wantVariant = BotBuild.WantedVariant(wantSupport);
-            for (var attempt = 0; attempt < 50 && BotBuild.GetVariant(name) != wantVariant; attempt++)
-            {
-                rejected.Add(name);
-                name = await this._nameGenerator.GenerateUniqueAsync(context, reservedNames, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        // Rejected names were verified free, so hand them back for later draws.
-        foreach (var free in rejected)
-        {
-            if (free != name)
-            {
-                reservedNames.Remove(free);
-            }
-        }
-
-        return name;
     }
 
     /// <summary>
