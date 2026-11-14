@@ -67,7 +67,7 @@
         <div class="mb-3">
             <label for="AdditionalBotCharacters" class="form-label">@T("Additional")</label>
             <div class="input-group">
-                <input id="AdditionalBotCharacters" type="number" min="0" step="1" class="form-control" @bind="this._additionalCharacters" />
+                <input id="AdditionalBotCharacters" type="number" min="0" step="1" class="form-control" @bind="this._additionalCharacters" @bind:event="oninput" />
                 <button data-testid="bot-calculate" type="button" class="btn btn-outline-primary" @onclick="@this.CalculateAsync" disabled="@(this._loading || this.Destructive || this._additionalCharacters <= 0)">@T("Calculate")</button>
             </div>
             <div class="form-text">@T("AdditionalHint")</div>

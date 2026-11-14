@@ -137,7 +137,8 @@ public sealed class BotPopulationManagementTests
             .Add(component => component.PersistenceContext, this._context)
             .Add(component => component.OnValidSubmit, () => saves++));
         form.WaitForAssertion(() => Assert.That(form.Find("[data-value=newCharacters]").TextContent, Is.EqualTo("0")));
-        form.Find("#AdditionalBotCharacters").Change("10");
+        form.Find("#AdditionalBotCharacters").Input("10");
+        Assert.That(form.Find("[data-testid=bot-calculate]").HasAttribute("disabled"), Is.False);
         form.Find("[data-testid=bot-calculate]").Click();
         form.WaitForAssertion(() => Assert.That(form.Find("[data-value=newCharacters]").TextContent, Is.EqualTo("10")));
         Assert.That(draft.NumberOfAccounts, Is.EqualTo(4));
