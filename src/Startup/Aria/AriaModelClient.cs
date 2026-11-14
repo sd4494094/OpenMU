@@ -45,11 +45,11 @@ public sealed class AriaModelClient : IAriaModelClient
 
     /// <inheritdoc />
     public ValueTask<string> CompleteAsync(string instructions, IReadOnlyList<AriaMessage> messages, CancellationToken cancellationToken)
-        => this.CompleteCoreAsync(instructions, messages, this._options.Mcp.Enabled, cancellationToken);
+        => this.CompleteCoreAsync(instructions, messages, this._options.Mcp.Enabled, true, cancellationToken);
 
     /// <inheritdoc />
     public ValueTask<string> CompleteSummaryAsync(string instructions, IReadOnlyList<AriaMessage> messages, CancellationToken cancellationToken)
-        => this.CompleteCoreAsync(instructions, messages, false, cancellationToken);
+        => this.CompleteCoreAsync(instructions, messages, false, false, cancellationToken);
 
     private static async ValueTask<JsonElement> ReadOutputAsync(Stream stream, CancellationToken cancellationToken)
     {
@@ -176,7 +176,7 @@ public sealed class AriaModelClient : IAriaModelClient
             _ => false,
         };
 
-    private async ValueTask<string> CompleteCoreAsync(string instructions, IReadOnlyList<AriaMessage> messages, bool allowTools, CancellationToken cancellationToken)
+    private async ValueTask<string> CompleteCoreAsync(string instructions, IReadOnlyList<AriaMessage> messages, bool allowTools, bool checkAdmission, CancellationToken cancellationToken)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(this._options.TimeoutSeconds, 5, 60)));
@@ -186,6 +186,32 @@ public sealed class AriaModelClient : IAriaModelClient
         var usedCalls = 0;
         var remainingBytes = AriaGameplayTools.ResultBudget;
         var callIds = new HashSet<string>(StringComparer.Ordinal);
+        if (checkAdmission && AriaEventEntryQuery.CreateArguments(messages) is { } admissionArguments)
+        {
+            // The model cannot choose to answer from memory before the current rules are read.
+            if (!allowTools)
+            {
+                throw new InvalidDataException("Current event admission queries are unavailable.");
+            }
+
+            const string admissionCallId = "aria_event_admission";
+            var call = JsonSerializer.SerializeToElement(new { type = "function_call", name = "events_entry_requirements", call_id = admissionCallId, arguments = admissionArguments.GetRawText() });
+            var result = await this.QueryAsync(call, 8192, token).ConfigureAwait(false);
+            using var document = JsonDocument.Parse(result);
+            if (!document.RootElement.TryGetProperty("status", out var status)
+                || status.GetString() is not ("configured" or "no_configured_event")
+                || document.RootElement.TryGetProperty("ariaTruncated", out _))
+            {
+                throw new InvalidDataException("Current event admission rules could not be verified.");
+            }
+
+            input.Add(call);
+            input.Add(JsonSerializer.SerializeToElement(new { type = "function_call_output", call_id = admissionCallId, output = result }));
+            callIds.Add(admissionCallId);
+            usedCalls++;
+            remainingBytes -= Encoding.UTF8.GetByteCount(result);
+        }
+
         for (var round = 0; ; round++)
         {
             var canQuery = allowTools && round < AriaGameplayTools.MaxRounds && usedCalls < AriaGameplayTools.MaxCalls;

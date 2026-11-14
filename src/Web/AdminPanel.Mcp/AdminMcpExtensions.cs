@@ -78,6 +78,7 @@ public static class AdminMcpExtensions
             .WithTools<AdminOperationReadTools>()
             .WithTools<ConfigurationReadTools>()
             .WithTools<LiveGameReadTools>()
+            .WithTools<EventEntryReadTools>()
             .WithTools<PluginOperationReadTools>();
         if (!options.ReadOnly)
         {

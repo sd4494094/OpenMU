@@ -1,4 +1,4 @@
-﻿// <copyright file="MiniGameDefinitionExtensions.cs" company="MUnique">
+// <copyright file="MiniGameDefinitionExtensions.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -48,19 +48,30 @@ public static class MiniGameDefinitionExtensions
     /// <returns><c>true</c> if the specified player is in level range; otherwise, <c>false</c>.</returns>
     public static bool IsInLevelRange(this MiniGameDefinition definition, Player player)
     {
-        if (definition.RequiresMasterClass && player.SelectedCharacter?.CharacterClass?.IsMasterClass is not true)
+        return player.SelectedCharacter is { } character
+            && definition.IsInLevelRange(player.Level, character.IsSpecialCharacter(), character.CharacterClass?.IsMasterClass is true);
+    }
+
+    /// <summary>Evaluates detached public admission facts using the same rule as live players.</summary>
+    /// <param name="definition">The configured event tier.</param>
+    /// <param name="characterLevel">The normal character level.</param>
+    /// <param name="isSpecialCharacter">Whether the configured class uses reduced event requirements.</param>
+    /// <param name="isMasterClass">Whether the configured class is a master class.</param>
+    /// <returns>Whether this class and normal level satisfy the tier's inclusive limits.</returns>
+    public static bool IsInLevelRange(this MiniGameDefinition definition, int characterLevel, bool isSpecialCharacter, bool isMasterClass)
+    {
+        if (definition.RequiresMasterClass && !isMasterClass)
         {
             return false;
         }
 
-        var isSpecialCharacter = player.SelectedCharacter!.IsSpecialCharacter();
         if (isSpecialCharacter)
         {
-            return player.Level >= definition.MinimumSpecialCharacterLevel
-                   && player.Level <= definition.MaximumSpecialCharacterLevel;
+            return characterLevel >= definition.MinimumSpecialCharacterLevel
+                   && characterLevel <= definition.MaximumSpecialCharacterLevel;
         }
 
-        return player.Level >= definition.MinimumCharacterLevel
-               && player.Level <= definition.MaximumCharacterLevel;
+        return characterLevel >= definition.MinimumCharacterLevel
+               && characterLevel <= definition.MaximumCharacterLevel;
     }
 }

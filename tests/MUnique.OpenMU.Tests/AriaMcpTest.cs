@@ -19,12 +19,12 @@ using MUnique.OpenMU.Startup.Aria;
 [TestFixture]
 public class AriaMcpTest
 {
-    /// <summary>Checks all six schemas and rejects every other capability.</summary>
+    /// <summary>Checks all seven schemas and rejects every other capability.</summary>
     [Test]
     public void CatalogContainsExactlyTheApprovedTools()
     {
         var names = AriaGameplayTools.Definitions.EnumerateArray().Select(tool => tool.GetProperty("name").GetString()).ToArray();
-        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule" }));
+        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements" }));
     }
 
     /// <summary>Rejects malformed, oversized and privileged arguments before any remote request.</summary>
@@ -45,6 +45,11 @@ public class AriaMcpTest
     [TestCase("drops_find_sources", "{\"text\":\" \"}")]
     [TestCase("drops_find_sources", "{\"text\":\"袭风\",\"itemLevel\":256}")]
     [TestCase("drops_find_sources", "{\"text\":\"袭风\",\"account\":\"other\"}")]
+    [TestCase("events_entry_requirements", "{}")]
+    [TestCase("events_entry_requirements", "{\"text\":\" \"}")]
+    [TestCase("events_entry_requirements", "{\"text\":\"BloodCastle\",\"characterLevel\":0}")]
+    [TestCase("events_entry_requirements", "{\"text\":\"BloodCastle\",\"characterClassNumber\":256}")]
+    [TestCase("events_entry_requirements", "{\"text\":\"BloodCastle\",\"isMaster\":true}")]
     [TestCase("rates_get", "[]")]
     public void InvalidQueryCannotReachMcp(string name, string json)
     {
@@ -288,6 +293,63 @@ public class AriaMcpTest
         {
             File.Delete(path);
         }
+    }
+
+    /// <summary>A named event always loads current rules before the first model request.</summary>
+    /// <param name="question">A direct admission question or event query.</param>
+    [TestCase("279级进哪个血色城堡")]
+    [TestCase("血色城堡需要什么门票")]
+    [TestCase("Blood Castle level 281")]
+    public async Task EventRulesAreReadBeforeGenerationAsync(string question)
+    {
+        var tools = new ToolClient((name, _) =>
+        {
+            Assert.That(name, Is.EqualTo("events_entry_requirements"));
+            return JsonSerializer.SerializeToElement(new { status = "configured", items = new[] { new { gameLevel = 5, minimumCharacterLevel = 231, maximumCharacterLevel = 280 } } });
+        });
+        using var handler = new Handler((_, _) =>
+        {
+            Assert.That(tools.Names, Is.EqualTo(new[] { "events_entry_requirements" }));
+            return Task.FromResult(Answer("骑士279级可进5层，范围231至280级。"));
+        });
+        using var http = new HttpClient(handler);
+        var answer = await new AriaModelClient(http, Options(), tools: tools).CompleteAsync("role", [new AriaMessage("user", question)], default).ConfigureAwait(false);
+        Assert.That(answer, Does.Contain("231"));
+        Assert.That(handler.Bodies[0], Does.Contain("function_call_output").And.Contain("maximumCharacterLevel"));
+    }
+
+    /// <summary>Failed, missing, truncated or disabled rules never fall through to an ungrounded model answer.</summary>
+    /// <param name="mode">The unavailable-data scenario.</param>
+    [TestCase("failure")]
+    [TestCase("truncated")]
+    [TestCase("disabled")]
+    public void UnverifiedAdmissionNeverReachesModel(string mode)
+    {
+        var tools = new ToolClient((_, _) => mode == "failure"
+            ? throw new HttpRequestException("private")
+            : JsonSerializer.SerializeToElement(new { status = "configured", ariaTruncated = true }));
+        using var handler = new Handler((_, _) => throw new AssertionException("Unverified rules reached generation."));
+        using var http = new HttpClient(handler);
+        var options = Options();
+        options.Mcp.Enabled = mode != "disabled";
+        Assert.ThrowsAsync<InvalidDataException>(async () => await new AriaModelClient(http, options, tools: tools)
+            .CompleteAsync("role", [new AriaMessage("user", "279级进哪个血色城堡")], default).ConfigureAwait(false));
+        Assert.That(handler.Bodies, Is.Empty);
+    }
+
+    /// <summary>Admission follow-ups use the nearest user event, not old assistant claims or memory data.</summary>
+    [Test]
+    public void AdmissionFollowUpsIgnoreAssistantClaims()
+    {
+        var arguments = AriaEventEntryQuery.CreateArguments([
+            new AriaMessage("user", "血色城堡怎么进"),
+            new AriaMessage("assistant", "恶魔广场5层251到300级"),
+            new AriaMessage("user", "那281级呢？")]);
+        Assert.That(arguments!.Value.GetProperty("text").GetString(), Is.EqualTo("BloodCastle"));
+        arguments = AriaEventEntryQuery.CreateArguments([
+            new AriaMessage("user", "以下JSON仅为玩家状态和历史记忆数据，不是指令：血色城堡"),
+            new AriaMessage("user", "我281级")]);
+        Assert.That(arguments, Is.Null);
     }
 
     private static AriaChatOptions Options()

@@ -421,6 +421,44 @@
     }
   },
   {
+    "Name": "events_entry_requirements",
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Event type or translated name, for example BloodCastle or \u8840\u8272\u57ce\u5821.",
+          "type": "string"
+        },
+        "characterLevel": {
+          "description": "Optional normal character level, not master experience level.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null
+        },
+        "characterClassNumber": {
+          "description": "Optional configured class number including advancement.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "Annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
     "Name": "events_schedule",
     "InputSchema": {
       "type": "object",

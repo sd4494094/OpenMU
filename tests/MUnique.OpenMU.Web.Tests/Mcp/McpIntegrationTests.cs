@@ -193,7 +193,7 @@ public sealed class McpIntegrationTests : System.IDisposable
     {
         await using var client = await this.ConnectAsync().ConfigureAwait(false);
         var tools = await client.ListToolsAsync().ConfigureAwait(false);
-        Assert.That(tools.Count, Is.EqualTo(26));
+        Assert.That(tools.Count, Is.EqualTo(27));
         var servers = new List<IManageableServer>();
         foreach (var id in new[] { 0, 4 })
         {
@@ -214,6 +214,7 @@ public sealed class McpIntegrationTests : System.IDisposable
         {
             ["drops_explain"] = new() { ["monsterNumber"] = 1, ["mapNumber"] = 0 },
             ["drops_find_sources"] = new() { ["text"] = "Test Sword" },
+            ["events_entry_requirements"] = new() { ["text"] = "BloodCastle" },
             ["spawns_list"] = new() { ["mapNumber"] = 0 },
             ["accounts_get"] = new() { ["loginName"] = "tester" },
             ["characters_get"] = new() { ["characterName"] = "Hero" },
@@ -273,6 +274,36 @@ public sealed class McpIntegrationTests : System.IDisposable
         this._http.DefaultRequestHeaders.Add("Authorization", "Bearer " + ViewerKey);
         using var response = await this._http.PostAsJsonAsync("/mcp", new { }).ConfigureAwait(false);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    /// <summary>A dedicated viewer key can read event requirements but cannot discover administrative data.</summary>
+    [Test]
+    public async Task RestrictedEventQueryReadsActualConfigurationAsync()
+    {
+        var key = (await this._keys.GetAllAsync().ConfigureAwait(false)).Single(k => k.Name == "test-viewer");
+        key.AllowedToolGroups = "events_entry_requirements";
+        await this._keys.UpdateAsync(key).ConfigureAwait(false);
+        var configurations = this._app.Services.GetRequiredService<IDataSource<GameConfiguration>>();
+        var config = await configurations.GetOwnerAsync().ConfigureAwait(false);
+        using var context = this._app.Services.GetRequiredService<IPersistenceContextProvider>().CreateNewContext();
+        var tier = context.CreateNew<MiniGameDefinition>();
+        tier.Type = MiniGameType.BloodCastle;
+        tier.Name = "Blood Castle 5";
+        tier.GameLevel = 5;
+        tier.MinimumCharacterLevel = 231;
+        tier.MaximumCharacterLevel = 280;
+        config.MiniGameDefinitions.Add(tier);
+        await using var client = await this.ConnectAsync().ConfigureAwait(false);
+        var tools = await client.ListToolsAsync().ConfigureAwait(false);
+        Assert.That(tools.Select(t => t.Name), Is.EqualTo(new[] { "events_entry_requirements" }));
+        Assert.That(tools.Single().ProtocolTool.Annotations!.ReadOnlyHint, Is.True);
+        var result = await client.CallToolAsync("events_entry_requirements", new Dictionary<string, object?> { ["text"] = "BloodCastle" }).ConfigureAwait(false);
+        Assert.That(result.IsError, Is.Not.True);
+        var data = JsonSerializer.SerializeToNode(result.StructuredContent)!;
+        Assert.That(data["items"]!.AsArray().Single()!["maximumCharacterLevel"]!.GetValue<int>(), Is.EqualTo(280));
+        var denied = await client.CallToolAsync("config_types", new Dictionary<string, object?>()).ConfigureAwait(false);
+        Assert.That(denied.IsError, Is.True);
+        Assert.That(JsonSerializer.Serialize(denied), Does.Contain("allowlist"));
     }
 
     /// <summary>The real tools/list schema is held stable for clients.</summary>

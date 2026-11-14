@@ -58,7 +58,7 @@ This feature does not enable or reconfigure AI player bots.
 When the operator enables Aria's dedicated MCP connection, she can query current
 experience multipliers, spawn configuration, content activation and event schedules,
 and explain candidate drop groups for a specified monster and map. She uses only
-six read-only gameplay tools. Account data, other players, generic configuration,
+seven read-only gameplay tools. Account data, other players, generic configuration,
 logs and administration operations are not available to her.
 
 Ask “袭风刺技能石有哪些怪掉” or follow up with a map such as “死亡沙漠”.
@@ -83,3 +83,14 @@ three tool rounds, followed by an answer-only turn. Each page is at most 20 rows
 data and are not added to long-term player summaries. Only the final short answer
 is sent and stored as part of the normal conversation; intermediate tool outputs
 and model preludes are not displayed. Casual conversation makes no MCP calls.
+
+Named event questions trigger a current \`events_entry_requirements\` lookup before
+answer generation, including level/tier follow-ups. If the lookup is unavailable
+or truncated, no numerical admission advice is generated. The tool reads actual
+configuration instead of a fixed season table, separates ordinary and special
+class ranges and treats master class as an additional requirement. Context
+includes the configured class number and special/master flags. Optional class
+and normal level inputs evaluate the same range rule as live entry; this is not
+a guarantee of tickets, fees, opening time or other runtime eligibility.
+The Aria API key allowlist must include \`events_entry_requirements\` alongside the
+six existing gameplay tools. Old conversation answers are not admission facts.

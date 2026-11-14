@@ -577,3 +577,12 @@ Player-list enrichment reads one best-effort scalar snapshot per owning server,
 then filters and pages the combined result. It does not wait for player progress
 saves; fields may change during a snapshot. Character writes still serialize
 with gameplay and persistence.
+
+
+\`events_entry_requirements(text, characterLevel?, characterClassNumber?)\` is a
+Viewer read-only public gameplay query for event admission. It returns configured
+tiers, inclusive ordinary/special class level ranges, master-class requirement,
+ticket level and fee. Optional normal level and configured class number evaluate
+level/class eligibility; master experience level is not a normal level. Content
+availability and actual admission (tickets, schedule, PK, session state) remain
+separate. No player account or generic administrative configuration is exposed.

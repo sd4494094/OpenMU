@@ -97,6 +97,9 @@ public sealed class AriaChatService : BackgroundService, IAriaChatService
             {
                 name = player.Name,
                 character_class = character.CharacterClass?.Name.ToString(),
+                character_class_number = character.CharacterClass?.Number,
+                is_special_character = character.IsSpecialCharacter(),
+                is_master_class = character.CharacterClass?.IsMasterClass is true,
                 map = player.CurrentMap.Definition.Name.ToString(),
                 map_number = player.CurrentMap.Definition.Number,
                 server_id = (player.GameContext as IGameServerContext)?.Id,
@@ -112,7 +115,7 @@ public sealed class AriaChatService : BackgroundService, IAriaChatService
             });
             if (request.Context.Length > 4096)
             {
-                request.Context = System.Text.Json.JsonSerializer.Serialize(new { name = player.Name, level = player.Attributes?[Stats.Level] });
+                request.Context = System.Text.Json.JsonSerializer.Serialize(new { name = player.Name, level = player.Attributes?[Stats.Level], character_class_number = character.CharacterClass?.Number, character_class = character.CharacterClass?.Name.ToString(), is_special_character = character.IsSpecialCharacter(), is_master_class = character.CharacterClass?.IsMasterClass is true });
             }
 
             if (!this._queue.Writer.TryWrite(request))
