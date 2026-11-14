@@ -121,7 +121,7 @@ Enable only for Aria, using a **separate Viewer API key** whose allowed MCP tool
 are exactly:
 
 ```text
-rates_get,drops_explain,spawns_list,content_list,events_schedule
+rates_get,drops_explain,drops_find_sources,spawns_list,content_list,events_schedule
 ```
 
 Supply private host configuration (never put the key in Git, the prompt, CPA,
@@ -141,7 +141,7 @@ trusted by the operating system. HTTPS and a credential-free fixed URL are
 required; custom CA trust retains host-name verification. Redirects, HTTP
 fallback and proxy environment discovery are disabled on this MCP client.
 
-The application independently permits only the five names and bounded arguments,
+The application independently permits only the six names and bounded arguments,
 even if the remote key is accidentally widened. Pages default to 10 rows and are
 capped at 20, text filters at 64 characters, offsets at 1000, and identifiers at
 0..32767. Unknown and duplicate arguments are rejected. MCP uses the project's
@@ -165,3 +165,34 @@ as live facts. Memory-summary requests do not receive tools.
 To disable just this integration, set Aria__Mcp__Enabled=false and recreate the
 application container. Chat, model reasoning settings and PostgreSQL memory remain
 available. No database migration or game configuration update is required.
+
+
+### Item drop source queries
+
+Add only `drops_find_sources` to Aria's existing Viewer key tool allowlist when
+upgrading; a new application schema alone does not widen an existing key. The
+NPC's independent allowlist now contains six read-only tools; it still has no
+generic configuration, account, shop or write access.
+
+The new tool takes `text` (item name or group/number key), optional `map`
+(name or number), optional `itemLevel`, and normal paging arguments. It
+resolves names and searches sources in a single call, so the existing three
+tool rounds, four-call cap, low reasoning and 80-character final reply remain
+unchanged. `content_list` now also returns translated aliases and
+`localizedName` independently of the MCP caller's culture.
+
+No database migration or data rewrite is needed. English-only built-in names
+gain aliases by exact neutral-resource matches, not by guessing from item ids.
+Custom translations take precedence. Ambiguous items return candidates for
+clarification instead of choosing one silently. Multi-name quest items are
+filtered by the named or explicit item level.
+
+Source results use the default generator's shared eligibility predicates,
+including minimum/maximum monster levels, the twelve-level random pool window,
+socket classification, explicit monster exceptions and quest conditions.
+Only active maps with configured positive-quantity active monster spawns are
+enumerated. Event spawn triggers are conditions, not proof that the event is
+currently running. Detached global groups are configuration catalogs, not
+unconditional drops. Player-specific groups, custom generators and current
+party/quest/runtime eligibility are explicitly outside this static query.
+Never present `groupChance` as a final per-item rate.

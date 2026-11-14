@@ -46,10 +46,11 @@ public sealed class ContentActivationOperations(IPersistenceContextProvider pers
             .Where(e => string.IsNullOrWhiteSpace(text)
                         || e.Key.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase)
                         || e.Name.Contains(text.Trim(), StringComparison.OrdinalIgnoreCase)
+                        || e.Aliases.Any(alias => GameplayContentNames.Matches(alias, text, e.Key))
                         || e.IntroducedIn.ToString().Contains(text.Trim(), StringComparison.OrdinalIgnoreCase))
             .ToList();
         var result = AdminReadResult.Page(
-            entries.Skip(offset).Take(limit).Select(e => new { id = e.Id, key = e.Key, name = e.Name, introducedIn = e.IntroducedIn.ToString(), isActive = e.IsActive }),
+            entries.Skip(offset).Take(limit).Select(e => new { id = e.Id, key = e.Key, name = e.Name, localizedName = e.LocalizedName, aliases = e.Aliases.Take(12), introducedIn = e.IntroducedIn.ToString(), isActive = e.IsActive }),
             entries.Count,
             offset,
             limit);
@@ -140,28 +141,38 @@ public sealed class ContentActivationOperations(IPersistenceContextProvider pers
         foreach (var map in configuration.Maps.OrderBy(m => m.Number).ThenBy(m => m.Discriminator))
         {
             var key = map.Discriminator == 0 ? $"{map.Number}" : $"{map.Number}/{map.Discriminator}";
-            yield return new(new(ContentActivationType.Maps, map.GetId(), key, map.Name.ToString() ?? string.Empty, map.IntroducedIn, map.IsActive), value => map.IsActive = value);
+            yield return new(CreateEntry(ContentActivationType.Maps, map.GetId(), key, map.Name, "MapNames", map.IntroducedIn, map.IsActive), value => map.IsActive = value);
         }
 
         foreach (var characterClass in configuration.CharacterClasses.OrderBy(c => c.Number))
         {
-            yield return new(new(ContentActivationType.CharacterClasses, characterClass.GetId(), $"{characterClass.Number}", characterClass.Name.ToString() ?? string.Empty, characterClass.IntroducedIn, characterClass.IsActive), value => characterClass.IsActive = value);
+            yield return new(CreateEntry(ContentActivationType.CharacterClasses, characterClass.GetId(), $"{characterClass.Number}", characterClass.Name, "CharacterClassNames", characterClass.IntroducedIn, characterClass.IsActive), value => characterClass.IsActive = value);
         }
 
         foreach (var monster in configuration.Monsters.OrderBy(m => m.Number))
         {
-            yield return new(new(ContentActivationType.Monsters, monster.GetId(), $"{monster.Number}", monster.Designation.ToString() ?? string.Empty, monster.IntroducedIn, monster.IsActive), value => monster.IsActive = value);
+            yield return new(CreateEntry(ContentActivationType.Monsters, monster.GetId(), $"{monster.Number}", monster.Designation, "MonsterNames", monster.IntroducedIn, monster.IsActive), value => monster.IsActive = value);
         }
 
         foreach (var item in configuration.Items.OrderBy(i => i.Group).ThenBy(i => i.Number))
         {
-            yield return new(new(ContentActivationType.Items, item.GetId(), $"{item.Group}/{item.Number}", item.Name.ToString() ?? string.Empty, item.IntroducedIn, item.IsActive), value => item.IsActive = value);
+            yield return new(CreateEntry(ContentActivationType.Items, item.GetId(), $"{item.Group}/{item.Number}", item.Name, "ItemNames", item.IntroducedIn, item.IsActive), value => item.IsActive = value);
         }
 
         foreach (var miniGame in configuration.MiniGameDefinitions.OrderBy(m => m.Type).ThenBy(m => m.GameLevel))
         {
-            yield return new(new(ContentActivationType.MiniGames, miniGame.GetId(), $"{miniGame.Type} {miniGame.GameLevel}", miniGame.Name.ToString() ?? string.Empty, miniGame.IntroducedIn, miniGame.IsActive), value => miniGame.IsActive = value);
+            yield return new(CreateEntry(ContentActivationType.MiniGames, miniGame.GetId(), $"{miniGame.Type} {miniGame.GameLevel}", miniGame.Name, "MiniGameNames", miniGame.IntroducedIn, miniGame.IsActive), value => miniGame.IsActive = value);
         }
+    }
+
+    private static ContentActivationEntry CreateEntry(ContentActivationType type, Guid id, string key, MUnique.OpenMU.Interfaces.LocalizedString name, string source, GameVersion version, bool active)
+    {
+        var resolved = GameplayContentNames.Resolve(source, name);
+        return new(type, id, key, name.ToString() ?? string.Empty, version, active)
+        {
+            LocalizedName = GameplayContentNames.Display(resolved),
+            Aliases = GameplayContentNames.Aliases(resolved),
+        };
     }
 
     /// <summary>Creates the diff of the changed entries, grouped by their type.</summary>

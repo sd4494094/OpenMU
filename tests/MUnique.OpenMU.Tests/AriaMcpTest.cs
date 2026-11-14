@@ -19,12 +19,12 @@ using MUnique.OpenMU.Startup.Aria;
 [TestFixture]
 public class AriaMcpTest
 {
-    /// <summary>Checks all five schemas and rejects every other capability.</summary>
+    /// <summary>Checks all six schemas and rejects every other capability.</summary>
     [Test]
     public void CatalogContainsExactlyTheApprovedTools()
     {
         var names = AriaGameplayTools.Definitions.EnumerateArray().Select(tool => tool.GetProperty("name").GetString()).ToArray();
-        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "spawns_list", "content_list", "events_schedule" }));
+        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule" }));
     }
 
     /// <summary>Rejects malformed, oversized and privileged arguments before any remote request.</summary>
@@ -41,6 +41,10 @@ public class AriaMcpTest
     [TestCase("content_list", "{\"type\":\"Accounts\"}")]
     [TestCase("content_list", "{\"type\":\"Items\",\"text\":\"bad\\nfilter\"}")]
     [TestCase("events_schedule", "{\"serverId\":32768}")]
+    [TestCase("drops_find_sources", "{}")]
+    [TestCase("drops_find_sources", "{\"text\":\" \"}")]
+    [TestCase("drops_find_sources", "{\"text\":\"袭风\",\"itemLevel\":256}")]
+    [TestCase("drops_find_sources", "{\"text\":\"袭风\",\"account\":\"other\"}")]
     [TestCase("rates_get", "[]")]
     public void InvalidQueryCannotReachMcp(string name, string json)
     {
@@ -76,6 +80,25 @@ public class AriaMcpTest
         Assert.That(string.Join("", handler.Bodies), Does.Not.Contain("mcp-only-secret").And.Not.Contain("https://mcp.invalid"));
         Assert.That(second.RootElement.GetProperty("store").GetBoolean(), Is.False);
         Assert.That(second.RootElement.GetProperty("reasoning").GetProperty("effort").GetString(), Is.EqualTo("low"));
+    }
+
+    /// <summary>An item question and a map follow-up reach the source query directly without spending rounds resolving ids.</summary>
+    [Test]
+    public async Task ItemSourceQuerySupportsChineseMapFollowUpAsync()
+    {
+        var tools = new ToolClient((name, _) =>
+        {
+            Assert.That(name, Is.EqualTo("drops_find_sources"));
+            return JsonSerializer.SerializeToElement(new { status = "candidates", total = 1, items = new[] { new { map = "死亡沙漠", monster = "黑炎魔", requiresActiveQuest = false } } });
+        });
+        using var handler = new Handler((index, _) => Task.FromResult(index == 1
+            ? Output(Call("drops_find_sources", "call_drop", "{\"text\":\"袭风刺\",\"map\":\"死亡沙漠\"}"))
+            : Answer("死亡沙漠的黑炎魔有机会掉落袭风刺之石。")));
+        using var http = new HttpClient(handler);
+        var result = await new AriaModelClient(http, Options(), tools: tools).CompleteAsync("role", [new AriaMessage("user", "袭风刺技能石哪些怪掉"), new AriaMessage("assistant", "你想查哪张地图？"), new AriaMessage("user", "死亡沙漠")], CancellationToken.None).ConfigureAwait(false);
+        Assert.That(result, Does.Contain("黑炎魔"));
+        Assert.That(tools.Names, Is.EqualTo(new[] { "drops_find_sources" }));
+        Assert.That(handler.Bodies[1], Does.Contain("function_call_output"));
     }
 
     /// <summary>Tool prelude text cannot be returned as the answer while a query is pending.</summary>

@@ -193,7 +193,7 @@ public sealed class McpIntegrationTests : System.IDisposable
     {
         await using var client = await this.ConnectAsync().ConfigureAwait(false);
         var tools = await client.ListToolsAsync().ConfigureAwait(false);
-        Assert.That(tools.Count, Is.EqualTo(25));
+        Assert.That(tools.Count, Is.EqualTo(26));
         var servers = new List<IManageableServer>();
         foreach (var id in new[] { 0, 4 })
         {
@@ -213,6 +213,7 @@ public sealed class McpIntegrationTests : System.IDisposable
         var arguments = new Dictionary<string, Dictionary<string, object?>>
         {
             ["drops_explain"] = new() { ["monsterNumber"] = 1, ["mapNumber"] = 0 },
+            ["drops_find_sources"] = new() { ["text"] = "Test Sword" },
             ["spawns_list"] = new() { ["mapNumber"] = 0 },
             ["accounts_get"] = new() { ["loginName"] = "tester" },
             ["characters_get"] = new() { ["characterName"] = "Hero" },

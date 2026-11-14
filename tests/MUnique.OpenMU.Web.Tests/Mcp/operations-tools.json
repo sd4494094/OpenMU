@@ -1184,6 +1184,51 @@
     }
   },
   {
+    "Name": "drops_find_sources",
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Chinese or English item name, partial alias, or group/number key.",
+          "type": "string"
+        },
+        "map": {
+          "description": "Optional Chinese or English map name, or map number.",
+          "type": "string",
+          "default": ""
+        },
+        "itemLevel": {
+          "description": "Optional item level for level-dependent names.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null
+        },
+        "offset": {
+          "description": "Number of source rows to skip.",
+          "type": "integer",
+          "default": 0
+        },
+        "limit": {
+          "description": "Maximum source rows, 1-100.",
+          "type": "integer",
+          "default": 10
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "Annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
     "Name": "drops_update",
     "InputSchema": {
       "type": "object",

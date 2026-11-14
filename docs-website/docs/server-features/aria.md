@@ -57,13 +57,24 @@ This feature does not enable or reconfigure AI player bots.
 When the operator enables Aria's dedicated MCP connection, she can query current
 experience multipliers, spawn configuration, content activation and event schedules,
 and explain candidate drop groups for a specified monster and map. She uses only
-five read-only gameplay tools. Account data, other players, generic configuration,
+six read-only gameplay tools. Account data, other players, generic configuration,
 logs and administration operations are not available to her.
 
-The drop query is not an item-to-all-monsters search. A group's configured chance
-is not a final item probability, dynamic quest drops may be missing, and a page
-or truncated result does not prove an item cannot drop. If a query fails, Aria
-must distinguish missing server information from general Season 6 knowledge.
+Ask “袭风刺技能石有哪些怪掉” or follow up with a map such as “死亡沙漠”.
+The item-source query resolves Chinese partial names, skill-orb aliases, English
+names and invariant item keys in one call. It searches stored translations and
+exact built-in resource aliases, including English-only legacy databases, without
+renaming persisted items. Ambiguous names require clarification.
+
+Sources include ordinary random pools with the actual monster-level window,
+explicit map/monster groups and configured quest requirement groups. Quest and
+event conditions remain visible. Detached global group catalogs are not reported
+as active sources. A group's configured chance is not a final item probability.
+Player-specific groups, custom drop generators and runtime quest/party/event
+eligibility are outside the query; a page or truncated result never proves an
+item cannot drop. General monster-group explanations remain available separately.
+If a query fails, Aria distinguishes missing server information from general
+Season 6 knowledge.
 
 Queries share the existing conversation deadline, with at most four calls over
 three tool rounds, followed by an answer-only turn. Each page is at most 20 rows

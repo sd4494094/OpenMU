@@ -13,7 +13,7 @@ public sealed class AriaMcpOptions
     /// <summary>Gets or sets the fixed HTTPS MCP endpoint.</summary>
     public string Endpoint { get; set; } = string.Empty;
 
-    /// <summary>Gets or sets the dedicated Viewer key with the five-tool allowlist.</summary>
+    /// <summary>Gets or sets the dedicated Viewer key with the six-tool allowlist.</summary>
     public string ApiKey { get; set; } = string.Empty;
 
     /// <summary>Gets or sets an optional PEM root CA; normal host name verification remains enabled.</summary>

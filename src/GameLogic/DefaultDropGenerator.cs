@@ -17,7 +17,6 @@ public class DefaultDropGenerator : IDropGenerator
     /// The amount of money which is dropped at least, and added to the gained experience.
     /// </summary>
     private const int BaseMoneyDrop = 7;
-    private const int DropLevelMaxGap = 12;
     private const int SkillDropChancePercent = 50;
 
     private const byte DefaultMaxItemOptionLevelDrop = 3;
@@ -262,16 +261,6 @@ public class DefaultDropGenerator : IDropGenerator
 
     private static bool IsValidOptionLevelDrop(byte value)
         => value is >= MinItemOptionLevelDrop and <= MaxItemOptionLevelDrop;
-
-    private static bool CanDropAtMonsterLevel(ItemDefinition itemDefinition, int monsterLevel)
-    {
-        if (itemDefinition.DropLevel > monsterLevel)
-        {
-            return false;
-        }
-
-        return itemDefinition.MaximumDropLevel is not { } maxDropLevel || monsterLevel <= maxDropLevel;
-    }
 
     private (IList<Item>? Items, uint Money) GenerateDrops(MonsterDefinition monster, int gainedExperience)
     {
@@ -544,8 +533,7 @@ public class DefaultDropGenerator : IDropGenerator
         var isJewel = selectedGroup.ItemType == SpecialItemType.Jewel;
 
         var filteredPossibleItems = selectedGroup.PossibleItems!
-            .Where(it => CanDropAtMonsterLevel(it, monsterLevel)
-                         && (isJewel || it.DropLevel == 0 || it.DropLevel > monsterLevel - DropLevelMaxGap))
+            .Where(it => DropItemEligibility.IsInListedPool(it, monsterLevel, isJewel))
             .ToList();
 
         return this.GenerateItemDrop(selectedGroup, filteredPossibleItems);
@@ -597,9 +585,7 @@ public class DefaultDropGenerator : IDropGenerator
         var cache = isSocketItem ? this._droppableSocketItemsPerMonsterLevel : this._droppableItemsPerMonsterLevel;
         return cache[monsterLevel]
             ??= (from it in this._droppableItems
-                 where CanDropAtMonsterLevel(it, monsterLevel)
-                       && (it.DropLevel > monsterLevel - DropLevelMaxGap)
-                       && (it.MaximumSockets > 0) == isSocketItem
+                 where DropItemEligibility.IsInRandomPool(it, monsterLevel, isSocketItem)
                  select it).ToList();
     }
 }

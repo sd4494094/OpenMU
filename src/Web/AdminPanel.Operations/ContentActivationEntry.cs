@@ -15,4 +15,11 @@ using MUnique.OpenMU.DataModel.Configuration;
 /// <param name="Name">The name of the entry.</param>
 /// <param name="IntroducedIn">The version of the original game which introduced the entry.</param>
 /// <param name="IsActive">A value indicating whether the entry is active.</param>
-public sealed record ContentActivationEntry(ContentActivationType Type, Guid Id, string Key, string Name, GameVersion IntroducedIn, bool IsActive);
+public sealed record ContentActivationEntry(ContentActivationType Type, Guid Id, string Key, string Name, GameVersion IntroducedIn, bool IsActive)
+{
+    /// <summary>Gets the Chinese display name when a translation is available.</summary>
+    public string LocalizedName { get; init; } = Name;
+
+    /// <summary>Gets exact translated names, including level-dependent aliases.</summary>
+    public IReadOnlyList<string> Aliases { get; init; } = [];
+}

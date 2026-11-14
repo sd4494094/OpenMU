@@ -72,7 +72,7 @@ public sealed class AriaMcpClient : IAriaToolClient
             this._http);
         await using var client = await McpClient.CreateAsync(transport, cancellationToken: timeout.Token).ConfigureAwait(false);
         var values = arguments.EnumerateObject().ToDictionary(property => property.Name, property => (object?)property.Value.Clone());
-        if (name is "content_list" or "spawns_list" or "drops_explain")
+        if (name is "content_list" or "spawns_list" or "drops_explain" or "drops_find_sources")
         {
             values.TryAdd("limit", 10);
         }
