@@ -46,7 +46,7 @@
     <value>Add characters to the target</value>
   </data>
   <data xml:space="preserve" name="AdditionalHint">
-    <value>Use a multiple of the characters per account. This calculator changes the draft account target only.</value>
+    <value>Optional calculator only. Leave 0 to save other settings without adding characters. To add characters, enter a positive multiple of the characters per account and calculate the draft account total.</value>
   </data>
   <data xml:space="preserve" name="Calculate">
     <value>Set account target</value>

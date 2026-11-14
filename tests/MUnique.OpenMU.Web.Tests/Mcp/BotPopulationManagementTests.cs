@@ -147,6 +147,30 @@ public sealed class BotPopulationManagementTests
         form.WaitForAssertion(() => Assert.That(saves, Is.EqualTo(1)));
     }
 
+    /// <summary>The optional calculator has no saving-form owner, so its unused value cannot block unrelated settings.</summary>
+    [Test]
+    public void FormSavesOtherSettingsWithoutAddingCharacters()
+    {
+        using var ui = this.CreateUi();
+        var draft = new BotConfiguration { Enabled = true, NumberOfAccounts = 2, MaxCharactersPerAccount = 5 };
+        var saves = 0;
+        var form = ui.Render<BotConfigurationForm>(parameters => parameters
+            .Add(component => component.Configuration, draft)
+            .Add(component => component.PersistenceContext, this._context)
+            .Add(component => component.OnValidSubmit, () => saves++));
+        form.WaitForAssertion(() => Assert.That(form.Find("[data-value=newCharacters]").TextContent, Is.EqualTo("0")));
+        var calculator = form.Find("#AdditionalBotCharacters");
+        Assert.That(calculator.GetAttribute("value"), Is.EqualTo("0"));
+        Assert.That(calculator.Closest("form"), Is.Null);
+        Assert.That(form.Find("[data-testid=bot-calculate]").HasAttribute("disabled"), Is.True);
+        form.Find("#JewelStockPerKind").Change("12");
+        form.WaitForAssertion(() => Assert.That(form.Find("[data-testid=bot-save]").HasAttribute("disabled"), Is.False));
+        form.Find("form").Submit();
+        form.WaitForAssertion(() => Assert.That(saves, Is.EqualTo(1)));
+        Assert.That(draft.NumberOfAccounts, Is.EqualTo(2));
+        Assert.That(draft.JewelStockPerKind, Is.EqualTo(12));
+    }
+
     /// <summary>A shortage blocks submission, and destructive controls require an explicit in-form acknowledgement.</summary>
     [Test]
     public void FormRejectsShortageAndDoesNotSilentlyApproveDeletion()

@@ -46,7 +46,7 @@
     <value>向目标追加角色数</value>
   </data>
   <data xml:space="preserve" name="AdditionalHint">
-    <value>须为每账号角色数的整数倍。计算器只调整待提交的账号总数，不会立即创建机器人。</value>
+    <value>可选计算器。保持0可直接保存其他配置，不追加角色。需要追加时，输入每账号角色数的正整数倍，再点击计算；计算器只调整待提交的账号总数。</value>
   </data>
   <data xml:space="preserve" name="Calculate">
     <value>计算并设置账号总数</value>

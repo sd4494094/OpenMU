@@ -12,89 +12,90 @@
 @inject BotPopulationOperations Operations
 @inject ILogger<BotConfigurationForm> Logger
 
+<section class="border rounded p-3 mb-3" aria-label="@T("Title")" data-testid="bot-population-preview">
+    <h3 class="h5">@T("Title")</h3>
+    <p class="alert alert-info mb-2">@T("ApplyHint")</p>
+    @if (this._editContext.IsModified())
+    {
+        <p class="text-primary" role="status">@T("Unsaved")</p>
+    }
+    @if (this.Destructive)
+    {
+        <p class="alert alert-danger">@T("Destructive")</p>
+        <label class="form-check-label mb-2">
+            <input type="checkbox" class="form-check-input" @bind="this._acknowledged" data-testid="bot-delete-ack" />
+            @T("Acknowledge")
+        </label>
+    }
+    @if (this._loading)
+    {
+        <p role="status">@T("Loading")</p>
+    }
+    @if (this._unavailable)
+    {
+        <p class="alert alert-danger" role="alert">@T("Unavailable")</p>
+    }
+    @if (this._preview is { } preview)
+    {
+        <dl class="row mb-2" data-testid="bot-population-counts">
+            <dt class="col-sm-8">@T("Accounts")</dt><dd class="col-sm-4" data-value="existingAccounts">@N("existingAccounts")</dd>
+            <dt class="col-sm-8">@T("Current")</dt><dd class="col-sm-4" data-value="existingCharacters">@N("existingCharacters")</dd>
+            <dt class="col-sm-8">@T("Chinese")</dt><dd class="col-sm-4" data-value="existingChineseNames">@N("existingChineseNames")</dd>
+            <dt class="col-sm-8">@T("Target")</dt><dd class="col-sm-4" data-value="targetCharacters">@N("targetCharacters")</dd>
+            <dt class="col-sm-8">@T("New")</dt><dd class="col-sm-4" data-value="newCharacters">@N("newCharacters")</dd>
+            <dt class="col-sm-8">@T("Selected")</dt><dd class="col-sm-4">@N("expectedSelectedCharacters")</dd>
+            <dt class="col-sm-8">@T("Stock")</dt><dd class="col-sm-4" data-value="inventoryAvailable">@N("inventoryAvailable") / @N("inventoryTotal")</dd>
+            <dt class="col-sm-8">@T("StockLanguage")</dt><dd class="col-sm-4">@N("inventoryChinese") / @N("inventoryEnglish")</dd>
+        </dl>
+        @if (!this.Destructive)
+        {
+            @foreach (var error in preview["errors"]!.AsArray())
+            {
+                <p class="alert alert-danger" role="alert">@T(error!.GetValue<string>())</p>
+            }
+        }
+        @if (N("missingExistingSlots") > 0)
+        {
+            <p class="alert alert-warning">@T("MissingSlots")</p>
+        }
+        @if (N("targetCharacters") < N("existingCharacters"))
+        {
+            <p class="alert alert-warning">@T("ReduceHint")</p>
+        }
+        <p class="small text-secondary">@T("InventoryHint")</p>
+        <p class="small text-secondary">@T("RotationHint")</p>
+        <div class="mb-3">
+            <label for="AdditionalBotCharacters" class="form-label">@T("Additional")</label>
+            <div class="input-group">
+                <input id="AdditionalBotCharacters" type="number" min="0" step="1" class="form-control" @bind="this._additionalCharacters" />
+                <button data-testid="bot-calculate" type="button" class="btn btn-outline-primary" @onclick="@this.CalculateAsync" disabled="@(this._loading || this.Destructive || this._additionalCharacters <= 0)">@T("Calculate")</button>
+            </div>
+            <div class="form-text">@T("AdditionalHint")</div>
+            @if (this._calculatorError)
+            {
+                <p class="text-danger" role="alert">@T("AdditionalInvalid")</p>
+            }
+        </div>
+        <h4 class="h6">@T("Runtime")</h4>
+        @if (preview["runtime"]!.AsArray().Count == 0)
+        {
+            <p>@T("NoRuntime")</p>
+        }
+        @foreach (var runtime in preview["runtime"]!.AsArray())
+        {
+            <p class="mb-1" data-testid="bot-runtime">
+                @T("Server") @(runtime!["serverId"]):
+                @(runtime["generationFailed"]!.GetValue<bool>() ? T("Failed") : !runtime["settingsMatch"]!.GetValue<bool>() ? T("Pending") : T(runtime["phase"]!.GetValue<string>()))
+                (@T("RetrySlots"): @runtime["pendingRespawns"])
+            </p>
+        }
+    }
+    <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@this.RefreshPreviewAsync" disabled="@this._loading">@T("Refresh")</button>
+</section>
+
+
 <EditForm EditContext="@this._editContext" OnValidSubmit="@this.SubmitAsync">
     <DataAnnotationsValidator />
-    <section class="border rounded p-3 mb-3" aria-label="@T("Title")" data-testid="bot-population-preview">
-        <h3 class="h5">@T("Title")</h3>
-        <p class="alert alert-info mb-2">@T("ApplyHint")</p>
-        @if (this._editContext.IsModified())
-        {
-            <p class="text-primary" role="status">@T("Unsaved")</p>
-        }
-        @if (this.Destructive)
-        {
-            <p class="alert alert-danger">@T("Destructive")</p>
-            <label class="form-check-label mb-2">
-                <input type="checkbox" class="form-check-input" @bind="this._acknowledged" data-testid="bot-delete-ack" />
-                @T("Acknowledge")
-            </label>
-        }
-        @if (this._loading)
-        {
-            <p role="status">@T("Loading")</p>
-        }
-        @if (this._unavailable)
-        {
-            <p class="alert alert-danger" role="alert">@T("Unavailable")</p>
-        }
-        @if (this._preview is { } preview)
-        {
-            <dl class="row mb-2" data-testid="bot-population-counts">
-                <dt class="col-sm-8">@T("Accounts")</dt><dd class="col-sm-4" data-value="existingAccounts">@N("existingAccounts")</dd>
-                <dt class="col-sm-8">@T("Current")</dt><dd class="col-sm-4" data-value="existingCharacters">@N("existingCharacters")</dd>
-                <dt class="col-sm-8">@T("Chinese")</dt><dd class="col-sm-4" data-value="existingChineseNames">@N("existingChineseNames")</dd>
-                <dt class="col-sm-8">@T("Target")</dt><dd class="col-sm-4" data-value="targetCharacters">@N("targetCharacters")</dd>
-                <dt class="col-sm-8">@T("New")</dt><dd class="col-sm-4" data-value="newCharacters">@N("newCharacters")</dd>
-                <dt class="col-sm-8">@T("Selected")</dt><dd class="col-sm-4">@N("expectedSelectedCharacters")</dd>
-                <dt class="col-sm-8">@T("Stock")</dt><dd class="col-sm-4" data-value="inventoryAvailable">@N("inventoryAvailable") / @N("inventoryTotal")</dd>
-                <dt class="col-sm-8">@T("StockLanguage")</dt><dd class="col-sm-4">@N("inventoryChinese") / @N("inventoryEnglish")</dd>
-            </dl>
-            @if (!this.Destructive)
-            {
-                @foreach (var error in preview["errors"]!.AsArray())
-                {
-                    <p class="alert alert-danger" role="alert">@T(error!.GetValue<string>())</p>
-                }
-            }
-            @if (N("missingExistingSlots") > 0)
-            {
-                <p class="alert alert-warning">@T("MissingSlots")</p>
-            }
-            @if (N("targetCharacters") < N("existingCharacters"))
-            {
-                <p class="alert alert-warning">@T("ReduceHint")</p>
-            }
-            <p class="small text-secondary">@T("InventoryHint")</p>
-            <p class="small text-secondary">@T("RotationHint")</p>
-            <div class="mb-3">
-                <label for="AdditionalBotCharacters" class="form-label">@T("Additional")</label>
-                <div class="input-group">
-                    <input id="AdditionalBotCharacters" type="number" min="1" step="@N("charactersPerAccount")" class="form-control" @bind="this._additionalCharacters" />
-                    <button data-testid="bot-calculate" type="button" class="btn btn-outline-primary" @onclick="@this.CalculateAsync" disabled="@(this._loading || this.Destructive)">@T("Calculate")</button>
-                </div>
-                <div class="form-text">@T("AdditionalHint")</div>
-                @if (this._calculatorError)
-                {
-                    <p class="text-danger" role="alert">@T("AdditionalInvalid")</p>
-                }
-            </div>
-            <h4 class="h6">@T("Runtime")</h4>
-            @if (preview["runtime"]!.AsArray().Count == 0)
-            {
-                <p>@T("NoRuntime")</p>
-            }
-            @foreach (var runtime in preview["runtime"]!.AsArray())
-            {
-                <p class="mb-1" data-testid="bot-runtime">
-                    @T("Server") @(runtime!["serverId"]):
-                    @(runtime["generationFailed"]!.GetValue<bool>() ? T("Failed") : !runtime["settingsMatch"]!.GetValue<bool>() ? T("Pending") : T(runtime["phase"]!.GetValue<string>()))
-                    (@T("RetrySlots"): @runtime["pendingRespawns"])
-                </p>
-            }
-        }
-        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@this.RefreshPreviewAsync" disabled="@this._loading">@T("Refresh")</button>
-    </section>
-
     <fieldset disabled="@this._saving">
         <CascadingValue Value="@this.PersistenceContext">
             <CreationAutoFields @key="this._fieldsVersion" />
