@@ -97,7 +97,7 @@
 
     <fieldset disabled="@this._saving">
         <CascadingValue Value="@this.PersistenceContext">
-            <CreationAutoFields />
+            <CreationAutoFields @key="this._fieldsVersion" />
         </CascadingValue>
     </fieldset>
     <ValidationSummary />
@@ -123,6 +123,7 @@
     private bool _calculatorError;
     private bool _disposed;
     private int _additionalCharacters;
+    private int _fieldsVersion;
 
     /// <summary>Gets or sets the draft bot configuration.</summary>
     [Parameter, EditorRequired]
@@ -222,6 +223,7 @@
         }
 
         this.Configuration.NumberOfAccounts = accounts + (this._additionalCharacters / perAccount);
+        this._fieldsVersion++;
         this._editContext.NotifyFieldChanged(new FieldIdentifier(this.Configuration, nameof(BotConfiguration.NumberOfAccounts)));
         await this.RefreshPreviewAsync().ConfigureAwait(true);
     }

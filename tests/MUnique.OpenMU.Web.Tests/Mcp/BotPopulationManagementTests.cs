@@ -141,6 +141,7 @@ public sealed class BotPopulationManagementTests
         form.Find("[data-testid=bot-calculate]").Click();
         form.WaitForAssertion(() => Assert.That(form.Find("[data-value=newCharacters]").TextContent, Is.EqualTo("10")));
         Assert.That(draft.NumberOfAccounts, Is.EqualTo(4));
+        Assert.That(form.Find("#NumberOfAccounts").GetAttribute("value"), Is.EqualTo("4"));
         Assert.That(saves, Is.Zero);
         form.Find("form").Submit();
         form.WaitForAssertion(() => Assert.That(saves, Is.EqualTo(1)));
