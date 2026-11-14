@@ -30,18 +30,17 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
     public async ValueTask<IReadOnlyList<BotAccountSummary>> GetBotAccountSummariesAsync(string generatedLoginPrefix, CancellationToken cancellationToken = default)
     {
         using var gate = await this.LockAsync(cancellationToken).ConfigureAwait(false);
-        var rows = await this.Context.Set<Account>().AsNoTracking()
+        var accounts = await this.Context.Set<Account>().AsNoTracking()
             .Where(account => account.IsBot || account.LoginName.StartsWith(generatedLoginPrefix))
-            .Select(account => new
-            {
-                account.LoginName,
-                account.IsBot,
-                Characters = account.Characters.Select(character => new { character.CharacterSlot, character.Name }).ToList(),
-            }).ToListAsync(cancellationToken).ConfigureAwait(false);
-        return rows.Select(account => new BotAccountSummary(
+            .Select(account => new { account.LoginName, account.IsBot })
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+        var characters = await CreateBotAccountCharactersQuery(this.Context.Set<Account>().AsNoTracking(), generatedLoginPrefix)
+            .ToListAsync(cancellationToken).ConfigureAwait(false);
+        var byLogin = characters.ToLookup(character => character.LoginName, StringComparer.Ordinal);
+        return accounts.Select(account => new BotAccountSummary(
             account.LoginName,
             account.IsBot,
-            account.Characters.ToDictionary(character => character.CharacterSlot, character => character.Name))).ToArray();
+            byLogin[account.LoginName].ToDictionary(character => character.CharacterSlot, character => character.Name))).ToArray();
     }
 
     /// <inheritdoc/>
@@ -539,6 +538,16 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
                 .ConfigureAwait(false);
         }
     }
+
+    /// <summary>Projects mapped character rows without loading collection adapters or gameplay data.</summary>
+    /// <param name="accounts">The mapped account query.</param>
+    /// <param name="generatedLoginPrefix">The generated bot login prefix.</param>
+    /// <returns>The lightweight mapped character query.</returns>
+    internal static IQueryable<BotAccountCharacterRow> CreateBotAccountCharactersQuery(IQueryable<Account> accounts, string generatedLoginPrefix)
+        => from account in accounts
+           where account.IsBot || account.LoginName.StartsWith(generatedLoginPrefix)
+           from character in account.RawCharacters
+           select new BotAccountCharacterRow(account.LoginName, character.CharacterSlot, character.Name);
 
     /// <summary>
     /// Creates the query of the identifiers of the accounts of characters.
