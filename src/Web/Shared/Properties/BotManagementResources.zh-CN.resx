@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data xml:space="preserve" name="Title">
+    <value>机器人数量与昵称预览</value>
+  </data>
+  <data xml:space="preserve" name="Current">
+    <value>现有机器人角色</value>
+  </data>
+  <data xml:space="preserve" name="Chinese">
+    <value>其中中文昵称</value>
+  </data>
+  <data xml:space="preserve" name="Accounts">
+    <value>现有机器人账号</value>
+  </data>
+  <data xml:space="preserve" name="Target">
+    <value>目标角色名额</value>
+  </data>
+  <data xml:space="preserve" name="New">
+    <value>下次启动预计新增角色</value>
+  </data>
+  <data xml:space="preserve" name="Selected">
+    <value>按此配置可选中的已有及新增角色</value>
+  </data>
+  <data xml:space="preserve" name="Stock">
+    <value>可用昵称 / 昵称总数</value>
+  </data>
+  <data xml:space="preserve" name="StockLanguage">
+    <value>可用中文 / 英文昵称</value>
+  </data>
+  <data xml:space="preserve" name="InventoryHint">
+    <value>昵称库留空时使用500个审核名字。可用量是查询时的快照，生成时仍会检查重名及精灵流派；库内有少量合理英文名。</value>
+  </data>
+  <data xml:space="preserve" name="ApplyHint">
+    <value>提交只保存配置。数量与跨服账号分配在下次统一启动机器人时应用，通常安排五个游戏服统一重启。已有机器人的名字和进度保留。</value>
+  </data>
+  <data xml:space="preserve" name="RotationHint">
+    <value>这里是机器人规模，不保证全部同时在线；仍受轮换在线和服务器容量限制。</value>
+  </data>
+  <data xml:space="preserve" name="Additional">
+    <value>向目标追加角色数</value>
+  </data>
+  <data xml:space="preserve" name="AdditionalHint">
+    <value>须为每账号角色数的整数倍。计算器只调整待提交的账号总数，不会立即创建机器人。</value>
+  </data>
+  <data xml:space="preserve" name="Calculate">
+    <value>计算并设置账号总数</value>
+  </data>
+  <data xml:space="preserve" name="AdditionalInvalid">
+    <value>请输入每账号角色数的正整数倍；计算后的账号总数不能超过1000。</value>
+  </data>
+  <data xml:space="preserve" name="Refresh">
+    <value>刷新预览</value>
+  </data>
+  <data xml:space="preserve" name="Loading">
+    <value>正在查询机器人数量和昵称库存…</value>
+  </data>
+  <data xml:space="preserve" name="Unavailable">
+    <value>暂时无法读取预览，请重试后再提交；此次没有应用变更。</value>
+  </data>
+  <data xml:space="preserve" name="CannotSave">
+    <value>请先修正预览中的问题再提交。</value>
+  </data>
+  <data xml:space="preserve" name="invalidInventory">
+    <value>昵称库中存在重复、保留或不符合字节限制的名字。</value>
+  </data>
+  <data xml:space="preserve" name="loginConflict">
+    <value>目标范围内的机器人登录名被非机器人账号占用，请先处理冲突。</value>
+  </data>
+  <data xml:space="preserve" name="insufficientInventory">
+    <value>可用审核昵称不足以创建预计新增角色，请扩充昵称库或降低账号总数。</value>
+  </data>
+  <data xml:space="preserve" name="MissingSlots">
+    <value>部分已有账号缺少目标角色槽。已有账号不会自动补建角色；每账号角色数用于新账号生成，目标名额不等于实际角色数。</value>
+  </data>
+  <data xml:space="preserve" name="ReduceHint">
+    <value>降低目标只影响下次启动的选择范围，多余账号和角色进度仍保留在数据库。</value>
+  </data>
+  <data xml:space="preserve" name="Runtime">
+    <value>各游戏服应用状态</value>
+  </data>
+  <data xml:space="preserve" name="NoRuntime">
+    <value>尚无本进程的机器人启动记录，可能尚未执行启动流程或使用分布式部署。</value>
+  </data>
+  <data xml:space="preserve" name="Server">
+    <value>游戏服</value>
+  </data>
+  <data xml:space="preserve" name="completed">
+    <value>启动流程已完成</value>
+  </data>
+  <data xml:space="preserve" name="starting">
+    <value>正在启动</value>
+  </data>
+  <data xml:space="preserve" name="waiting">
+    <value>等待启动</value>
+  </data>
+  <data xml:space="preserve" name="Pending">
+    <value>目标或设置待下次启动应用</value>
+  </data>
+  <data xml:space="preserve" name="Failed">
+    <value>生成失败，请查看服务器日志</value>
+  </data>
+  <data xml:space="preserve" name="RetrySlots">
+    <value>等待重试的角色槽</value>
+  </data>
+  <data xml:space="preserve" name="Unsaved">
+    <value>配置有尚未提交的修改，预览不会保存或应用这些修改。</value>
+  </data>
+  <data xml:space="preserve" name="Destructive">
+    <value>已选择重建或清除：这会删除已有机器人，下面保留数据的数量预览不适用于删除操作。清除可能在提交后立即执行，重建在启动时执行。</value>
+  </data>
+  <data xml:space="preserve" name="Acknowledge">
+    <value>我确认此操作会删除已有机器人角色及其进度。</value>
+  </data>
+  <data xml:space="preserve" name="Save">
+    <value>保存配置（数量下次启动应用）</value>
+  </data>
+  <data xml:space="preserve" name="Cancel">
+    <value>取消</value>
+  </data>
+</root>

@@ -237,6 +237,45 @@
     }
   },
   {
+    "Name": "bots_preview_population",
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "numberOfAccounts": {
+          "description": "Proposed total account target (0..1000); null uses saved settings.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null
+        },
+        "charactersPerAccount": {
+          "description": "Proposed characters per account (1..5); null uses saved settings.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null
+        },
+        "characterNames": {
+          "description": "Complete comma-separated nickname inventory; empty uses defaults, null uses saved settings.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        }
+      }
+    },
+    "Annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
     "Name": "cashshop_get_balance",
     "InputSchema": {
       "type": "object",

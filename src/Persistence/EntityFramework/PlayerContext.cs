@@ -26,6 +26,24 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
     {
     }
 
+    /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<BotAccountSummary>> GetBotAccountSummariesAsync(string generatedLoginPrefix, CancellationToken cancellationToken = default)
+    {
+        using var gate = await this.LockAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await this.Context.Set<Account>().AsNoTracking()
+            .Where(account => account.IsBot || account.LoginName.StartsWith(generatedLoginPrefix))
+            .Select(account => new
+            {
+                account.LoginName,
+                account.IsBot,
+                Characters = account.Characters.Select(character => new { character.CharacterSlot, character.Name }).ToList(),
+            }).ToListAsync(cancellationToken).ConfigureAwait(false);
+        return rows.Select(account => new BotAccountSummary(
+            account.LoginName,
+            account.IsBot,
+            account.Characters.ToDictionary(character => character.CharacterSlot, character => character.Name))).ToArray();
+    }
+
     /// <inheritdoc/>
     public async ValueTask<DataModel.Entities.LetterBody?> GetLetterBodyByHeaderIdAsync(Guid headerId, CancellationToken cancellationToken = default)
     {

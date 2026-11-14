@@ -334,6 +334,25 @@ public sealed class AdminReadTools
         return ExecuteAsync(() => operations.DiagnosticsAsync(cancellationToken));
     }
 
+    /// <summary>Preview bot population quantities and reviewed-name availability without applying changes.</summary>
+    /// <param name="operations">The preview service.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="numberOfAccounts">Proposed total accounts; null uses saved settings.</param>
+    /// <param name="charactersPerAccount">Proposed characters per account; null uses saved settings.</param>
+    /// <param name="characterNames">Proposed complete inventory; null uses saved settings.</param>
+    /// <returns>The read-only population preview.</returns>
+    [McpServerTool(Name = "bots_preview_population", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false, UseStructuredContent = true)]
+    [Description("Preview bot account and character quantities, reviewed-name stock and startup status. Does not create, delete, rename or restart bots. Saving targets takes effect on the next startup.")]
+    [Authorize(Roles = nameof(AdminRole.Administrator))]
+    [ExposesOperation(typeof(BotPopulationOperations), nameof(BotPopulationOperations.PreviewAsync))]
+    public static ValueTask<JsonObject> BotsPreviewPopulationAsync(
+        [FromServices] BotPopulationOperations operations,
+        CancellationToken cancellationToken,
+        [Description("Proposed total account target (0..1000); null uses saved settings.")] int? numberOfAccounts = null,
+        [Description("Proposed characters per account (1..5); null uses saved settings.")] int? charactersPerAccount = null,
+        [Description("Complete comma-separated nickname inventory; empty uses defaults, null uses saved settings.")] string? characterNames = null)
+        => ExecuteAsync(() => operations.PreviewAsync(numberOfAccounts, charactersPerAccount, characterNames, cancellationToken));
+
     private static async ValueTask<JsonObject> ExecuteAsync<T>(Func<ValueTask<T>> operation)
     {
         try

@@ -1316,16 +1316,16 @@
     <value>最冷清时段保持在线的机器人占比；设为 100 时不产生轮换效果。</value>
   </data>
   <data name="BotConfiguration_NumberOfAccounts_Name" xml:space="preserve">
-    <value>账号数量</value>
+    <value>目标账号总数</value>
   </data>
   <data name="BotConfiguration_NumberOfAccounts_Description" xml:space="preserve">
-    <value>需要维持的机器人账号数量。</value>
+    <value>机器人目标总账号数，不是本次新增数。乘以每账号角色数得到目标角色名额；数量在下次统一启动机器人时应用，不会因提交立即创建。降低目标不删除多余账号。</value>
   </data>
   <data name="BotConfiguration_MaxCharactersPerAccount_Name" xml:space="preserve">
     <value>每个账号的角色数</value>
   </data>
   <data name="BotConfiguration_MaxCharactersPerAccount_Description" xml:space="preserve">
-    <value>每个机器人账号拥有的角色数，最多 5 个。</value>
+    <value>每个新机器人账号创建的角色数，最多5个。已有账号不会因修改此值自动补建角色。</value>
   </data>
   <data name="BotConfiguration_BotCapacityPercent_Name" xml:space="preserve">
     <value>机器人名额占比（%）</value>

@@ -1,0 +1,252 @@
+@* <copyright file="BotConfigurationForm.razor" company="MUnique">
+   Licensed under the MIT License. See LICENSE file in the project root for full license information.
+   </copyright> *@
+@using System.Text.Json.Nodes
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Logging
+@using MUnique.OpenMU.GameLogic.Bots
+@using MUnique.OpenMU.Persistence
+@using MUnique.OpenMU.Web.AdminPanel.Operations
+@using MUnique.OpenMU.Web.Shared.Properties
+@implements IDisposable
+@inject BotPopulationOperations Operations
+@inject ILogger<BotConfigurationForm> Logger
+
+<EditForm EditContext="@this._editContext" OnValidSubmit="@this.SubmitAsync">
+    <DataAnnotationsValidator />
+    <section class="border rounded p-3 mb-3" aria-label="@T("Title")" data-testid="bot-population-preview">
+        <h3 class="h5">@T("Title")</h3>
+        <p class="alert alert-info mb-2">@T("ApplyHint")</p>
+        @if (this._editContext.IsModified())
+        {
+            <p class="text-primary" role="status">@T("Unsaved")</p>
+        }
+        @if (this.Destructive)
+        {
+            <p class="alert alert-danger">@T("Destructive")</p>
+            <label class="form-check-label mb-2">
+                <input type="checkbox" class="form-check-input" @bind="this._acknowledged" data-testid="bot-delete-ack" />
+                @T("Acknowledge")
+            </label>
+        }
+        @if (this._loading)
+        {
+            <p role="status">@T("Loading")</p>
+        }
+        @if (this._unavailable)
+        {
+            <p class="alert alert-danger" role="alert">@T("Unavailable")</p>
+        }
+        @if (this._preview is { } preview)
+        {
+            <dl class="row mb-2" data-testid="bot-population-counts">
+                <dt class="col-sm-8">@T("Accounts")</dt><dd class="col-sm-4" data-value="existingAccounts">@N("existingAccounts")</dd>
+                <dt class="col-sm-8">@T("Current")</dt><dd class="col-sm-4" data-value="existingCharacters">@N("existingCharacters")</dd>
+                <dt class="col-sm-8">@T("Chinese")</dt><dd class="col-sm-4" data-value="existingChineseNames">@N("existingChineseNames")</dd>
+                <dt class="col-sm-8">@T("Target")</dt><dd class="col-sm-4" data-value="targetCharacters">@N("targetCharacters")</dd>
+                <dt class="col-sm-8">@T("New")</dt><dd class="col-sm-4" data-value="newCharacters">@N("newCharacters")</dd>
+                <dt class="col-sm-8">@T("Selected")</dt><dd class="col-sm-4">@N("expectedSelectedCharacters")</dd>
+                <dt class="col-sm-8">@T("Stock")</dt><dd class="col-sm-4" data-value="inventoryAvailable">@N("inventoryAvailable") / @N("inventoryTotal")</dd>
+                <dt class="col-sm-8">@T("StockLanguage")</dt><dd class="col-sm-4">@N("inventoryChinese") / @N("inventoryEnglish")</dd>
+            </dl>
+            @if (!this.Destructive)
+            {
+                @foreach (var error in preview["errors"]!.AsArray())
+                {
+                    <p class="alert alert-danger" role="alert">@T(error!.GetValue<string>())</p>
+                }
+            }
+            @if (N("missingExistingSlots") > 0)
+            {
+                <p class="alert alert-warning">@T("MissingSlots")</p>
+            }
+            @if (N("targetCharacters") < N("existingCharacters"))
+            {
+                <p class="alert alert-warning">@T("ReduceHint")</p>
+            }
+            <p class="small text-secondary">@T("InventoryHint")</p>
+            <p class="small text-secondary">@T("RotationHint")</p>
+            <div class="mb-3">
+                <label for="AdditionalBotCharacters" class="form-label">@T("Additional")</label>
+                <div class="input-group">
+                    <input id="AdditionalBotCharacters" type="number" min="1" step="@N("charactersPerAccount")" class="form-control" @bind="this._additionalCharacters" />
+                    <button data-testid="bot-calculate" type="button" class="btn btn-outline-primary" @onclick="@this.CalculateAsync" disabled="@(this._loading || this.Destructive)">@T("Calculate")</button>
+                </div>
+                <div class="form-text">@T("AdditionalHint")</div>
+                @if (this._calculatorError)
+                {
+                    <p class="text-danger" role="alert">@T("AdditionalInvalid")</p>
+                }
+            </div>
+            <h4 class="h6">@T("Runtime")</h4>
+            @if (preview["runtime"]!.AsArray().Count == 0)
+            {
+                <p>@T("NoRuntime")</p>
+            }
+            @foreach (var runtime in preview["runtime"]!.AsArray())
+            {
+                <p class="mb-1" data-testid="bot-runtime">
+                    @T("Server") @(runtime!["serverId"]):
+                    @(runtime["generationFailed"]!.GetValue<bool>() ? T("Failed") : !runtime["settingsMatch"]!.GetValue<bool>() ? T("Pending") : T(runtime["phase"]!.GetValue<string>()))
+                    (@T("RetrySlots"): @runtime["pendingRespawns"])
+                </p>
+            }
+        }
+        <button type="button" class="btn btn-outline-secondary btn-sm" @onclick="@this.RefreshPreviewAsync" disabled="@this._loading">@T("Refresh")</button>
+    </section>
+
+    <fieldset disabled="@this._saving">
+        <CascadingValue Value="@this.PersistenceContext">
+            <CreationAutoFields />
+        </CascadingValue>
+    </fieldset>
+    <ValidationSummary />
+    @if (this._blocked)
+    {
+        <p class="alert alert-danger" role="alert">@T("CannotSave")</p>
+    }
+    <div class="form-actions">
+        <button data-testid="bot-save" type="submit" class="btn btn-primary" disabled="@(this._loading || this._saving || this._preview is null || this._unavailable || (this.Destructive && !this._acknowledged))">@T("Save")</button>
+        <button type="button" class="btn btn-secondary" @onclick="@this.OnCancel">@T("Cancel")</button>
+    </div>
+</EditForm>
+
+@code {
+    private EditContext _editContext = null!;
+    private JsonObject? _preview;
+    private bool _refreshRequested = true;
+    private bool _loading;
+    private bool _saving;
+    private bool _unavailable;
+    private bool _blocked;
+    private bool _acknowledged;
+    private bool _calculatorError;
+    private bool _disposed;
+    private int _additionalCharacters;
+
+    /// <summary>Gets or sets the draft bot configuration.</summary>
+    [Parameter, EditorRequired]
+    public BotConfiguration Configuration { get; set; } = null!;
+
+    /// <summary>Gets or sets the lookup context for the existing configuration form.</summary>
+    [Parameter, EditorRequired]
+    public IContext PersistenceContext { get; set; } = null!;
+
+    /// <summary>Gets or sets the callback which saves the validated draft using the existing audited writer.</summary>
+    [Parameter]
+    public EventCallback OnValidSubmit { get; set; }
+
+    /// <summary>Gets or sets the cancellation callback.</summary>
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private bool Destructive => this.Configuration.ResetBots || this.Configuration.PurgeBots;
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        this._disposed = true;
+        this._editContext.OnFieldChanged -= this.OnFieldChanged;
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        this._editContext = new EditContext(this.Configuration);
+        this._editContext.OnFieldChanged += this.OnFieldChanged;
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (this._refreshRequested && !this._loading && !this._disposed)
+        {
+            await this.RefreshPreviewAsync().ConfigureAwait(true);
+        }
+    }
+
+    private static string T(string key) => BotManagementResources.Get(key);
+
+    private int N(string key) => this._preview?[key]?.GetValue<int>() ?? 0;
+
+    private void OnFieldChanged(object? sender, FieldChangedEventArgs args)
+    {
+        this._refreshRequested = true;
+        this._blocked = false;
+        this._acknowledged = false;
+        this.StateHasChanged();
+    }
+
+    private async Task RefreshPreviewAsync()
+    {
+        if (this._loading || this._disposed)
+        {
+            return;
+        }
+
+        this._refreshRequested = false;
+        this._loading = true;
+        this._unavailable = false;
+        try
+        {
+            this._preview = await this.Operations.PreviewAsync(
+                this.Configuration.NumberOfAccounts,
+                this.Configuration.MaxCharactersPerAccount,
+                this.Configuration.CharacterNames,
+                default).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            this._unavailable = true;
+            this.Logger.LogError(ex, "Could not read the bot population preview.");
+        }
+        finally
+        {
+            this._loading = false;
+            if (!this._disposed)
+            {
+                this.StateHasChanged();
+            }
+        }
+    }
+
+    private async Task CalculateAsync()
+    {
+        var perAccount = this.N("charactersPerAccount");
+        var accounts = Math.Max(this.Configuration.NumberOfAccounts, this.N("nextAccountIndex") - 1);
+        this._calculatorError = perAccount < 1 || this._additionalCharacters < 1 || this._additionalCharacters % perAccount != 0
+            || accounts + (long)this._additionalCharacters / perAccount > 1000;
+        if (this._calculatorError)
+        {
+            return;
+        }
+
+        this.Configuration.NumberOfAccounts = accounts + (this._additionalCharacters / perAccount);
+        this._editContext.NotifyFieldChanged(new FieldIdentifier(this.Configuration, nameof(BotConfiguration.NumberOfAccounts)));
+        await this.RefreshPreviewAsync().ConfigureAwait(true);
+    }
+
+    private async Task SubmitAsync()
+    {
+        if (this._saving || this._loading)
+        {
+            return;
+        }
+
+        this._saving = true;
+        try
+        {
+            await this.RefreshPreviewAsync().ConfigureAwait(true);
+            this._blocked = this._unavailable || this._preview is null || (!this.Destructive && !this._preview["canSave"]!.GetValue<bool>())
+                || (this.Destructive && !this._acknowledged);
+            if (!this._blocked)
+            {
+                await this.OnValidSubmit.InvokeAsync().ConfigureAwait(true);
+            }
+        }
+        finally
+        {
+            this._saving = false;
+        }
+    }
+}

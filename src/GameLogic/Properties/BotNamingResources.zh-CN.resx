@@ -4,4 +4,5 @@
   <resheader name="version"><value>2.0</value></resheader>
   <data name="CharacterNamesCaption" xml:space="preserve"><value>已审核角色昵称库</value></data>
   <data name="CharacterNamesDescription" xml:space="preserve"><value>可选的完整昵称列表，以逗号或换行分隔。留空使用500个已审核默认昵称（475个含中文，25个英文）。名称须唯一且不超过10个UTF-8字节。仅用于新生成的机器人，已有角色保留原名。名字不足时停止生成，不自动添加数字或生成库外名称。</value></data>
+  <data name="CharacterNamesValidation" xml:space="preserve"><value>昵称必须唯一，只能包含常用汉字或英文字母数字，且不超过10个UTF-8字节；不能使用管理员等保留名称。</value></data>
 </root>

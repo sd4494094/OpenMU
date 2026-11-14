@@ -66,9 +66,10 @@ The *Bots* feature plugin, in the "Feature Plugins" section of the
   Chinese and 25 are English. Each name is allocated only once in the shared
   character database. Only new characters use the inventory; existing bots keep
   their names and progress.
-- **`Number of accounts`** — how many bot accounts to maintain.
-- **`Characters per account`** — how many characters each account animates at
-  once (at most five).
+- **`Target account total`** — total generated account target, not the number to add.
+  Missing accounts are created at the next coordinated startup.
+- **`Characters per account`** — how many characters each newly generated account
+  holds (at most five). Existing accounts are not backfilled.
 - **`Bot capacity %`** — the share of a game server's maximum player count its
   bots may occupy; the rest is reserved for the players.
 - **`Presence rotation`** — bots log in and out over the day instead of all
@@ -99,6 +100,46 @@ The *Bots* feature plugin, in the "Feature Plugins" section of the
   and switches the feature off. It works with the feature enabled or disabled;
   the switch-off is what makes it a purge, since the same pass would otherwise
   create the population again right after deleting it. Clears itself afterwards.
+
+## Population management preview
+
+Opening the plugin configuration shows persisted bot account and character counts,
+the target character slots, predicted new characters, and the reviewed nickname
+stock remaining after checking the shared character database. Chinese-name counts
+describe persisted names; a target increase does not guarantee all newly allocated
+names are Chinese because the reviewed inventory deliberately includes a few
+English entries.
+
+The **additional characters** calculator adjusts the draft account total only.
+For example, with 100 existing accounts and five characters per account, adding
+20 characters sets the target to 104 accounts and predicts four new accounts.
+Click **Save configuration** to persist the draft. The calculator and preview
+never generate characters or save by themselves.
+
+Saving a larger target does **not** expand the running population immediately.
+Account selection and cross-server ownership are applied at the next coordinated
+bot startup, normally a planned restart of all game servers. The per-server
+status shows whether its last startup observed the proposed generation settings,
+whether generation failed, and any character slots awaiting a retry. These are
+local-process observations, not a distributed health check. Unsaved settings are
+marked explicitly.
+
+Existing account names and character progress remain unchanged. Empty slots in
+an existing account are reported but are not created automatically. Reducing a
+target changes the next startup's selection; it does not delete stored accounts.
+These counts describe the population, not guaranteed simultaneous online players:
+presence rotation and server capacity still apply.
+
+An invalid inventory, insufficient free names or a generated login occupied by
+a non-bot account blocks ordinary submission. Inventory is a point-in-time
+estimate: generation checks names and elf build requirements again. The destructive
+reset and purge settings remain separate from expansion and require an explicit
+confirmation in the form. **Never use reset or purge to add bots.**
+
+Administrators can obtain the same read-only preview through the
+`bots_preview_population` MCP tool. It returns aggregate quantities without listing
+player names or account credentials. It is an administration tool and should not
+be exposed to in-game NPC assistants.
 
 ## Nickname inventory and capacity
 

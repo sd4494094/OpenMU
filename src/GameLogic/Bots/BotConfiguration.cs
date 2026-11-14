@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 /// <summary>
 /// The admin-panel editable configuration of the <see cref="BotFeaturePlugIn"/>.
 /// </summary>
-public class BotConfiguration
+public class BotConfiguration : IValidatableObject
 {
     /// <summary>
     /// The hard limit of characters a single account can hold in the game.
@@ -170,6 +170,29 @@ public class BotConfiguration
     /// <remarks>Deliberately a method, like <see cref="GetEffectiveCharactersPerAccount"/>.</remarks>
     public int GetEffectivePotionStockCharges()
         => Math.Clamp(this.PotionStockCharges, 10, 255);
+
+    /// <summary>Gets the validated complete inventory, resolving the reviewed defaults when empty.</summary>
+    /// <returns>The complete nickname inventory.</returns>
+    public IReadOnlyList<string> GetValidatedCharacterNames() => BotNameCatalog.Validate(this.ParseCharacterNames());
+
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        string? error = null;
+        try
+        {
+            _ = this.GetValidatedCharacterNames();
+        }
+        catch (InvalidOperationException)
+        {
+            error = MUnique.OpenMU.GameLogic.Properties.BotNamingResources.CharacterNamesValidation;
+        }
+
+        if (error is not null)
+        {
+            yield return new ValidationResult(error, [nameof(this.CharacterNames)]);
+        }
+    }
 
     /// <summary>
     /// Parses the optional complete nickname inventory without hiding duplicate entries.

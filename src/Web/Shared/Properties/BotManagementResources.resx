@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='utf-8'?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <data xml:space="preserve" name="Title">
+    <value>Population and nickname preview</value>
+  </data>
+  <data xml:space="preserve" name="Current">
+    <value>Persisted bot characters</value>
+  </data>
+  <data xml:space="preserve" name="Chinese">
+    <value>Names containing Chinese</value>
+  </data>
+  <data xml:space="preserve" name="Accounts">
+    <value>Persisted bot accounts</value>
+  </data>
+  <data xml:space="preserve" name="Target">
+    <value>Target character slots</value>
+  </data>
+  <data xml:space="preserve" name="New">
+    <value>New characters on next startup</value>
+  </data>
+  <data xml:space="preserve" name="Selected">
+    <value>Existing/new characters selected by this plan</value>
+  </data>
+  <data xml:space="preserve" name="Stock">
+    <value>Available / total reviewed names</value>
+  </data>
+  <data xml:space="preserve" name="StockLanguage">
+    <value>Available Chinese / English names</value>
+  </data>
+  <data xml:space="preserve" name="InventoryHint">
+    <value>An empty inventory uses 500 reviewed defaults. Availability is a snapshot; generation rechecks names and required elf builds. A few English names are intentional.</value>
+  </data>
+  <data xml:space="preserve" name="ApplyHint">
+    <value>Save updates the configuration only. Quantities and account ownership apply on the next coordinated bot startup, normally a planned restart of all game servers. Existing bot names and progress are preserved.</value>
+  </data>
+  <data xml:space="preserve" name="RotationHint">
+    <value>This is population capacity, not a guaranteed online count; presence rotation and server capacity still apply.</value>
+  </data>
+  <data xml:space="preserve" name="Additional">
+    <value>Add characters to the target</value>
+  </data>
+  <data xml:space="preserve" name="AdditionalHint">
+    <value>Use a multiple of the characters per account. This calculator changes the draft account target only.</value>
+  </data>
+  <data xml:space="preserve" name="Calculate">
+    <value>Set account target</value>
+  </data>
+  <data xml:space="preserve" name="AdditionalInvalid">
+    <value>Enter a positive multiple of the characters per account; the resulting account target must not exceed 1000.</value>
+  </data>
+  <data xml:space="preserve" name="Refresh">
+    <value>Refresh preview</value>
+  </data>
+  <data xml:space="preserve" name="Loading">
+    <value>Reading population and nickname availability…</value>
+  </data>
+  <data xml:space="preserve" name="Unavailable">
+    <value>The preview could not be read. Retry before saving; no changes were applied.</value>
+  </data>
+  <data xml:space="preserve" name="CannotSave">
+    <value>Resolve the preview errors before saving.</value>
+  </data>
+  <data xml:space="preserve" name="invalidInventory">
+    <value>The inventory contains duplicate, reserved or invalid names.</value>
+  </data>
+  <data xml:space="preserve" name="loginConflict">
+    <value>A generated bot login is occupied by a non-bot account. Adjust the target after resolving the conflict.</value>
+  </data>
+  <data xml:space="preserve" name="insufficientInventory">
+    <value>There are not enough unused reviewed names for the proposed new characters. Extend the inventory or lower the target.</value>
+  </data>
+  <data xml:space="preserve" name="MissingSlots">
+    <value>Existing accounts have missing selected slots. They are not backfilled; characters per account affects generation of new accounts.</value>
+  </data>
+  <data xml:space="preserve" name="ReduceHint">
+    <value>Reducing the target changes the next startup selection only. Surplus accounts and progress remain in the database.</value>
+  </data>
+  <data xml:space="preserve" name="Runtime">
+    <value>Startup status on each game server</value>
+  </data>
+  <data xml:space="preserve" name="NoRuntime">
+    <value>No in-process bot startup observations are available. This may be a distributed deployment or a plugin that has not run yet.</value>
+  </data>
+  <data xml:space="preserve" name="Server">
+    <value>Server</value>
+  </data>
+  <data xml:space="preserve" name="completed">
+    <value>Startup completed</value>
+  </data>
+  <data xml:space="preserve" name="starting">
+    <value>Startup in progress</value>
+  </data>
+  <data xml:space="preserve" name="waiting">
+    <value>Waiting for startup</value>
+  </data>
+  <data xml:space="preserve" name="Pending">
+    <value>Target/settings await the next startup</value>
+  </data>
+  <data xml:space="preserve" name="Failed">
+    <value>Generation failed; inspect the server logs</value>
+  </data>
+  <data xml:space="preserve" name="RetrySlots">
+    <value>Slots awaiting login retry</value>
+  </data>
+  <data xml:space="preserve" name="Unsaved">
+    <value>The configuration has unsaved changes. Preview does not save or apply them.</value>
+  </data>
+  <data xml:space="preserve" name="Destructive">
+    <value>Rebuild/purge deletes existing bots. The non-destructive quantity preview below does not apply to deletion. Purge may run immediately after saving; rebuild runs at startup.</value>
+  </data>
+  <data xml:space="preserve" name="Acknowledge">
+    <value>I understand this deletes existing bot characters and their progress.</value>
+  </data>
+  <data xml:space="preserve" name="Save">
+    <value>Save configuration (apply quantities on next startup)</value>
+  </data>
+  <data xml:space="preserve" name="Cancel">
+    <value>Cancel</value>
+  </data>
+</root>

@@ -1380,10 +1380,10 @@
   <data name="BotConfiguration_PresenceRotation_Description" xml:space="preserve"><value>Bots log in and out over the day (fewest at night, most in the evening) instead of all being online 24/7.</value></data>
   <data name="BotConfiguration_MinOnlineSharePercent_Name" xml:space="preserve"><value>Min. online share %</value></data>
   <data name="BotConfiguration_MinOnlineSharePercent_Description" xml:space="preserve"><value>Percentage of the bot population which stays online at the quietest hour (100 = no rotation effect).</value></data>
-  <data name="BotConfiguration_NumberOfAccounts_Name" xml:space="preserve"><value>Number of accounts</value></data>
-  <data name="BotConfiguration_NumberOfAccounts_Description" xml:space="preserve"><value>How many bot accounts to maintain.</value></data>
+  <data name="BotConfiguration_NumberOfAccounts_Name" xml:space="preserve"><value>Target account total</value></data>
+  <data name="BotConfiguration_NumberOfAccounts_Description" xml:space="preserve"><value>Total bot account target, not the number to add. Missing accounts are created at the next coordinated startup; existing names and progress are retained.</value></data>
   <data name="BotConfiguration_MaxCharactersPerAccount_Name" xml:space="preserve"><value>Characters per account</value></data>
-  <data name="BotConfiguration_MaxCharactersPerAccount_Description" xml:space="preserve"><value>How many characters each bot account holds (max 5).</value></data>
+  <data name="BotConfiguration_MaxCharactersPerAccount_Description" xml:space="preserve"><value>Characters created in each new account (max 5). Existing accounts are not backfilled. Quantity changes apply at the next coordinated startup.</value></data>
   <data name="BotConfiguration_BotCapacityPercent_Name" xml:space="preserve"><value>Bot capacity %</value></data>
   <data name="BotConfiguration_BotCapacityPercent_Description" xml:space="preserve"><value>Share of a game server's maximum player count which its bots may occupy; the rest stays reserved for real players.</value></data>
   <data name="BotConfiguration_BotsPayResetCosts_Name" xml:space="preserve"><value>Bots pay reset costs</value></data>

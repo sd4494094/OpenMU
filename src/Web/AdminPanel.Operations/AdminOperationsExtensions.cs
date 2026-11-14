@@ -32,6 +32,7 @@ public static class AdminOperationsExtensions
         services.AddScoped<GuildReadOperations>();
         services.AddScoped<ConfigurationReadOperations>();
         services.AddScoped<PluginReadOperations>();
+        services.AddScoped<BotPopulationOperations>();
         services.AddScoped<MiniGameReadOperations>();
         services.AddScoped<ItemExchangeOperations>();
         services.TryAddScoped<IAdminOperationContext, UnconfiguredAdminOperationContext>();

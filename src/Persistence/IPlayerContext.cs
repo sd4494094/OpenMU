@@ -68,6 +68,12 @@ public interface IPlayerContext : IContext
     /// </returns>
     ValueTask<Account?> GetAccountByLoginNameAsync(string loginName, CancellationToken cancellationToken = default);
 
+    /// <summary>Reads bot accounts and accounts occupying the generated login prefix without loading gameplay data.</summary>
+    /// <param name="generatedLoginPrefix">The generated bot login prefix to check for occupied names.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The minimal account and character-name projections.</returns>
+    ValueTask<IReadOnlyList<BotAccountSummary>> GetBotAccountSummariesAsync(string generatedLoginPrefix, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Gets the accounts ordered by login name.
     /// </summary>

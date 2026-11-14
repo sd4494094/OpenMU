@@ -28,6 +28,13 @@ else if (this.Item is Character newCharacter && this.Owner is Account account)
                            OnValidSubmit="@this.OnValidSubmit"
                            OnCancel="@this.OnCancel" />
 }
+else if (this.Item is MUnique.OpenMU.GameLogic.Bots.BotConfiguration botConfiguration)
+{
+    <BotConfigurationForm Configuration="@botConfiguration"
+                          PersistenceContext="@this.PersistenceContext"
+                          OnValidSubmit="@this.OnValidSubmit"
+                          OnCancel="@this.OnCancel" />
+}
 else
 {
     <EditForm Model="@this.Item" OnValidSubmit="@this.OnValidSubmit">

@@ -27,6 +27,15 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
     {
     }
 
+    /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<BotAccountSummary>> GetBotAccountSummariesAsync(string generatedLoginPrefix, CancellationToken cancellationToken = default)
+    {
+        var accounts = await this.Provider.GetRepository<Account>().GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return accounts.Where(account => account.IsBot || account.LoginName.StartsWith(generatedLoginPrefix, StringComparison.Ordinal))
+            .Select(account => new BotAccountSummary(account.LoginName, account.IsBot,
+                account.Characters.ToDictionary(character => character.CharacterSlot, character => character.Name))).ToArray();
+    }
+
     /// <inheritdoc/>
     public async ValueTask<MUnique.OpenMU.DataModel.Entities.LetterBody?> GetLetterBodyByHeaderIdAsync(Guid headerId, CancellationToken cancellationToken = default)
     {

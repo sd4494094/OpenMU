@@ -26,8 +26,6 @@ using MUnique.OpenMU.Persistence;
 /// </remarks>
 internal sealed class BotGenerator
 {
-    private const string LoginPrefix = "bot";
-
     /// <summary>
     /// BCrypt work factor for a bot account's password. The password is a random <see cref="Guid"/>
     /// which is discarded immediately and never used to log in - a bot is a connection-less
@@ -83,7 +81,7 @@ internal sealed class BotGenerator
     /// </summary>
     /// <param name="index">The one-based account index.</param>
     /// <returns>The login name, e.g. <c>bot0001</c> (kept within the 10-character account name limit).</returns>
-    public static string GetLoginName(int index) => $"{LoginPrefix}{index:D4}";
+    public static string GetLoginName(int index) => BotAccountNaming.GetLoginName(index);
 
     /// <summary>
     /// Ensures that the configured number of bot accounts (each with the configured number of

@@ -81,6 +81,31 @@ public class BotFeaturePlugIn : IFeaturePlugIn, IPeriodicTaskPlugIn, ISupportCus
     public static BotConfiguration? GetConfiguration(IGameContext gameContext)
         => gameContext.FeaturePlugIns.GetPlugIn<BotFeaturePlugIn>()?.Configuration;
 
+    /// <summary>Reads startup observations without changing the population or its cross-server ownership.</summary>
+    /// <param name="configuration">The proposed generation settings to compare with the last startup.</param>
+    /// <returns>A snapshot for every in-process game context observed by this plugin.</returns>
+    public IReadOnlyList<BotPopulationStatus> GetPopulationStatus(BotConfiguration configuration)
+    {
+        var requested = new StartupSettings(
+            configuration.NumberOfAccounts,
+            configuration.MaxCharactersPerAccount,
+            configuration.CharacterNames,
+            configuration.StartAsFreshCharacters);
+        return this._states.Select(pair =>
+        {
+            var state = pair.Value;
+            var applied = state.AppliedSettings;
+            var phase = (StartupPhase)Volatile.Read(ref state.StartupState);
+            return new BotPopulationStatus(
+                (pair.Key as IGameServerContext)?.Id,
+                phase == StartupPhase.Done ? "completed" : phase == StartupPhase.InProgress ? "starting" : "waiting",
+                applied is not null && applied == requested,
+                state.GenerationFailed,
+                state.Manager.BotCount,
+                state.PendingRespawns.Count);
+        }).ToArray();
+    }
+
     /// <inheritdoc />
     public async ValueTask ExecuteTaskAsync(GameContext gameContext)
     {
@@ -275,6 +300,12 @@ public class BotFeaturePlugIn : IFeaturePlugIn, IPeriodicTaskPlugIn, ISupportCus
         var logger = gameContext.LoggerFactory.CreateLogger(this.GetType().Name);
         using var scope = logger.BeginScope(gameContext);
 
+        state.AppliedSettings = new StartupSettings(
+            configuration.NumberOfAccounts,
+            configuration.MaxCharactersPerAccount,
+            configuration.CharacterNames,
+            configuration.StartAsFreshCharacters);
+        state.GenerationFailed = false;
         var generator = new BotGenerator(gameContext, logger);
         var partition = state.Partition = await BotServerPartition.CreateAsync(gameContext, configuration, logger).ConfigureAwait(false);
 
@@ -317,6 +348,7 @@ public class BotFeaturePlugIn : IFeaturePlugIn, IPeriodicTaskPlugIn, ISupportCus
             }
             catch (Exception ex)
             {
+                state.GenerationFailed = true;
                 logger.LogError(ex, "Failed to generate the bot population.");
             }
         }
@@ -685,6 +717,9 @@ public class BotFeaturePlugIn : IFeaturePlugIn, IPeriodicTaskPlugIn, ISupportCus
         }
     }
 
+    /// <summary>The immutable generation settings observed by a startup pass.</summary>
+    private sealed record StartupSettings(int Accounts, int CharactersPerAccount, string Names, bool Fresh);
+
     /// <summary>
     /// The bot feature's state of ONE game server: its own share of the population, its own bots, and
     /// its own startup and maintenance schedule (see <see cref="_states"/>).
@@ -703,6 +738,12 @@ public class BotFeaturePlugIn : IFeaturePlugIn, IPeriodicTaskPlugIn, ISupportCus
         /// parallel. Interlocked-updated, hence a field.
         /// </summary>
         private int _maintenanceRunning;
+
+        /// <summary>Gets or sets the immutable settings observed by the last startup.</summary>
+        public StartupSettings? AppliedSettings { get; set; }
+
+        /// <summary>Gets or sets a value indicating whether generation failed during this startup.</summary>
+        public bool GenerationFailed { get; set; }
 
         /// <summary>
         /// Gets the bots this server animates.

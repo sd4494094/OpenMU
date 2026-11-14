@@ -12,6 +12,9 @@ public static class BotNamingResources
 {
     private static readonly ResourceManager Manager = new(typeof(BotNamingResources));
 
+    /// <summary>Gets the inventory validation message.</summary>
+    public static string CharacterNamesValidation => Manager.GetString(nameof(CharacterNamesValidation), CultureInfo.CurrentUICulture)!;
+
     /// <summary>Gets the inventory caption.</summary>
     public static string CharacterNamesCaption => Manager.GetString(nameof(CharacterNamesCaption), CultureInfo.CurrentUICulture)!;
 
