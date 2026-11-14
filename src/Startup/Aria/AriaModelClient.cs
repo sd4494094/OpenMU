@@ -107,14 +107,37 @@ public sealed class AriaModelClient : IAriaModelClient
             return null;
         }
 
-        var response = root.GetProperty("response");
-        if (response.GetProperty("status").GetString() != "completed")
+        return ReadResponseOutput(root.GetProperty("response"));
+    }
+
+    private static async ValueTask<JsonElement> ReadResponseAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        using var reader = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
+        var buffer = new char[4096];
+        var text = new StringBuilder();
+        while (await reader.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false) is var count && count > 0)
+        {
+            if (text.Length + count > 524288)
+            {
+                throw new InvalidDataException("Aria response exceeded its budget.");
+            }
+
+            text.Append(buffer, 0, count);
+        }
+
+        using var document = JsonDocument.Parse(text.ToString());
+        return ReadResponseOutput(document.RootElement);
+    }
+
+    private static JsonElement ReadResponseOutput(JsonElement response)
+    {
+        if (!response.TryGetProperty("status", out var status) || status.GetString() != "completed"
+            || (response.TryGetProperty("error", out var error) && error.ValueKind != JsonValueKind.Null))
         {
             throw new InvalidDataException("Aria terminal status was not completed.");
         }
 
-        var output = response.GetProperty("output");
-        if (output.ValueKind != JsonValueKind.Array)
+        if (!response.TryGetProperty("output", out var output) || output.ValueKind != JsonValueKind.Array)
         {
             throw new InvalidDataException("Aria output must be an array.");
         }
@@ -251,7 +274,7 @@ public sealed class AriaModelClient : IAriaModelClient
                     ["model"] = this._options.Model,
                     ["instructions"] = instructions,
                     ["reasoning"] = new { effort = this._options.ReasoningEffort },
-                    ["stream"] = true,
+                    ["stream"] = false,
                     ["store"] = false,
                     ["include"] = new[] { "reasoning.encrypted_content" },
                     ["max_output_tokens"] = this._options.MaxOutputTokens,
@@ -281,13 +304,13 @@ public sealed class AriaModelClient : IAriaModelClient
                     throw new HttpRequestException("Aria upstream returned an unsuccessful HTTP status.", null, response.StatusCode);
                 }
 
-                if (response.Content.Headers.ContentType?.MediaType != "text/event-stream")
-                {
-                    throw new InvalidDataException("Aria upstream did not return an event stream.");
-                }
-
                 await using var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
-                var output = await ReadOutputAsync(stream, token).ConfigureAwait(false);
+                var output = response.Content.Headers.ContentType?.MediaType switch
+                {
+                    "application/json" => await ReadResponseAsync(stream, token).ConfigureAwait(false),
+                    "text/event-stream" => await ReadOutputAsync(stream, token).ConfigureAwait(false),
+                    _ => throw new InvalidDataException("Aria upstream returned an unsupported response format."),
+                };
                 this._logger.LogInformation("Aria model request {RequestId} attempt {Attempt} completed in {ElapsedMs} ms.", requestId, attempt, stopwatch.ElapsedMilliseconds);
                 return output;
             }

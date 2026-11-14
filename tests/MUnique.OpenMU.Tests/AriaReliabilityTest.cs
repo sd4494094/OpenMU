@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Tests;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using MUnique.OpenMU.GameLogic.Aria;
 using MUnique.OpenMU.Startup.Aria;
@@ -226,6 +227,52 @@ public class AriaReliabilityTest
             await Client(http).CompleteAsync("test", [], new CancellationToken(true)).ConfigureAwait(false));
         Assert.That(handler.Attempts, Is.Zero);
     }
+
+    /// <summary>Uses a complete JSON response so a proxy's missing SSE terminal cannot discard a valid answer.</summary>
+    [Test]
+    public async Task RequestsNonStreamingCompletedResponseAsync()
+    {
+        using var handler = new SequenceHandler((_, _) => Task.FromResult(JsonResponse("completed")));
+        using var http = new HttpClient(handler);
+        Assert.That(await Client(http).CompleteAsync("test", [], CancellationToken.None).ConfigureAwait(false), Is.EqualTo("你好，勇者。"));
+        using var body = JsonDocument.Parse(handler.RequestBodies.Single());
+        Assert.That(body.RootElement.GetProperty("stream").GetBoolean(), Is.False);
+        Assert.That(body.RootElement.GetProperty("reasoning").GetProperty("effort").GetString(), Is.EqualTo("low"));
+    }
+
+    /// <summary>JSON replies must explicitly report completion and contain no provider error.</summary>
+    /// <param name="status">The provider status.</param>
+    /// <param name="error">Whether the response includes an error.</param>
+    [TestCase("incomplete", false)]
+    [TestCase("failed", false)]
+    [TestCase("in_progress", false)]
+    [TestCase("completed", true)]
+    public void RejectsIncompleteJsonResponse(string status, bool error)
+    {
+        using var handler = new SequenceHandler((_, _) => Task.FromResult(JsonResponse(status, error)));
+        using var http = new HttpClient(handler);
+        Assert.ThrowsAsync<InvalidDataException>(async () => await Client(http).CompleteAsync("test", [], CancellationToken.None).ConfigureAwait(false));
+        Assert.That(handler.Attempts, Is.EqualTo(1));
+    }
+
+    /// <summary>Response buffering retains the same fixed budget for complete JSON bodies.</summary>
+    [Test]
+    public void RejectsOversizedJsonResponse()
+    {
+        using var handler = new SequenceHandler((_, _) => Task.FromResult(JsonResponse("completed", text: new string('x', 524289))));
+        using var http = new HttpClient(handler);
+        Assert.ThrowsAsync<InvalidDataException>(async () => await Client(http).CompleteAsync("test", [], CancellationToken.None).ConfigureAwait(false));
+    }
+
+    private static HttpResponseMessage JsonResponse(string status, bool error = false, string text = "你好，勇者。")
+        => new(HttpStatusCode.OK)
+        {
+            Content = new StringContent(JsonSerializer.Serialize(new
+            {
+                status, error = error ? new { code = "failed" } : null,
+                output = new[] { new { type = "message", content = new[] { new { type = "output_text", text } } } },
+            }), Encoding.UTF8, "application/json"),
+        };
 
     private static AriaModelClient Client(HttpClient http)
         => new(http, new AriaChatOptions { ApiKey = "test-key", Endpoint = "http://localhost/v1/responses" });

@@ -307,7 +307,7 @@ public class AriaMcpTest
     private static HttpResponseMessage Output(params object[] output)
         => new(HttpStatusCode.OK)
         {
-            Content = new StringContent("data: " + JsonSerializer.Serialize(new { type = "response.completed", response = new { status = "completed", output } }) + "\n\n", Encoding.UTF8, "text/event-stream"),
+            Content = new StringContent(JsonSerializer.Serialize(new { status = "completed", output }), Encoding.UTF8, "application/json"),
         };
 
     private sealed class ToolClient(Func<string, CancellationToken, JsonElement> callback) : IAriaToolClient

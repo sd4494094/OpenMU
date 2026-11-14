@@ -110,7 +110,9 @@ operator deliberately wants to erase all NPC memory.
 Build and run the affected tests on dev. Set `OPENMU_ARIA_TEST_DB` only to an
 isolated, migrated development database to enable the real PostgreSQL test.
 Never point tests at production. Transport tests check the low reasoning
-parameter and reject partial/incomplete SSE responses. Player tests check the
+parameter and request complete, bounded JSON Responses output. SSE-compatible
+responses are still accepted only with an explicit successful terminal event;
+partial/incomplete responses are rejected in either format. Player tests check the
 non-blocking path, private reply and logout cancellation. Manual checks should
 also cover all aliases, a remembered name after relogin and memory deletion.
 
