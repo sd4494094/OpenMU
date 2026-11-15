@@ -1,4 +1,4 @@
-﻿// <copyright file="GameConfigurationInitializer.cs" company="MUnique">
+// <copyright file="GameConfigurationInitializer.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -19,6 +19,12 @@ using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
 /// </summary>
 public class GameConfigurationInitializer : GameConfigurationInitializerBase
 {
+    /// <summary>
+    /// Default player name policy: three to ten ASCII letters, digits or BMP Han characters.
+    /// CharacterInitialization also enforces the protocol's ten UTF-8 byte limit.
+    /// </summary>
+    public const string DefaultCharacterNameRegex = @"\A[a-zA-Z0-9\u3400-\u4DBF\u4E00-\u9FFF]{3,10}\z";
+
     /// <summary>
     /// Initializes a new instance of the <see cref="GameConfigurationInitializer"/> class.
     /// </summary>
@@ -48,6 +54,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
     public override void Initialize()
     {
         base.Initialize();
+        this.GameConfiguration.CharacterNameRegex = DefaultCharacterNameRegex;
 
         this.GameConfiguration.ItemOptions.Add(this.CreateOptionDefinition(Stats.BaseDamageBonus, ItemOptionDefinitionNumbers.PhysicalAndWizardryAttack));
         this.GameConfiguration.ItemOptions.Add(this.CreateOptionDefinition(Stats.CurseBaseDmg, ItemOptionDefinitionNumbers.CurseAttack));

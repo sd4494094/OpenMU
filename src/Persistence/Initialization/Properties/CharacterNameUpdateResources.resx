@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Name" xml:space="preserve"><value>Allow Chinese character names</value></data>
+  <data name="Description" xml:space="preserve"><value>Allows Han characters only when the name policy still equals the original ASCII default. Preserves custom policies. Names remain limited to ten UTF-8 bytes (three Han characters).</value></data>
+</root>

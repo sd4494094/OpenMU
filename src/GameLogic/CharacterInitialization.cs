@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
+using System.Text;
 using System.Text.RegularExpressions;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.Discord;
@@ -18,6 +19,14 @@ using MUnique.OpenMU.Persistence;
 /// </remarks>
 public static class CharacterInitialization
 {
+    /// <summary>
+    /// The legacy character-name fields used by creation, chat, parties and guilds hold ten UTF-8 bytes.
+    /// Longer names require a coordinated protocol extension, independently of the configured regex.
+    /// </summary>
+    private const int MaximumCharacterNameBytes = 10;
+
+    private static readonly Encoding StrictUtf8 = new UTF8Encoding(false, true);
+
     /// <summary>
     /// Determines whether the name is valid for a character, according to the <see cref="GameConfiguration.CharacterNameRegex"/>.
     /// </summary>
@@ -39,7 +48,19 @@ public static class CharacterInitialization
     /// <returns><c>true</c>, if the name is valid; otherwise, <c>false</c>.</returns>
     public static bool IsValidCharacterName(string name, string? nameRegex)
     {
-        if (!BridgedChatSender.IsAllowedInCharacterName(name))
+        if (string.IsNullOrWhiteSpace(name) || name.Contains('\0') || !BridgedChatSender.IsAllowedInCharacterName(name))
+        {
+            return false;
+        }
+
+        try
+        {
+            if (StrictUtf8.GetByteCount(name) > MaximumCharacterNameBytes)
+            {
+                return false;
+            }
+        }
+        catch (EncoderFallbackException)
         {
             return false;
         }

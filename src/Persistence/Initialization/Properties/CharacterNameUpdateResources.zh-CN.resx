@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Name" xml:space="preserve"><value>允许中文角色名</value></data>
+  <data name="Description" xml:space="preserve"><value>仅将原始英文数字命名规则更新为允许汉字，保留自定义规则。仍受10个UTF-8字节限制，纯中文最多3字。</value></data>
+</root>

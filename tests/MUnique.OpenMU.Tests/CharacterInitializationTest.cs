@@ -175,6 +175,31 @@ public class CharacterInitializationTest
         Assert.That(configuration.IsValidCharacterName("Hero!"), Is.True);
     }
 
+    /// <summary>Rejects names which cannot survive the existing UTF-8 name fields, even with a custom policy.</summary>
+    /// <param name="name">The proposed name.</param>
+    /// <param name="expectedResult">Whether it fits the transport contract.</param>
+    [TestCase("血雨星", true)]
+    [TestCase("血雨星A", true)]
+    [TestCase("1234567890", true)]
+    [TestCase("血雨星辰", false)]
+    [TestCase("血雨星辰天", false)]
+    [TestCase("12345678901", false)]
+    [TestCase("", false)]
+    [TestCase("   ", false)]
+    [TestCase("A\0B", false)]
+    public void CharacterNamesMustFitTransport(string name, bool expectedResult)
+    {
+        Assert.That(CharacterInitialization.IsValidCharacterName(name, null), Is.EqualTo(expectedResult));
+    }
+
+    /// <summary>Rejects unpaired surrogates without putting invalid UTF-16 in attribute metadata.</summary>
+    [Test]
+    public void CharacterNamesRejectInvalidUtf16()
+    {
+        var name = new string(new[] { 'A', (char)0xD800, 'B' });
+        Assert.That(CharacterInitialization.IsValidCharacterName(name, null), Is.False);
+    }
+
     private CharacterClass CreateCharacterClass()
     {
         var homeMap = this._context.CreateNew<GameMapDefinition>();

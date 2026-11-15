@@ -366,3 +366,23 @@ edits.
 The search box in the navigation area searches the whole configuration by name
 and jumps directly to the edit page of a result. It is usually much faster than
 walking the tree — if you know an item, monster or skill by name, search for it.
+
+## Character names
+
+The Season Six default CharacterNameRegex permits three to ten ASCII letters,
+digits or BMP Han characters (U+3400–U+4DBF and U+4E00–U+9FFF). All names also have
+a **ten UTF-8 byte** transport limit, independently of the regular expression.
+Thus 血雨星 (nine bytes), 血雨星A (ten bytes) and ten ASCII characters fit;
+four or five Han characters do not. Spaces and symbols are excluded by the
+default policy.
+
+Existing Season Six configurations can apply the optional **Allow Chinese
+character names** configuration update. It replaces only the original
+^[a-zA-Z0-9]{3,10}$ pattern and preserves customized or empty patterns. Review
+and apply the update, then reload the configuration as described above. Update
+MuMain's name-entry validation at the same time; changing the server pattern
+alone does not remove the client's ASCII-only validation.
+
+Supporting longer Chinese names requires coordinated extended packets for
+creation, visibility, chat, parties, guilds and friends, plus matching client
+buffers. Increasing only this regular expression or the creation field is unsafe.
