@@ -39,8 +39,8 @@ public class ItemStackAction
             return;
         }
 
-        var jewels = player.Inventory.Items.Where(item => item.Definition == mix.SingleJewel).Take(stackSize).ToList();
-        if (jewels.Count == stackSize)
+        var jewels = SelectMaterials(player.Inventory.Items, mix, stackSize);
+        if (jewels is not null)
         {
             var fee = GetCombineFee(stackSize);
             if (!player.TryRemoveMoney(fee))
@@ -132,6 +132,49 @@ public class ItemStackAction
         }
 
         await player.InvokeViewPlugInAsync<IUpdateMoneyPlugIn>(p => p.UpdateMoneyAsync()).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Selects whole materials only, preferring larger bundles and then lower inventory slots.
+    /// </summary>
+    /// <remarks>
+    /// Lahap supports targets of 10, 20 and 30. A bundle holds (level + 1) * 10 jewels.
+    /// Only smaller bundles may be combined; an existing target-size bundle must not be charged again.
+    /// Since eligible bundle sizes are multiples of ten, largest-first selection followed by singles
+    /// finds an exact combination without splitting bundles or returning change.
+    /// </remarks>
+    private static List<Item>? SelectMaterials(IEnumerable<Item> inventory, JewelMix mix, byte stackSize)
+    {
+        if (stackSize is not (10 or 20 or 30) || mix.SingleJewel is null || mix.MixedJewel is null)
+        {
+            return null;
+        }
+
+        var candidates = inventory
+            .Where(item => item.ItemSlot >= InventoryConstants.EquippableSlotsCount)
+            .Select(item => (Item: item, Pieces: item.Definition == mix.SingleJewel ? 1
+                : item.Definition == mix.MixedJewel && item.Level <= 2 ? (item.Level + 1) * 10 : 0))
+            .Where(candidate => candidate.Pieces > 0 && candidate.Pieces < stackSize)
+            .OrderByDescending(candidate => candidate.Pieces)
+            .ThenBy(candidate => candidate.Item.ItemSlot);
+        var remaining = (int)stackSize;
+        var selected = new List<Item>();
+        foreach (var candidate in candidates)
+        {
+            if (candidate.Pieces > remaining)
+            {
+                continue;
+            }
+
+            selected.Add(candidate.Item);
+            remaining -= candidate.Pieces;
+            if (remaining == 0)
+            {
+                return selected;
+            }
+        }
+
+        return null;
     }
 
     private static int GetCombineFee(byte stackSize) => (stackSize / 10) * CombineFeePerTen;
