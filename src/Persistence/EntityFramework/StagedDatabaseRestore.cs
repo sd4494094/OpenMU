@@ -76,12 +76,7 @@ internal static class StagedDatabaseRestore
                 await SetConnectionsAsync(maintenance, target, false, cancellationToken).ConfigureAwait(false);
             }
 
-            await using (var terminate = new NpgsqlCommand("SELECT pg_terminate_backend(pid, 5000) FROM pg_stat_activity WHERE datid IN (@original, @stage) AND pid <> pg_backend_pid()", maintenance))
-            {
-                terminate.Parameters.AddWithValue("original", NpgsqlTypes.NpgsqlDbType.Oid, (uint)originalOid);
-                terminate.Parameters.AddWithValue("stage", NpgsqlTypes.NpgsqlDbType.Oid, (uint)stageOid);
-                await terminate.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            }
+            await TerminateConnectionsAsync(maintenance, cancellationToken, originalOid, stageOid).ConfigureAwait(false);
 
             await using var transaction = await maintenance.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             if (originalOid != 0)
@@ -128,7 +123,9 @@ internal static class StagedDatabaseRestore
 
                 if (stageOid != 0 && await GetOidAsync(cleanup, stage, CancellationToken.None).ConfigureAwait(false) == stageOid)
                 {
-                    await ExecuteAsync(cleanup, $"DROP DATABASE {Quote(stage)} WITH (FORCE)", CancellationToken.None).ConfigureAwait(false);
+                    await SetConnectionsAsync(cleanup, stage, false, CancellationToken.None).ConfigureAwait(false);
+                    await TerminateConnectionsAsync(cleanup, CancellationToken.None, stageOid).ConfigureAwait(false);
+                    await ExecuteAsync(cleanup, $"DROP DATABASE {Quote(stage)}", CancellationToken.None).ConfigureAwait(false);
                 }
             }
             catch (Exception cleanupFailure) when (restoreFailure is not null)
@@ -136,6 +133,24 @@ internal static class StagedDatabaseRestore
                 throw new AggregateException("Snapshot restore and staging cleanup both failed. Inspect the retained database identities before retrying.", restoreFailure, cleanupFailure);
             }
         }
+    }
+
+    private static async ValueTask TerminateConnectionsAsync(NpgsqlConnection connection, CancellationToken cancellationToken, params long[] databaseOids)
+    {
+        // PostgreSQL stops its own autovacuum workers during RENAME and ordinary DROP.
+        // Explicit termination would require privileges a database owner may not have.
+        // The role OID is visible even when backend_type is hidden for another role.
+        await using var command = new NpgsqlCommand(
+            """
+            SELECT pg_terminate_backend(pid, 5000)
+            FROM pg_stat_activity
+            WHERE datid::bigint = ANY(@databases) AND pid <> pg_backend_pid()
+                AND usesysid IS NOT NULL
+                AND (backend_type = 'client backend' OR backend_type IS NULL)
+            """,
+            connection);
+        command.Parameters.AddWithValue("databases", databaseOids);
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async ValueTask CreateStageAsync(NpgsqlConnection connection, string target, string stage, CancellationToken cancellationToken)

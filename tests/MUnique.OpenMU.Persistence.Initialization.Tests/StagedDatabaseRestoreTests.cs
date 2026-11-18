@@ -23,6 +23,7 @@ public class StagedDatabaseRestoreTests
     private long _originalOid;
     private string? _stage;
     private long _stageOid;
+    private string? _restoreRole;
 
     /// <summary>
     /// Creates a fresh target and records its identity before testing a replacement.
@@ -37,6 +38,7 @@ public class StagedDatabaseRestoreTests
         this._target = "openmu_test_" + Guid.NewGuid().ToString("N");
         this._stage = null;
         this._stageOid = 0;
+        this._restoreRole = null;
         await this.ExecuteAsync(this._maintenance, $"CREATE DATABASE {Quote(this._target)} WITH TEMPLATE template0").ConfigureAwait(false);
         settings.Database = this._target;
         this._connection = settings.ConnectionString;
@@ -71,6 +73,11 @@ public class StagedDatabaseRestoreTests
         {
             Assert.That(name.StartsWith("openmu_test_", StringComparison.Ordinal) || name.StartsWith("openmu_previous_", StringComparison.Ordinal) || name == this._stage, Is.True);
             await this.ExecuteAsync(this._maintenance, $"DROP DATABASE {Quote(name)} WITH (FORCE)").ConfigureAwait(false);
+        }
+
+        if (this._restoreRole is { } role)
+        {
+            await this.ExecuteAsync(this._maintenance, $"DROP ROLE {Quote(role)}").ConfigureAwait(false);
         }
     }
 
@@ -180,6 +187,80 @@ public class StagedDatabaseRestoreTests
     }
 
     /// <summary>
+    /// PostgreSQL can complete the rename while its automatic maintenance worker is active.
+    /// A restore database owner does not need permission to terminate that worker.
+    /// </summary>
+    /// <param name="vacuumStage">Whether to start the worker on the staging database instead of the target.</param>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task AutovacuumDoesNotBlockLimitedOwnerAsync(bool vacuumStage)
+    {
+        var limited = await this.CreateLimitedOwnerAsync().ConfigureAwait(false);
+        await StagedDatabaseRestore.RunAsync(
+            limited,
+            async (staged, _) =>
+            {
+                await this.RecordStageAsync(staged).ConfigureAwait(false);
+                await this.ExecuteAsync(staged, "CREATE TABLE marker(value integer); INSERT INTO marker VALUES (99)").ConfigureAwait(false);
+                var database = vacuumStage ? this._stage! : this._target;
+                await this.StartAutovacuumAsync(vacuumStage ? staged : limited, database).ConfigureAwait(false);
+            },
+            CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(await this.ScalarAsync(this._connection, "SELECT value FROM marker").ConfigureAwait(false), Is.EqualTo(99));
+        Assert.That(await this.ScalarAsync(this._maintenance, $"SELECT oid::bigint FROM pg_database WHERE datname = '{this._target}' AND datallowconn").ConfigureAwait(false), Is.EqualTo(this._stageOid));
+        Assert.That(await this.ScalarAsync(this._maintenance, $"SELECT datname FROM pg_database WHERE oid::bigint = {this._originalOid} AND NOT datallowconn").ConfigureAwait(false), Does.StartWith("openmu_previous_"));
+    }
+
+    /// <summary>
+    /// A failed import removes its staging database even during automatic maintenance.
+    /// </summary>
+    [Test]
+    public async Task FailedImportCleansStageWithAutovacuumAsync()
+    {
+        var limited = await this.CreateLimitedOwnerAsync().ConfigureAwait(false);
+        var importFailure = new InvalidOperationException("Simulated failure after the staging worker starts.");
+        var failure = Assert.ThrowsAsync<InvalidOperationException>(async () => await StagedDatabaseRestore.RunAsync(
+            limited,
+            async (staged, _) =>
+            {
+                await this.RecordStageAsync(staged).ConfigureAwait(false);
+                await this.StartAutovacuumAsync(staged, this._stage!).ConfigureAwait(false);
+                throw importFailure;
+            },
+            CancellationToken.None).ConfigureAwait(false));
+
+        Assert.That(failure, Is.SameAs(importFailure));
+        await this.AssertOriginalAsync().ConfigureAwait(false);
+        Assert.That(await this.ScalarAsync(this._maintenance, $"SELECT count(*) FROM pg_database WHERE oid::bigint = {this._stageOid}").ConfigureAwait(false), Is.EqualTo(0L));
+    }
+
+    /// <summary>
+    /// Restoring as a limited owner leaves a protected client session and the original database available.
+    /// </summary>
+    [Test]
+    public async Task ProtectedClientSessionPreventsReplacementAsync()
+    {
+        var limited = await this.CreateLimitedOwnerAsync().ConfigureAwait(false);
+        await using var existing = new NpgsqlConnection(this._connection);
+        await existing.OpenAsync().ConfigureAwait(false);
+        var failure = Assert.ThrowsAsync<PostgresException>(async () => await StagedDatabaseRestore.RunAsync(
+            limited,
+            async (staged, _) =>
+            {
+                await this.RecordStageAsync(staged).ConfigureAwait(false);
+                await this.ExecuteAsync(staged, "CREATE TABLE marker(value integer); INSERT INTO marker VALUES (99)").ConfigureAwait(false);
+            },
+            CancellationToken.None).ConfigureAwait(false));
+
+        Assert.That(failure!.SqlState, Is.EqualTo(PostgresErrorCodes.InsufficientPrivilege));
+        await using var original = new NpgsqlCommand("SELECT value FROM marker", existing);
+        Assert.That(await original.ExecuteScalarAsync().ConfigureAwait(false), Is.EqualTo(17));
+        await this.AssertOriginalAsync().ConfigureAwait(false);
+        Assert.That(await this.ScalarAsync(this._maintenance, $"SELECT count(*) FROM pg_database WHERE oid::bigint = {this._stageOid}").ConfigureAwait(false), Is.EqualTo(0L));
+    }
+
+    /// <summary>
     /// A prepared transaction forces the second rename to fail after the first one ran.
     /// Both names must roll back, and cleanup errors must not hide the restore error.
     /// </summary>
@@ -224,6 +305,52 @@ public class StagedDatabaseRestoreTests
     }
 
     private static string Quote(string name) => '"' + name.Replace("\"", "\"\"", StringComparison.Ordinal) + '"';
+
+    private async ValueTask<string> CreateLimitedOwnerAsync()
+    {
+        var role = "openmu_test_restore_" + Guid.NewGuid().ToString("N");
+        await this.ExecuteAsync(this._maintenance, $"CREATE ROLE {Quote(role)} LOGIN CREATEDB").ConfigureAwait(false);
+        this._restoreRole = role;
+        await this.ExecuteAsync(this._maintenance, $"ALTER DATABASE {Quote(this._target)} OWNER TO {Quote(role)}").ConfigureAwait(false);
+        var settings = new NpgsqlConnectionStringBuilder(this._connection) { Username = role, Password = string.Empty };
+        return settings.ConnectionString;
+    }
+
+    private async ValueTask StartAutovacuumAsync(string connection, string database)
+    {
+        if ((string?)await this.ScalarAsync(this._maintenance, "SHOW autovacuum").ConfigureAwait(false) != "on")
+        {
+            Assert.Ignore("This scenario needs autovacuum enabled on the disposable cluster.");
+        }
+
+        // Give the worker enough table pages to remain active while restore reaches the rename.
+        await this.ExecuteAsync(
+            connection,
+            """
+            CREATE TABLE vacuum_probe (value integer, padding text) WITH (
+                autovacuum_vacuum_insert_threshold = -1,
+                autovacuum_analyze_threshold = 1000000,
+                autovacuum_vacuum_threshold = 1,
+                autovacuum_vacuum_scale_factor = 0,
+                autovacuum_vacuum_cost_limit = 1,
+                autovacuum_vacuum_cost_delay = 50
+            );
+            INSERT INTO vacuum_probe SELECT value, repeat('x', 512) FROM generate_series(1, 40000) value;
+            DELETE FROM vacuum_probe WHERE value > 1
+            """).ConfigureAwait(false);
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(75));
+        await using var maintenance = new NpgsqlConnection(this._maintenance);
+        await maintenance.OpenAsync(timeout.Token).ConfigureAwait(false);
+        await using var worker = new NpgsqlCommand(
+            "SELECT EXISTS (SELECT FROM pg_stat_activity WHERE datname = @database AND backend_type = 'autovacuum worker')",
+            maintenance);
+        worker.Parameters.AddWithValue("database", database);
+        while (await worker.ExecuteScalarAsync(timeout.Token).ConfigureAwait(false) is not true)
+        {
+            await Task.Delay(250, timeout.Token).ConfigureAwait(false);
+        }
+    }
 
     private async ValueTask RecordStageAsync(string connectionString)
     {
