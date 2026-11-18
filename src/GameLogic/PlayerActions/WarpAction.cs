@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.Properties;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.Interfaces;
 
@@ -52,13 +53,13 @@ public class WarpAction
         var requirement = player.SelectedCharacter?.GetEffectiveMoveLevelRequirement(warpInfo.LevelRequirement);
         if (requirement > player.Attributes?[Stats.Level])
         {
-            errorMessage = $"You need to be level {requirement} in order to warp";
+            errorMessage = player.GetLocalizedMessage(nameof(PlayerMessage.WarpLevelRequired), requirement);
             return false;
         }
 
         if (warpInfo.Gate?.Map is null)
         {
-            errorMessage = "The warp target is not initialized";
+            errorMessage = player.GetLocalizedMessage(nameof(PlayerMessage.WarpTargetUnavailable));
             return false;
         }
 
@@ -71,7 +72,7 @@ public class WarpAction
         // Money check should be last to avoid getting zen when other checks failed
         if (!this.CheckMoneyRequirement(player, warpInfo))
         {
-            errorMessage = $"You need {warpInfo.Costs} in order to warp";
+            errorMessage = player.GetLocalizedMessage(nameof(PlayerMessage.WarpZenRequired), warpInfo.Costs);
             return false;
         }
 

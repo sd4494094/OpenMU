@@ -3875,5 +3875,32 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("CreatorGoddessGreeting", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You need to be level {0} in order to warp.
+        /// </summary>
+        public static string WarpLevelRequired {
+            get {
+                return ResourceManager.GetString("WarpLevelRequired", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The warp destination is unavailable.
+        /// </summary>
+        public static string WarpTargetUnavailable {
+            get {
+                return ResourceManager.GetString("WarpTargetUnavailable", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to You need {0} Zen in order to warp.
+        /// </summary>
+        public static string WarpZenRequired {
+            get {
+                return ResourceManager.GetString("WarpZenRequired", resourceCulture);
+            }
+        }
     }
 }

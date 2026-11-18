@@ -1280,4 +1280,13 @@ PK状态：{14}
   <data name="AriaQuestionEcho" xml:space="preserve">
     <value>对艾莉雅：{0}</value>
   </data>
+  <data name="WarpLevelRequired" xml:space="preserve">
+    <value>达到{0}级后才能传送。</value>
+  </data>
+  <data name="WarpTargetUnavailable" xml:space="preserve">
+    <value>传送目的地暂时不可用。</value>
+  </data>
+  <data name="WarpZenRequired" xml:space="preserve">
+    <value>传送需要{0}金币。</value>
+  </data>
 </root>
