@@ -10,6 +10,8 @@
     is always served exactly two segments deep (<base>/<Project>/x.styles.css), so this works
     both at the site root and under UsePathBase (e.g. PATH_BASE=/map in the Dapr hosts).
     The replace is idempotent: rewritten lines no longer match the _content/ pattern.
+    The SDK also uses these routes in Link preload headers on the stylesheet response.
+    Those links are resolved against the stylesheet URL and need the same correction.
 
     Matching covers single- and double-quoted forms; a future url() form would silently
     no-op - check here first if these 404s ever come back.
@@ -22,9 +24,12 @@
   <UsingTask TaskName="AbsolutizeScopedCssBundleImports" TaskFactory="RoslynCodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
     <ParameterGroup>
       <BundleFile ParameterType="System.String" Required="true" />
+      <PreloadRoutes ParameterType="System.String[]" />
+      <RelativePreloadRoutes ParameterType="System.String[]" Output="true" />
     </ParameterGroup>
     <Task>
       <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
       <Using Namespace="System.Text.RegularExpressions" />
       <Code Type="Fragment" Language="cs"><![CDATA[
 var text = File.ReadAllText(BundleFile);
@@ -33,11 +38,22 @@ if (fixedText != text)
 {
     File.WriteAllText(BundleFile, fixedText);
 }
+
+RelativePreloadRoutes = (PreloadRoutes ?? Array.Empty<string>())
+    .Select(route => route.StartsWith("_content/", StringComparison.Ordinal) ? "../../" + route : route)
+    .ToArray();
       ]]></Code>
     </Task>
   </UsingTask>
 
   <Target Name="_AbsolutizeScopedCssBundleImports" AfterTargets="BundleScopedCssFiles" Condition="Exists('$(IntermediateOutputPath)scopedcss/bundle/$(PackageId).styles.css')">
-    <AbsolutizeScopedCssBundleImports BundleFile="$(IntermediateOutputPath)scopedcss/bundle/$(PackageId).styles.css" />
+    <AbsolutizeScopedCssBundleImports BundleFile="$(IntermediateOutputPath)scopedcss/bundle/$(PackageId).styles.css"
+                                     PreloadRoutes="@(_ResolvedScopedCssBundleEndpoints)">
+      <Output TaskParameter="RelativePreloadRoutes" ItemName="_RelativeScopedCssPreloadRoutes" />
+    </AbsolutizeScopedCssBundleImports>
+    <ItemGroup>
+      <_ResolvedScopedCssBundleEndpoints Remove="@(_ResolvedScopedCssBundleEndpoints)" />
+      <_ResolvedScopedCssBundleEndpoints Include="@(_RelativeScopedCssPreloadRoutes)" />
+    </ItemGroup>
   </Target>
 </Project>
