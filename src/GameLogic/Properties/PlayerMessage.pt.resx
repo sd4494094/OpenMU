@@ -1429,4 +1429,13 @@ Extensões de inventário: {18}</value>
   <data name="ResetNpcStatsReset" xml:space="preserve">
     <value>Os atributos distribuídos voltam aos valores padrão da classe.</value>
   </data>
+  <data name="WarpLevelRequired" xml:space="preserve">
+    <value>Você precisa estar no nível {0} para se teletransportar.</value>
+  </data>
+  <data name="WarpTargetUnavailable" xml:space="preserve">
+    <value>O destino do teletransporte está indisponível.</value>
+  </data>
+  <data name="WarpZenRequired" xml:space="preserve">
+    <value>Você precisa de {0} Zen para se teletransportar.</value>
+  </data>
 </root>
