@@ -8,6 +8,7 @@ using System.Buffers;
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Network;
+using MUnique.OpenMU.Network.Packets.ChatServer;
 
 /// <summary>
 /// Unit tests for the <see cref="ChatClient"/>.
@@ -36,6 +37,32 @@ public class ChatClientTests
         await duplexPipe.ReceivePipe.Writer.WriteAndWaitForFlushAsync(authenticationPacket).ConfigureAwait(false);
 
         Assert.That(room.ConnectedClients, Contains.Item(client));
+    }
+
+    /// <summary>
+    /// Tests that a leave request removes the client without waiting for the client to close the connection.
+    /// </summary>
+    /// <returns>The async task.</returns>
+    [Test]
+    public async Task LeaveRequestDisconnectsAuthenticatedClientAsync()
+    {
+        var manager = new ChatRoomManager(new NullLoggerFactory());
+        var roomId = manager.CreateChatRoom();
+        var room = manager.GetChatRoom(roomId)!;
+        var duplexPipe = new DuplexPipe();
+        var connection = new Connection(duplexPipe, null, null, new NullLogger<Connection>());
+        var client = new ChatClient(connection, manager, new NullLogger<ChatClient>());
+        room.RegisterClient(new ChatServerAuthenticationInfo(room.GetNextClientIndex(), roomId, "Bob", ChatServerHost, "128450673"));
+
+        var authenticationPacket = new byte[] { 0xC1, 0x10, 0x00, 0x00, (byte)roomId, (byte)(roomId >> 8), 0xCD, 0xFD, 0x93, 0xC8, 0xFA, 0x9B, 0xCA, 0xF8, 0x98, 0xFC };
+        await duplexPipe.ReceivePipe.Writer.WriteAndWaitForFlushAsync(authenticationPacket).ConfigureAwait(false);
+        Assert.That(room.ConnectedClients, Contains.Item(client));
+
+        var leavePacket = new[] { LeaveChatRoom.HeaderType, (byte)LeaveChatRoom.Length, LeaveChatRoom.Code };
+        await duplexPipe.ReceivePipe.Writer.WriteAndWaitForFlushAsync(leavePacket).ConfigureAwait(false);
+
+        Assert.That(room.ConnectedClients, Does.Not.Contain(client));
+        Assert.That(connection.Connected, Is.False);
     }
 
     /// <summary>

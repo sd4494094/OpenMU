@@ -217,6 +217,9 @@ internal class ChatClient : IChatClient
             case 0:
                 await this.AuthenticateAsync(packet).ConfigureAwait(false);
                 break;
+            case 1 when packet.Length == LeaveChatRoom.Length:
+                await this.LogOffAsync().ConfigureAwait(false);
+                break;
             case 1:
             case 2:
             case 3:

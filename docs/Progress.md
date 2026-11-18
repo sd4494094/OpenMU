@@ -130,3 +130,5 @@ complexity and effort). Complexity 0 means we wont implement it.
 | *Teleport*                    | 0x15 | 100%     | 2          |                                               |
 | *Walk*                        | 0xD4     | 100%     | 10         |                                               |
 
+The chat server handles the three-byte `0x01` leave request by removing the player, notifying the remaining members, and closing the chat connection.
+
