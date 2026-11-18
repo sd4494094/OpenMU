@@ -33,6 +33,12 @@ public class AddCreatorGoddessNpcPlugIn : UpdatePlugInBase
     public override DateTime CreatedAt => new(2026, 11, 9, 15, 30, 0, DateTimeKind.Utc);
 
     /// <inheritdoc/>
+    public override int Version => 2;
+
+    /// <inheritdoc/>
+    public override DateTime UpdatedAt => new(2026, 11, 13, 0, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc/>
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
     {
         CreatorGoddessInitialization.EnsureConfiguration(context, gameConfiguration);

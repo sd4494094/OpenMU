@@ -315,6 +315,7 @@ src/AdminPanel/wwwroot/content/js/app.js.map
 .data/
 /out/
 /downloads/
+/.download/
 /.local_docs/
 /.acchived/
 /.tmp/

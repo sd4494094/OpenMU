@@ -12,6 +12,8 @@ using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions;
+using MUnique.OpenMU.GameLogic.Views.Inventory;
+using MUnique.OpenMU.GameLogic.Views.NPC;
 
 /// <summary>
 /// Tests for the backup of the inventory which is taken when a crafting NPC (Chaos Goblin, Pet
@@ -60,11 +62,123 @@ public class CraftingDialogBackupInventoryTests
         Assert.That(await InventoryOf(player).AddItemAsync(ingredient).ConfigureAwait(false), Is.True);
         await new TalkNpcAction().TalkToNpcAsync(player, CreateCraftingNpc()).ConfigureAwait(false);
         await PutIntoTheMachineAsync(player, ingredient).ConfigureAwait(false);
+        Mock.Get(player.ViewPlugIns.GetPlugIn<IUpdateInventoryListPlugIn>()!).Invocations.Clear();
         await new CloseNpcDialogAction().CloseNpcDialogAsync(player).ConfigureAwait(false);
+
+        Assert.That(inventory.Items, Does.Contain(ingredient));
+        Assert.That(TemporaryStorageOf(player).Items, Is.Empty);
+        Mock.Get(player.ViewPlugIns.GetPlugIn<IUpdateInventoryListPlugIn>()!)
+            .Verify(p => p.UpdateInventoryListAsync(), Times.Once);
 
         await player.RemoveFromGameAsync().ConfigureAwait(false);
 
         Assert.That(inventory.Items.Count(item => ReferenceEquals(item, ingredient)), Is.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Closing cannot leave temporary items behind while permitting the freed bag cells to be reused.
+    /// </summary>
+    /// <param name="freeSlots">The bag cells available for two temporary items.</param>
+    [TestCase(0)]
+    [TestCase(1)]
+    public async ValueTask FullInventoryKeepsTheCraftingDialogAndItemsUntilTheyCanReturnAsync(int freeSlots)
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var inventory = InventoryOf(player);
+        var ingredients = new[] { CreateItem(), CreateItem() };
+        foreach (var ingredient in ingredients)
+        {
+            Assert.That(await inventory.AddItemAsync(ingredient).ConfigureAwait(false), Is.True);
+        }
+
+        var npc = CreateCraftingNpc();
+        await new TalkNpcAction().TalkToNpcAsync(player, npc).ConfigureAwait(false);
+        var backup = player.BackupInventory;
+        for (byte slot = 0; slot < ingredients.Length; slot++)
+        {
+            await inventory.RemoveItemAsync(ingredients[slot]).ConfigureAwait(false);
+            Assert.That(await TemporaryStorageOf(player).AddItemAsync(slot, ingredients[slot]).ConfigureAwait(false), Is.True);
+        }
+
+        foreach (var slot in inventory.FreeSlots.ToArray().Skip(freeSlots))
+        {
+            Assert.That(await inventory.AddItemAsync(slot, CreateItem()).ConfigureAwait(false), Is.True);
+        }
+
+        var initial = inventory.Items.Select(item => (Item: item, Slot: item.ItemSlot)).ToArray();
+        inventory.ItemStorage.Money = GainedMoney;
+        await new CloseNpcDialogAction().CloseNpcDialogAsync(player).ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.NpcDialogOpened));
+            Assert.That(player.OpenedNpc, Is.SameAs(npc));
+            Assert.That(player.BackupInventory, Is.SameAs(backup));
+            Assert.That(inventory.Items, Is.EquivalentTo(initial.Select(x => x.Item)));
+            Assert.That(initial.All(x => x.Item.ItemSlot == x.Slot), Is.True);
+            Assert.That(TemporaryStorageOf(player).Items, Is.EquivalentTo(ingredients));
+            Assert.That(ingredients.Select(item => item.ItemSlot), Is.EqualTo(new byte[] { 0, 1 }));
+            Assert.That(inventory.ItemStorage.Money, Is.EqualTo(GainedMoney));
+        });
+        Mock.Get(player.ViewPlugIns.GetPlugIn<INpcDialogClosedPlugIn>()!)
+            .Verify(p => p.DialogClosedAsync(It.IsAny<MonsterDefinition>()), Times.Never);
+
+        foreach (var item in inventory.Items.Take(ingredients.Length - freeSlots).ToArray())
+        {
+            await inventory.RemoveItemAsync(item).ConfigureAwait(false);
+        }
+
+        await new CloseNpcDialogAction().CloseNpcDialogAsync(player).ConfigureAwait(false);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.EnteredWorld));
+        Assert.That(player.OpenedNpc, Is.Null);
+        Assert.That(player.BackupInventory, Is.Null);
+        Assert.That(TemporaryStorageOf(player).Items, Is.Empty);
+        var final = inventory.Items.Select(item => (Item: item, Slot: item.ItemSlot)).ToArray();
+        await player.RemoveFromGameAsync().ConfigureAwait(false);
+        Assert.That(inventory.ItemStorage.Items, Is.EquivalentTo(final.Select(x => x.Item)));
+        Assert.That(final.All(x => x.Item.ItemSlot == x.Slot), Is.True);
+        Assert.That(inventory.ItemStorage.Money, Is.EqualTo(GainedMoney));
+    }
+
+    /// <summary>
+    /// Closing returns the current mix result and preserves the paid money after the old backup is discarded.
+    /// </summary>
+    [Test]
+    public async ValueTask ClosingReturnsTheCurrentResultWithoutRestoringTheOldBackupAsync()
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var inventory = InventoryOf(player);
+        await new TalkNpcAction().TalkToNpcAsync(player, CreateCraftingNpc()).ConfigureAwait(false);
+        player.BackupInventory = null;
+        inventory.ItemStorage.Money = GainedMoney;
+        var result = CreateItem();
+        Assert.That(await TemporaryStorageOf(player).AddItemAsync(0, result).ConfigureAwait(false), Is.True);
+
+        await new CloseNpcDialogAction().CloseNpcDialogAsync(player).ConfigureAwait(false);
+
+        Assert.That(TemporaryStorageOf(player).Items, Is.Empty);
+        Assert.That(inventory.Items, Is.EquivalentTo(new[] { result }));
+        Assert.That(player.BackupInventory, Is.Null);
+        await player.RemoveFromGameAsync().ConfigureAwait(false);
+        Assert.That(inventory.ItemStorage.Items, Is.EquivalentTo(new[] { result }));
+        Assert.That(inventory.ItemStorage.Money, Is.EqualTo(GainedMoney));
+    }
+
+    /// <summary>
+    /// A close request outside an NPC dialog does not move items from another temporary-storage session.
+    /// </summary>
+    [Test]
+    public async ValueTask ClosingOutsideTheDialogDoesNotMoveTemporaryItemsAsync()
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var item = CreateItem();
+        Assert.That(await TemporaryStorageOf(player).AddItemAsync(0, item).ConfigureAwait(false), Is.True);
+
+        await new CloseNpcDialogAction().CloseNpcDialogAsync(player).ConfigureAwait(false);
+
+        Assert.That(TemporaryStorageOf(player).Items, Is.EquivalentTo(new[] { item }));
+        Assert.That(InventoryOf(player).Items, Is.Empty);
+        Assert.That(player.PlayerState.CurrentState, Is.EqualTo(PlayerState.EnteredWorld));
     }
 
     /// <summary>

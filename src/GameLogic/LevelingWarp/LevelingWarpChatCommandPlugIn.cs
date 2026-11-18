@@ -14,6 +14,7 @@ using MUnique.OpenMU.PlugIns;
 /// </summary>
 [PlugIn]
 [Guid("a72ea481-a95e-4af2-abdb-f189f4ca9525")]
+[ChatCommandHelp("/levelwarp")]
 [Display(Name = nameof(PlugInResources.LevelingWarpRequest_Name), Description = nameof(PlugInResources.LevelingWarpRequest_Description), ResourceType = typeof(PlugInResources))]
 public class LevelingWarpChatCommandPlugIn : IChatCommandPlugIn
 {

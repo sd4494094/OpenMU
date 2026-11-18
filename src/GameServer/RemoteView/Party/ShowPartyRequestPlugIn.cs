@@ -16,8 +16,13 @@ using MUnique.OpenMU.PlugIns;
 [PlugIn]
 [Display(Name = nameof(PlugInResources.ShowPartyRequestPlugIn_Name), Description = nameof(PlugInResources.ShowPartyRequestPlugIn_Description), ResourceType = typeof(PlugInResources))]
 [Guid("d25e8b80-3128-4102-8916-98f3d68aa065")]
-public class ShowPartyRequestPlugIn : IShowPartyRequestPlugIn
+public class ShowPartyRequestPlugIn : IShowPartyRequestPlugIn, IShowPartyFullPlugIn
 {
+    /// <summary>
+    /// The existing party-result wire value which selects the client's localized capacity message.
+    /// </summary>
+    internal const byte FullPartyResult = 2;
+
     private readonly RemotePlayer _player;
 
     /// <summary>
@@ -30,5 +35,11 @@ public class ShowPartyRequestPlugIn : IShowPartyRequestPlugIn
     public async ValueTask ShowPartyRequestAsync(IPartyMember requester)
     {
         await this._player.Connection.SendPartyRequestAsync(requester.Id).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async ValueTask ShowPartyFullAsync()
+    {
+        await this._player.Connection.SendPartyRequestResultAsync(FullPartyResult).ConfigureAwait(false);
     }
 }

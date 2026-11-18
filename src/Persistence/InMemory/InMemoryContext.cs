@@ -6,14 +6,20 @@ namespace MUnique.OpenMU.Persistence.InMemory;
 
 using System.Collections;
 using System.Threading;
+using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Entities;
 using Nito.AsyncEx.Synchronous;
 using Nito.Disposables;
 
 /// <summary>
 /// An in-memory context which get it's data from the repositories of the <see cref="InMemoryPersistenceContextProvider"/>.
 /// </summary>
-public class InMemoryContext : IContext
+public class InMemoryContext : ITradeContext
 {
+    private readonly Dictionary<ItemStorage, int> _tradeBalances = new();
+
+    private readonly Dictionary<(Account Account, CashShopCoinType CoinType), int> _shopCoinBalances = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="InMemoryContext"/> class.
     /// </summary>
@@ -51,12 +57,52 @@ public class InMemoryContext : IContext
     /// <returns><c>True</c>, if the saving was successful; <c>false</c>, otherwise.</returns>
     public bool SaveChanges()
     {
+        foreach (var (storage, money) in this._tradeBalances)
+        {
+            storage.Money = money;
+        }
+
+        this._tradeBalances.Clear();
+        foreach (var ((account, coinType), balance) in this._shopCoinBalances)
+        {
+            switch (coinType)
+            {
+                case CashShopCoinType.WCoinC:
+                    account.WCoinC = balance;
+                    break;
+                case CashShopCoinType.WCoinP:
+                    account.WCoinP = balance;
+                    break;
+                case CashShopCoinType.GoblinPoints:
+                    account.GoblinPoints = balance;
+                    break;
+            }
+        }
+
+        this._shopCoinBalances.Clear();
         foreach (var repository in this.Provider.MemoryRepositories)
         {
             repository.OnSaveChanges();
         }
 
         return true;
+    }
+
+    /// <inheritdoc />
+    public void SetMoney(ItemStorage inventory, int money)
+    {
+        this._tradeBalances[inventory] = money;
+    }
+
+    /// <inheritdoc />
+    public void SetCashShopCoins(Account account, CashShopCoinType coinType, int balance)
+    {
+        if (!Enum.IsDefined(coinType))
+        {
+            throw new ArgumentOutOfRangeException(nameof(coinType), coinType, null);
+        }
+
+        this._shopCoinBalances[(account, coinType)] = balance;
     }
 
     /// <inheritdoc/>

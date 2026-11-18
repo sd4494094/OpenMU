@@ -88,6 +88,9 @@ public class CashShopCatalogPageTests
 
         cut.WaitForAssertion(() => Assert.That(cut.Markup, Does.Contain("Jewel bundle")));
         Assert.That(cut.Markup, Does.Contain("Pet for a day"));
+        var download = cut.Find("#downloadCashShopScript");
+        Assert.That(download.GetAttribute("href"), Does.StartWith("download/cash-shop-script?culture=en"));
+        Assert.That(download.GetAttribute("target"), Is.EqualTo("_blank"));
         Assert.That(cut.Markup, Does.Contain(string.Format(Resources.CashShopIssueTimeLimited, 21)));
     }
 

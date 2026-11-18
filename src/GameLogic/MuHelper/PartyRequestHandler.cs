@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.MuHelper;
 
+using MUnique.OpenMU.GameLogic.Views.Party;
 using MUnique.OpenMU.Interfaces;
 
 /// <summary>
@@ -12,6 +13,29 @@ using MUnique.OpenMU.Interfaces;
 /// </summary>
 public static class PartyRequestHandler
 {
+    /// <summary>
+    /// Attempts to complete an invitation and reports a capacity failure to both participants.
+    /// </summary>
+    /// <param name="party">The party which the player is joining.</param>
+    /// <param name="joiningPlayer">The player who would become a member.</param>
+    /// <param name="otherPlayer">The other participant in the invitation.</param>
+    /// <returns>Whether the player joined the party.</returns>
+    internal static async ValueTask<bool> TryAddPartyMemberAsync(Party party, Player joiningPlayer, IPartyMember otherPlayer)
+    {
+        if (await party.AddAsync(joiningPlayer).ConfigureAwait(false))
+        {
+            return true;
+        }
+
+        await joiningPlayer.InvokeViewPlugInAsync<IShowPartyFullPlugIn>(p => p.ShowPartyFullAsync()).ConfigureAwait(false);
+        if (!ReferenceEquals(joiningPlayer, otherPlayer))
+        {
+            await otherPlayer.InvokeViewPlugInAsync<IShowPartyFullPlugIn>(p => p.ShowPartyFullAsync()).ConfigureAwait(false);
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Automatically accepts a party request if the receiver has the relevant flag enabled.
     /// </summary>
@@ -80,13 +104,13 @@ public static class PartyRequestHandler
                 if (requester.Party == null)
                 {
                     // Receiver is the offline party master; add the solo requester to the existing party.
-                    success = await receiver.Party.AddAsync(requester).ConfigureAwait(false);
+                    success = await TryAddPartyMemberAsync(receiver.Party, requester, receiver).ConfigureAwait(false);
                 }
             }
             else if (requester.Party != null)
             {
                 // Requester already has a party; add the offline receiver to it.
-                success = await requester.Party.AddAsync(receiver).ConfigureAwait(false);
+                success = await TryAddPartyMemberAsync(requester.Party, receiver, requester).ConfigureAwait(false);
             }
             else
             {

@@ -60,7 +60,14 @@ inventory of the seller, which needs a free slot for each of them.
 ## Paying with account coins
 
 The coins move from the account of the buyer to the account of the seller.
-Pending coin grants of the buyer are applied first.
+Pending coin grants of both accounts are saved before payment.
+
+## Purchase results
+
+The sold item and its payment are saved together before either player is told
+that the purchase succeeded. This applies to zen, price items and account coins.
+If saving fails, the original item, price and payment stay with their owners;
+the buyer can retry without reopening the connection.
 
 ## Chat command
 

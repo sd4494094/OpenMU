@@ -34,6 +34,10 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
 
     private readonly CancellationTokenSource _gameEndedCts = new();
 
+    private readonly CancellationToken _gameEndedToken;
+
+    private readonly object _gameLoopLock = new();
+
     /// <summary>
     /// The positions of the characters which lost their connection during the game, by their id.
     /// </summary>
@@ -42,6 +46,8 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     private readonly SkippableDelay _skipDelay;
 
     private int _gameLoopStarted;
+
+    private bool _gameLoopStopped;
 
     private Stopwatch? _elapsedTimeSinceStart;
 
@@ -55,6 +61,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     public MiniGameContext(MiniGameMapKey key, MiniGameDefinition definition, IGameContext gameContext, IMapInitializer mapInitializer)
     {
         this._gameContext = gameContext;
+        this._gameEndedToken = this._gameEndedCts.Token;
         this._mapInitializer = mapInitializer;
         this.Key = key;
         this.Definition = definition;
@@ -192,7 +199,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     /// <summary>
     /// Gets the <see cref="CancellationToken"/> which is cancelled when the game ends.
     /// </summary>
-    protected CancellationToken GameEndedToken => this._gameEndedCts.Token;
+    protected CancellationToken GameEndedToken => this._gameEndedToken;
 
     /// <summary>
     /// Gets the kills required by the next event which targets should be fulfilled
@@ -370,8 +377,14 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     /// </summary>
     internal void EnsureGameLoopRunning()
     {
-        if (Interlocked.CompareExchange(ref this._gameLoopStarted, 1, 0) == 0)
+        lock (this._gameLoopLock)
         {
+            if (this._gameLoopStopped || this.IsDisposed || this.IsDisposing || this._gameLoopStarted != 0)
+            {
+                return;
+            }
+
+            this._gameLoopStarted = 1;
             var cancellationToken = this.GameEndedToken;
 
             // The detached loop must acquire player persistence locks instead of inheriting
@@ -398,6 +411,13 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
     /// <inheritdoc />
     protected override async ValueTask DisposeAsyncCore()
     {
+        // Close admission under the same lock as startup, before awaiting player or observer work.
+        // Cancellation callbacks and map notifications must run outside this lock.
+        lock (this._gameLoopLock)
+        {
+            this._gameLoopStopped = true;
+        }
+
         try
         {
             this.Logger.LogDebug("{context}: Disposing mini game...", this);
@@ -411,12 +431,24 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
             this.Map.ObjectRemoved -= this.OnObjectRemovedFromMapAsync;
 
             await this._gameContext.MiniGames.RemoveAsync(this).ConfigureAwait(false);
-            await this._gameEndedCts.CancelAsync().ConfigureAwait(false);
-            this._gameEndedCts.Dispose();
         }
         catch (Exception ex)
         {
             this.Logger.LogError(ex, "{context}: Unexpected error during dispose: {ex}", this, ex);
+        }
+
+        try
+        {
+            // A failed player warp or removal observer must not keep the timed loop alive.
+            await this._gameEndedCts.CancelAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "{context}: Unexpected error cancelling the mini game: {ex}", this, ex);
+        }
+        finally
+        {
+            this._gameEndedCts.Dispose();
         }
 
         try
@@ -728,6 +760,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
         this.Logger.LogDebug("{context}: Running the game ...", this);
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             await this.NotifyPlugInsAsync<IMiniGameEntranceOpenedPlugIn>(p => p.MiniGameEntranceOpenedAsync(this)).ConfigureAwait(false);
 
             var enterDuration = this.Definition.EnterDuration.AtLeast(this.MinimumEnterDuration);
@@ -875,6 +908,7 @@ public class MiniGameContext : AsyncDisposable, IEventStateProvider
 
         var mapDefinition = this.Definition.Entrance?.Map ?? throw new InvalidOperationException($"{nameof(this.Definition)} contains no entrance map.");
         var map = this._mapInitializer.CreateGameMap(mapDefinition);
+        map.InstanceId = map.Id;
 
         map.ObjectRemoved += this.OnObjectRemovedFromMapAsync;
         map.ObjectAdded += this.OnObjectAddedToMapAsync;

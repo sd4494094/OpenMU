@@ -37,4 +37,11 @@ internal class StoreHandlerGroupPlugIn : GroupPacketHandlerPlugIn
 
     /// <inheritdoc/>
     public override byte Key => GroupKey;
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Each sub-handler enters the persistence funnel itself. Buying must acquire both
+    /// players' locks before either one is held; ordinary store requests keep their single-player lock.
+    /// </remarks>
+    public override bool HandlesOwnPersistenceSynchronization => true;
 }

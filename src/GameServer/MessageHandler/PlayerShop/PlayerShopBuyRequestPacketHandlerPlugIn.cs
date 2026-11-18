@@ -31,6 +31,9 @@ internal class PlayerShopBuyRequestPacketHandlerPlugIn : ISubPacketHandlerPlugIn
     /// <inheritdoc/>
     public byte Key => PlayerShopItemBuyRequest.SubCode;
 
+    /// <inheritdoc />
+    public bool HandlesOwnPersistenceSynchronization => true;
+
     /// <inheritdoc/>
     public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
     {

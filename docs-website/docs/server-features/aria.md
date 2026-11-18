@@ -52,6 +52,11 @@ Operators can find configuration, migration and recovery instructions in
 [`deploy/aria/README.md`](https://github.com/sd4494094/OpenMU/blob/dev/deploy/aria/README.md).
 This feature does not enable or reconfigure AI player bots.
 
+Aria remains optional: hosts with the AI service disabled can still load the chat
+aliases and decorative NPC. Commands report that conversation is unavailable,
+and the NPC keeps its ordinary greeting. Enabling the service gives these same
+plugins the private conversation integration.
+
 
 ## Optional server gameplay queries
 

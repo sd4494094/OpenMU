@@ -128,6 +128,7 @@ public static class AdminPanelAuthExtensions
         services.AddAuthorizationBuilder()
             .SetDefaultPolicy(new AuthorizationPolicyBuilder().AddRequirements(new AdminAccessRequirement()).Build())
             .AddPolicy(AdminPolicies.AuthenticatedOperator, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.Operator))
+            .AddPolicy(AdminPolicies.AuthenticatedAdministrator, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.Administrator))
             .AddPolicy(AdminPolicies.AuthenticatedCashShop, policy => policy.RequireAuthenticatedUser().RequireRole(AdminRoles.CashShop))
             .AddPolicy(AdminPolicies.Viewer, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Viewer)))
             .AddPolicy(AdminPolicies.Operator, policy => policy.AddRequirements(new AdminAccessRequirement(AdminRoles.Operator)))

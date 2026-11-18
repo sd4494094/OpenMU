@@ -18,7 +18,7 @@ using Nito.AsyncEx;
 /// <summary>
 /// The context of a game server which contains all important configurations and services used by one game server instance.
 /// </summary>
-public class GameServerContext : GameContext, IGameServerContext
+public partial class GameServerContext : GameContext, IGameServerContext
 {
     private readonly GameServerDefinition _gameServerDefinition;
 
@@ -76,6 +76,7 @@ public class GameServerContext : GameContext, IGameServerContext
         this.FriendServer = friendServer;
         this.MapHostLocator = mapHostLocator;
         this.ServerConfiguration = gameServerDefinition.ServerConfiguration ?? throw new InvalidOperationException("GameServerDefinition requires a ServerConfiguration");
+        this._groundItemRecovery = new GroundItemRecovery(this, gameServerDefinition);
     }
 
     /// <summary>

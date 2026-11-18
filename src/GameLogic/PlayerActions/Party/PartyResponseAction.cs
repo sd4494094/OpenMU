@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Party;
 
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.MuHelper;
 
 /// <summary>
 /// The party response action.
@@ -61,7 +62,7 @@ public class PartyResponseAction
         if (player.LastPartyRequester.Party != null)
         {
             // The Requester got a party already, so add him to his party
-            await player.LastPartyRequester.Party.AddAsync(player).ConfigureAwait(false);
+            await PartyRequestHandler.TryAddPartyMemberAsync(player.LastPartyRequester.Party, player, player.LastPartyRequester).ConfigureAwait(false);
         }
         else
         {

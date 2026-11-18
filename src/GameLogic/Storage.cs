@@ -241,7 +241,13 @@ public class Storage : IStorage
             {
                 foreach (var item in itemsWithSlots)
                 {
-                    await this.RemoveItemAsync(item.Item).ConfigureAwait(false);
+                    // A rejected add leaves the source slot on the item. Removing it here
+                    // would clear an unrelated destination item at that same slot number.
+                    if (this.Items.Contains(item.Item))
+                    {
+                        await this.RemoveItemAsync(item.Item).ConfigureAwait(false);
+                    }
+
                     await anotherStorage.AddItemAsync(item.ItemSlot, item.Item).ConfigureAwait(false);
                 }
             }

@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyInjection;
 using MUnique.OpenMU.GameLogic.Aria;
 using MUnique.OpenMU.PlugIns;
 
@@ -23,7 +24,8 @@ public sealed class AriaAssistantChatCommandPlugIn : AriaChatCommandPlugInBase
 
     /// <summary>Initializes a new instance of the <see cref="AriaAssistantChatCommandPlugIn"/> class.</summary>
     /// <param name="service">The optional conversation service.</param>
-    public AriaAssistantChatCommandPlugIn(IAriaChatService? service)
+    [ActivatorUtilitiesConstructor]
+    public AriaAssistantChatCommandPlugIn(IAriaChatService? service = null)
         : base(service)
     {
     }

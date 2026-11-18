@@ -14,6 +14,7 @@ using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Persistence.EntityFramework;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.InMemory;
+using MUnique.OpenMU.Testing;
 
 /// <summary>
 /// The main program class.
@@ -36,9 +37,11 @@ internal class TestInitializationWithEfCore
     /// Tests the data initialization using the entity framework core.
     /// </summary>
     [Test]
-    [Ignore("This is not a real test which should run automatically.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task SetupDatabaseAndTestLoadingDataAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync().ConfigureAwait(false);
         var manager = new PersistenceContextProvider(new NullLoggerFactory(), null);
         using var update = await manager.ReCreateDatabaseAsync().ConfigureAwait(false);
         await this.TestDataInitializationAsync(new PersistenceContextProvider(new NullLoggerFactory(), null)).ConfigureAwait(false);

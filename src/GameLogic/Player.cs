@@ -97,6 +97,8 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
 
     private DateTime _lastRegenerate = DateTime.UtcNow;
 
+    private long _persistenceContextReleasedAt;
+
     /// <summary>
     /// The fraction of a second which elapsed since the last regeneration, but wasn't subtracted from
     /// <see cref="Character.StateRemainingSeconds"/> yet, because it only counts in whole seconds.
@@ -647,6 +649,12 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// Gets or sets the timestamp of when the shield hiatus was last accrued.
     /// </summary>
     public DateTime LastShieldRecoveryHiatusAccrual { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Gets the monotonic instant after the old context can no longer commit.
+    /// A zero value means the context has not been confirmed released.
+    /// </summary>
+    internal long PersistenceContextReleasedAt => Volatile.Read(ref this._persistenceContextReleasedAt);
 
     /// <summary>
     /// Gets a value indicating whether opening the player store after entering the game is supported by this instance.
@@ -1394,6 +1402,12 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         => this._persistence.SaveProgressAsync(cancellationToken);
 
     /// <summary>
+    /// Returns retained dialog items which now fit in the inventory.
+    /// </summary>
+    /// <returns>Whether the inventory changed.</returns>
+    public ValueTask<bool> RecoverInventoryItemsAsync() => this._storages.RecoverInventoryItemsAsync();
+
+    /// <summary>
     /// Runs the given operation while holding this player's persistence lock, so that context
     /// mutations and progress saves for the player never run concurrently.
     /// See <see cref="PlayerPersistence"/> for the rationale and the lock ordering invariant.
@@ -1414,6 +1428,17 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// <returns>A value task which completes when the operation completed.</returns>
     public ValueTask RunPersistenceExclusiveAsync(Func<ValueTask> operation, CancellationToken cancellationToken = default)
         => this._persistence.RunExclusiveAsync(operation, cancellationToken);
+
+    /// <summary>
+    /// Runs an operation with this player's and the partner's persistence locks in a stable order.
+    /// Call before acquiring either single-player persistence lock or any trade lock.
+    /// </summary>
+    /// <param name="partner">The other player.</param>
+    /// <param name="operation">The operation to run exclusively.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The task.</returns>
+    public ValueTask RunPersistenceExclusiveAsync(Player partner, Func<ValueTask> operation, CancellationToken cancellationToken = default)
+        => this._persistence.RunExclusiveAsync(partner._persistence, operation, cancellationToken);
 
     /// <summary>
     /// Is called after the player killed a <see cref="Player"/>.
@@ -1564,6 +1589,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         this.LastAttackedTarget.SetTarget(null);
 
         this.PersistenceContext.Dispose();
+        Volatile.Write(ref this._persistenceContextReleasedAt, System.Diagnostics.Stopwatch.GetTimestamp());
         await this._mapTransitions.RemoveFromCurrentMapAsync().ConfigureAwait(false);
         await this._observerToWorldViewAdapter.ClearObservingObjectsListAsync().ConfigureAwait(false);
         this._observerToWorldViewAdapter.Dispose();
@@ -2122,6 +2148,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         this.LogInvalidInventoryItems();
 
         this._storages.CreateForCharacter(selectedCharacter);
+        await this.RecoverInventoryItemsAsync().ConfigureAwait(false);
         this.ReleaseSkillList();
         this.SkillList = new SkillList(this);
         this.SetReclaimableAttributesBeforeEnterGame();

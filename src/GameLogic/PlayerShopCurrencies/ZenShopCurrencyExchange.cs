@@ -20,17 +20,23 @@ public sealed class ZenShopCurrencyExchange : IShopCurrencyExchange
     /// <inheritdoc />
     public ValueTask<ShopPaymentResult> TryPayAsync(ShopPurchase purchase)
     {
-        if (!purchase.Buyer.TryRemoveMoney(purchase.Price.Amount))
+        if (purchase.Buyer.SelectedCharacter?.Inventory is null || purchase.Seller.SelectedCharacter?.Inventory is null)
+        {
+            return ValueTask.FromResult(ShopPaymentResult.Failed);
+        }
+
+        if (purchase.Buyer.Money < purchase.Price.Amount)
         {
             return ValueTask.FromResult(ShopPaymentResult.LackOfCurrency);
         }
 
-        if (!purchase.Seller.TryAddMoney(purchase.Price.Amount))
+        var sellerBalance = (long)purchase.Seller.Money + purchase.Price.Amount;
+        if (sellerBalance > purchase.Seller.GameContext.Configuration.MaximumInventoryMoney || sellerBalance > int.MaxValue)
         {
-            purchase.Buyer.TryAddMoney(purchase.Price.Amount);
             return ValueTask.FromResult(ShopPaymentResult.SellerOverflow);
         }
 
+        purchase.SetMoney(purchase.Buyer.Money - purchase.Price.Amount, (int)sellerBalance);
         return ValueTask.FromResult(ShopPaymentResult.Success);
     }
 

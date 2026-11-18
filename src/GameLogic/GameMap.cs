@@ -18,7 +18,7 @@ using Nito.AsyncEx;
 /// <summary>
 /// The game map which contains instances of players, npcs, drops, and more.
 /// </summary>
-public class GameMap
+public partial class GameMap
 {
     private readonly IDictionary<ushort, ILocateable> _objectsInMap = new ConcurrentDictionary<ushort, ILocateable>();
 
@@ -103,9 +103,36 @@ public class GameMap
     public Guid Id { get; }
 
     /// <summary>
+    /// Gets the actual server definition hosting this map, including for visiting players
+    /// whose connection and persistence context belong to another server.
+    /// </summary>
+    public GameServerDefinition? HostServer { get; private set; }
+
+    /// <summary>
+    /// Gets the transient instance identity, or <c>null</c> for an ordinary map.
+    /// An old instance must never be resolved to an ordinary map after a restart.
+    /// </summary>
+    public Guid? InstanceId { get; internal set; }
+
+    /// <summary>
     /// Gets a value indicating whether the map has been torn down, see <see cref="TearDownAsync"/>.
     /// </summary>
     public bool IsTornDown => this._isTornDown;
+
+    /// <summary>
+    /// Binds the actual host during map creation, before initialization or publication.
+    /// </summary>
+    /// <param name="host">The actual hosting server definition.</param>
+    public void BindHost(GameServerDefinition host)
+    {
+        ArgumentNullException.ThrowIfNull(host);
+        if (this.HostServer is { } previous && !Equals(previous, host))
+        {
+            throw new InvalidOperationException("The host of a map cannot be changed after creation.");
+        }
+
+        this.HostServer = host;
+    }
 
     /// <summary>
     /// Gets the object with the specified identifier.
@@ -180,7 +207,7 @@ public class GameMap
     public async ValueTask RemoveAsync(ILocateable locateable)
     {
         await this._areaOfInterestManager.RemoveObjectAsync(locateable).ConfigureAwait(false);
-        if (this._objectsInMap.Remove(locateable.Id) && locateable.Id != 0)
+        if (((ICollection<KeyValuePair<ushort, ILocateable>>)this._objectsInMap).Remove(new(locateable.Id, locateable)) && locateable.Id != 0)
         {
             if (locateable is DroppedItem
                 || locateable is DroppedMoney)

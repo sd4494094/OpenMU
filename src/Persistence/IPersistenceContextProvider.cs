@@ -43,10 +43,10 @@ public interface IPersistenceContextProvider
     IConfigurationContext CreateNewConfigurationContext();
 
     /// <summary>
-    /// Creates the new trade context which is used to exchange items in a trade.
+    /// Creates the new trade context which commits item transfers and inventory balances together.
     /// </summary>
     /// <returns>The newly created context.</returns>
-    IContext CreateNewTradeContext();
+    ITradeContext CreateNewTradeContext();
 
     /// <summary>
     /// Creates a new context which is used for accounts.

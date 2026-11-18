@@ -82,6 +82,17 @@ public partial class Item
     public int PetExperience { get; set; }
 
     /// <summary>
+    /// Gets or sets the outstanding ground delivery of this item instance.
+    /// It remains attached after publication until pickup or expiry commits.
+    /// </summary>
+    /// <remarks>
+    /// Each drop uses a new delivery identity. Copying item values for a reward or crafting
+    /// does not copy delivery ownership; the original item aggregate is transferred instead.
+    /// </remarks>
+    [MemberOfAggregate]
+    public virtual GroundItemDelivery? GroundDelivery { get; set; }
+
+    /// <summary>
     /// Assigns the values of another item to this item.
     /// </summary>
     /// <param name="otherItem">The other item.</param>

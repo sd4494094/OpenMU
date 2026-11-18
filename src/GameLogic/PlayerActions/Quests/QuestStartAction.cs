@@ -18,8 +18,18 @@ public class QuestStartAction
     /// <param name="player">The player.</param>
     /// <param name="group">The group.</param>
     /// <param name="number">The number.</param>
-    public async ValueTask StartQuestAsync(Player player, short group, short number)
+    public ValueTask StartQuestAsync(Player player, short group, short number)
+        => player.RunPersistenceExclusiveAsync(() => this.StartQuestCoreAsync(player, group, number));
+
+    private async ValueTask StartQuestCoreAsync(Player player, short group, short number)
     {
+        if (player.SelectedCharacter is null
+            || player.PlayerState.CurrentState == PlayerState.Disconnected
+            || player.PlayerState.CurrentState == PlayerState.Finished)
+        {
+            return;
+        }
+
         using var loggerScope = player.Logger.BeginScope(this.GetType());
         var quest = player.GetQuest(group, number);
         if (quest is null)
@@ -49,7 +59,7 @@ public class QuestStartAction
             return;
         }
 
-        if (Equals(questState.LastFinishedQuest, quest) && !quest.Repeatable)
+        if (!quest.Repeatable && questState.LastFinishedQuest?.Number >= quest.Number)
         {
             player.Logger.LogDebug("The quest is not repeatable.");
             return;
@@ -70,6 +80,11 @@ public class QuestStartAction
 
         await questState.ClearAsync(player.PersistenceContext).ConfigureAwait(false);
         questState.ActiveQuest = quest;
+        if (!await player.SaveQuestOutcomeAsync().ConfigureAwait(false))
+        {
+            return;
+        }
+
         await player.InvokeViewPlugInAsync<IQuestStartedPlugIn>(p => p.QuestStartedAsync(quest)).ConfigureAwait(false);
     }
 }

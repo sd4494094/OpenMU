@@ -82,23 +82,29 @@ public class DropItemAction
 
         // we have to remove it from the inventory already here, so it gets saved without a storage.
         var originalSlot = item.ItemSlot;
-        await this.RemoveItemFromInventoryAsync(player, item).ConfigureAwait(false);
+        await player.Inventory!.RemoveItemAsync(item).ConfigureAwait(false);
 
         // We have to save here already. Otherwise, if the item got modified since last
         // save point by the dropper, changes would not be saved by the picking up player!
+        var saved = false;
         try
         {
-            await player.SaveProgressAsync().ConfigureAwait(false);
+            saved = await player.SaveProgressAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             // Without this, the item was gone from the inventory and never reached the floor.
             player.Logger.LogError(ex, "Couldn't save before dropping {Item} of {Player}; the drop is cancelled.", item, player);
+        }
+
+        if (!saved)
+        {
             if (!await player.Inventory!.AddItemAsync(originalSlot, item).ConfigureAwait(false))
             {
                 await player.Inventory.AddItemAsync(item).ConfigureAwait(false);
             }
 
+            await player.InvokeViewPlugInAsync<IItemDropResultPlugIn>(p => p.ItemDropResultAsync(originalSlot, false)).ConfigureAwait(false);
             await player.InvokeViewPlugInAsync<IUpdateInventoryListPlugIn>(p => p.UpdateInventoryListAsync()).ConfigureAwait(false);
             return;
         }
@@ -109,6 +115,7 @@ public class DropItemAction
         var wasItemPersisted = player.PersistenceContext.Detach(item);
         var droppedItem = new DroppedItem(item, target, player.CurrentMap!, player, owners, wasItemPersisted);
         await player.CurrentMap!.AddAsync(droppedItem).ConfigureAwait(false);
+        await player.InvokeViewPlugInAsync<IItemDropResultPlugIn>(p => p.ItemDropResultAsync(originalSlot, true)).ConfigureAwait(false);
         player.Logger.LogInformation("Item dropped: {Player} dropped '{DroppedItem}' from slot {Slot} (persisted: {Persisted}).", player, droppedItem, originalSlot, wasItemPersisted);
     }
 

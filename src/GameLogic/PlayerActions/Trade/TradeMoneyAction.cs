@@ -19,6 +19,13 @@ public class TradeMoneyAction
     /// <param name="moneyAmount">The money amount.</param>
     public async ValueTask TradeMoneyAsync(Player player, uint moneyAmount)
     {
+        var tradingPartner = player.TradingPartner;
+        using var tradeLock = await TradeSynchronization.LockAsync(player, tradingPartner).ConfigureAwait(false);
+        if (!ReferenceEquals(player.TradingPartner, tradingPartner))
+        {
+            return;
+        }
+
         // Check if Trade is open
         if (player.PlayerState.CurrentState != PlayerState.TradeOpened)
         {
@@ -26,21 +33,24 @@ public class TradeMoneyAction
             return;
         }
 
-        // Check if the Player got enough Zen/Money
-        if (player.Money < moneyAmount)
+        // An offer replaces the previous reservation, so its money is available again.
+        // Calculate before mutating either balance, including for untrusted uint amounts.
+        var availableMoney = (long)player.Money + player.TradingMoney;
+        var remainingMoney = availableMoney - moneyAmount;
+        if (moneyAmount > int.MaxValue
+            || remainingMoney < 0
+            || remainingMoney > player.GameContext.Configuration.MaximumInventoryMoney)
         {
             return;
         }
 
-        // Add the Money to the Trade
-        player.TryAddMoney(player.TradingMoney);
-        player.TryAddMoney((int)(-1 * moneyAmount));
+        player.Money = (int)remainingMoney;
         player.TradingMoney = (int)moneyAmount;
         await player.InvokeViewPlugInAsync<IUpdateMoneyPlugIn>(p => p.UpdateMoneyAsync()).ConfigureAwait(false);
         await player.InvokeViewPlugInAsync<IRequestedTradeMoneyHasBeenSetPlugIn>(p => p.RequestedTradeMoneyHasBeenSetAsync()).ConfigureAwait(false);
 
         await player.InvokeViewPlugInAsync<IChangeTradeButtonStatePlugIn>(p => p.ChangeTradeButtonStateAsync(TradeButtonState.Red)).ConfigureAwait(false);
-        if (player.TradingPartner is { } tradingPartner)
+        if (tradingPartner is not null)
         {
             // Send the Money Packet to the Trading Partner
             await tradingPartner.InvokeViewPlugInAsync<ISetTradeMoneyPlugIn>(p => p.SetTradeMoneyAsync(moneyAmount)).ConfigureAwait(false);

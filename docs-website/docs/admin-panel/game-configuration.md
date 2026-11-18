@@ -69,6 +69,57 @@ This is where the values live which most server operators want to change:
 * **Misc** — info range, recovery interval, letter settings, durability
   consumption
 
+A party master who tries to invite another player at the configured party limit
+receives the client's localized “party is full” message. If the last slot fills
+while an invitation is pending, accepting it leaves the existing members in
+place and informs both players that the party is full. The invitation can be
+sent again after a member leaves.
+
+Quest acceptance and completion report success after the server confirms saving
+the outcome, including the acceptance fee, consumed materials and rewards. If
+saving cannot be confirmed, the session disconnects; reconnect to read the saved
+quest state before trying again. A disconnect may still save the same outcome,
+so a missing success response does not by itself mean that the quest was undone.
+Item rewards which do not fit in the inventory appear on the ground after the
+save. Ground items are not restored after a server restart.
+
+Picking up a persistent ground item reports success after the inventory save is
+confirmed. Stacking consumes the ground item and saves the final inventory stack
+in the same commit, including configured full-stack transformations. If saving
+cannot be confirmed, the session disconnects without reporting pickup success;
+reconnecting reads the saved outcome. Existing transformation plugins may send
+inventory updates while that save is pending.
+
+During a player trade, changing the zen offer replaces the previous amount.
+Players can use both their remaining inventory money and the money already
+offered. An amount above that total is refused and the previous offer stays in
+place. A player who has confirmed the trade must uncheck the confirmation button
+before changing the amount; cancelling returns the reserved money.
+At confirmation, each final inventory balance must fit its configured maximum
+inventory money. The server accounts for both reserved offers, so players at
+the limit can exchange equal amounts. If either final balance exceeds its limit,
+the trade is cancelled and both original inventories and balances are restored.
+
+A crafting result can be larger than the ingredients which freed space in the
+bag. Closing the NPC dialog returns its current items first; if they do not fit,
+the dialog stays open. Logging out retains results which still do not fit in a
+recovery storage owned by that character. They return automatically when entering
+the world or talking to an NPC if there is enough rectangular space. Players can
+use a merchant or the vault to free space, then talk to an NPC again. Another mix
+is refused until the retained results have returned. Consumed ingredients and
+crafting charges are not rolled back.
+
+The database migration adds an optional recovery storage reference to characters;
+existing characters start without one. Before downgrading to a server without
+this feature, players must reclaim every retained item. The migration refuses to
+remove the reference while it still owns items.
+With PostgreSQL persistence, a successful trade commits the transferred items and
+both inventory balances in one transaction before sending the success result.
+A rejected save cancels the trade and restores the original inventory and money.
+If both players confirm together, the server completes the trade once. A cancel
+request which was already waiting for that completion does not report a second
+result or undo a completed transfer.
+
 ## Monsters
 
 Route `edit-config-grid/…MonsterDefinition/`

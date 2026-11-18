@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MUnique.OpenMU.Persistence.EntityFramework.Json;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
 
 /// <summary>
@@ -41,6 +42,28 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
             account.LoginName,
             account.IsBot,
             byLogin[account.LoginName].ToDictionary(character => character.CharacterSlot, character => character.Name))).ToArray();
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<DataModel.Entities.Item>> GetGroundItemPageAsync(GroundItemQuery query, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        query.Validate();
+        cancellationToken.ThrowIfCancellationRequested();
+        using var gate = await this.LockAsync(cancellationToken).ConfigureAwait(false);
+        using var scope = this.RepositoryProvider.ContextStack.UseContext(this);
+        var references = (this.RepositoryProvider as CacheAwareRepositoryProvider)?.CaptureConfigurationReferences()
+            ?? throw new NotSupportedException("Ground recovery requires cached game configuration references.");
+        var loader = new GroundItemJsonObjectLoader(references);
+        await this.Context.Database.OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await loader.LoadAsync(this.Context, query, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await this.Context.Database.CloseConnectionAsync().ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>
@@ -306,6 +329,54 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
                 .ToListAsync(cancellationToken)
                 .ConfigureAwait(false);
         }
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<bool> TrySaveCashShopPurchaseAsync(
+        Guid senderAccountId,
+        Guid storageAccountId,
+        int itemCount,
+        int maximumStorageItems,
+        Action createPurchase,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(itemCount);
+        await using var transaction = await this.Context.Database.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        using (var gate = await this.LockAsync(cancellationToken).ConfigureAwait(false))
+        {
+            // Every buyer/gifter takes both account rows in database UUID order before
+            // reading capacity or writing coins. This works across server processes and
+            // prevents A->B and B->A gifts from acquiring the account locks in opposite order.
+            await this.Context.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT 1 FROM data.\"Account\" WHERE \"Id\" IN ({senderAccountId}, {storageAccountId}) ORDER BY \"Id\" FOR UPDATE",
+                cancellationToken).ConfigureAwait(false);
+            if (maximumStorageItems > 0)
+            {
+                var storedCount = await this.Context.Set<CashShopStorageItem>()
+                    .CountAsync(item => item.AccountId == storageAccountId, cancellationToken).ConfigureAwait(false);
+                var pending = this.Context.ChangeTracker.Entries<CashShopStorageItem>()
+                    .Where(entry => entry.Entity.AccountId == storageAccountId)
+                    .Sum(entry => entry.State == EntityState.Added ? 1 : entry.State == EntityState.Deleted ? -1 : 0);
+                if ((long)storedCount + pending + itemCount > maximumStorageItems)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // The caller owns the player's persistence gate. Entity creation takes this
+        // context's non-reentrant gate itself, so don't hold it across the callback.
+        createPurchase();
+        using (var gate = await this.LockAsync(cancellationToken).ConfigureAwait(false))
+        {
+            // Accept tracked changes only after commit, so an explicitly rejected save
+            // leaves the new storage records available for the caller's rollback.
+            await this.Context.SaveChangesAsync(acceptAllChangesOnSuccess: false, cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            this.Context.ChangeTracker.AcceptAllChanges();
+        }
+
+        return true;
     }
 
     /// <inheritdoc />

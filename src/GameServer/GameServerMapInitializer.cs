@@ -37,4 +37,12 @@ internal class GameServerMapInitializer : MapInitializer
     {
         return this._serverDefinition.ServerConfiguration?.Maps.FirstOrDefault(map => map.Number == mapNumber);
     }
+
+    /// <inheritdoc />
+    protected override GameMap InternalCreateGameMap(GameMapDefinition definition)
+    {
+        var map = base.InternalCreateGameMap(definition);
+        map.BindHost(this._serverDefinition);
+        return map;
+    }
 }

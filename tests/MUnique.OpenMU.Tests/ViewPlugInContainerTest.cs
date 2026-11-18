@@ -118,6 +118,83 @@ public class ViewPlugInContainerTest
         Assert.That(containerForSeason9.GetPlugIn<ISomeViewPlugIn>()!.GetType(), Is.EqualTo(typeof(Season6PlugIn)));
     }
 
+    /// <summary>
+    /// Tests that changing a connected player's version removes unsuitable plugins and selects a fallback.
+    /// </summary>
+    [Test]
+    public void ClientVersionDowngradeSelectsSuitableFallback()
+    {
+        var manager = new PlugInManager(null, new NullLoggerFactory(), null, null);
+        manager.RegisterPlugIn<ISomeViewPlugIn, InvariantSeasonPlugIn>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season1PlugIn>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season6PlugIn>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season9PlugIn>();
+        var player = this.CreatePlayer(manager);
+        player.ClientVersion = Season9E2English;
+
+        Assert.That(player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>(), Is.TypeOf<Season9PlugIn>());
+
+        player.ClientVersion = new ClientVersion(1, 0, ClientLanguage.English);
+
+        Assert.That(player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>(), Is.TypeOf<Season1PlugIn>());
+        Assert.That(((IPlugInContainer<IViewPlugIn>)player.ViewPlugIns).ActivePlugIns.Select(p => p.GetType()),
+            Is.EquivalentTo(new[] { typeof(InvariantSeasonPlugIn), typeof(Season1PlugIn) }));
+        Assert.That(player.IsDisposed, Is.False);
+    }
+
+    /// <summary>
+    /// Tests that changing language replaces language-specific plugins without losing invariant plugins.
+    /// </summary>
+    [Test]
+    public void ClientLanguageChangeSelectsSuitablePlugIn()
+    {
+        var manager = new PlugInManager(null, new NullLoggerFactory(), null, null);
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season6PlugIn>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season6PlugInInvariant>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season6PlugInOfSomeOtherLanguage>();
+        var player = this.CreatePlayer(manager);
+        player.ClientVersion = Season6E3English;
+
+        Assert.That(player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>(), Is.TypeOf<Season6PlugIn>());
+
+        player.ClientVersion = new ClientVersion(6, 3, (ClientLanguage)42);
+
+        Assert.That(player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>(), Is.TypeOf<Season6PlugInOfSomeOtherLanguage>());
+        Assert.That(((IPlugInContainer<IViewPlugIn>)player.ViewPlugIns).ActivePlugIns.Select(p => p.GetType()),
+            Is.EquivalentTo(new[] { typeof(Season6PlugInInvariant), typeof(Season6PlugInOfSomeOtherLanguage) }));
+    }
+
+    /// <summary>
+    /// Tests that repeated version changes reuse plugin instances instead of accumulating duplicates.
+    /// </summary>
+    [Test]
+    public void RepeatedClientVersionChangesReusePlugIns()
+    {
+        var manager = new PlugInManager(null, new NullLoggerFactory(), null, null);
+        manager.RegisterPlugIn<ISomeViewPlugIn, InvariantSeasonPlugIn>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season6PlugIn>();
+        manager.RegisterPlugIn<ISomeViewPlugIn, Season9PlugIn>();
+        var player = this.CreatePlayer(manager);
+        player.ClientVersion = Season6E3English;
+        var season6PlugIn = player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>();
+        player.ClientVersion = Season9E2English;
+        var season9PlugIn = player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>();
+        Assert.That(((IPlugInContainer<IViewPlugIn>)player.ViewPlugIns).ActivePlugIns.Select(p => p.GetType()),
+            Is.EquivalentTo(new[] { typeof(InvariantSeasonPlugIn), typeof(Season6PlugIn), typeof(Season9PlugIn) }));
+
+        for (var i = 0; i < 3; i++)
+        {
+            player.ClientVersion = Season6E3English;
+            Assert.That(player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>(), Is.SameAs(season6PlugIn));
+            Assert.That(((IPlugInContainer<IViewPlugIn>)player.ViewPlugIns).ActivePlugIns.Select(p => p.GetType()),
+                Is.EquivalentTo(new[] { typeof(InvariantSeasonPlugIn), typeof(Season6PlugIn) }));
+            player.ClientVersion = Season9E2English;
+            Assert.That(player.ViewPlugIns.GetPlugIn<ISomeViewPlugIn>(), Is.SameAs(season9PlugIn));
+            Assert.That(((IPlugInContainer<IViewPlugIn>)player.ViewPlugIns).ActivePlugIns.Select(p => p.GetType()),
+                Is.EquivalentTo(new[] { typeof(InvariantSeasonPlugIn), typeof(Season6PlugIn), typeof(Season9PlugIn) }));
+        }
+    }
+
     private RemotePlayer CreatePlayer(PlugInManager plugInManager)
     {
         var gameContext = new Mock<IGameServerContext>();

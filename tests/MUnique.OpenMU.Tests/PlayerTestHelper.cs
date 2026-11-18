@@ -69,11 +69,12 @@ public static class PlayerTestHelper
     /// Gets a test player with the specified game context.
     /// </summary>
     /// <param name="gameContext">The game context.</param>
+    /// <param name="characterId">An optional persistent identity for cross-session ownership tests.</param>
     /// <returns>The test player.</returns>
-    public static async ValueTask<Player> CreatePlayerAsync(IGameContext gameContext)
+    public static async ValueTask<Player> CreatePlayerAsync(IGameContext gameContext, Guid? characterId = null)
     {
         var player = new TestPlayer(gameContext);
-        await EnterWorldAsync(player, CreateCharacter(gameContext)).ConfigureAwait(false);
+        await EnterWorldAsync(player, CreateCharacter(gameContext, characterId)).ConfigureAwait(false);
         return player;
     }
 
@@ -81,11 +82,17 @@ public static class PlayerTestHelper
     /// Creates a character of a minimal character class on the map with the number 0, which is sufficient for test players.
     /// </summary>
     /// <param name="gameContext">The game context.</param>
+    /// <param name="characterId">An optional persistent identity for cross-session ownership tests.</param>
     /// <returns>The character.</returns>
-    public static Character CreateCharacter(IGameContext gameContext)
+    public static Character CreateCharacter(IGameContext gameContext, Guid? characterId = null)
     {
         var characterMock = new Mock<Character>();
         characterMock.SetupAllProperties();
+        if (characterId is { } identity)
+        {
+            characterMock.As<Persistence.IIdentifiable>().SetupProperty(character => character.Id, identity);
+        }
+
         characterMock.Setup(c => c.LearnedSkills).Returns(new List<SkillEntry>());
         characterMock.Setup(c => c.Attributes).Returns(new List<StatAttribute>());
         characterMock.Setup(c => c.DropItemGroups).Returns(new List<DropItemGroup>());

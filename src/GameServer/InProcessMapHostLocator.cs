@@ -36,14 +36,15 @@ public sealed class InProcessMapHostLocator : IMapHostLocator
         // host when more than one of them hosts the map.
         var candidates = this._gameServers.Values
             .Where(server => server.Id != requester.Id && server.ServerState == ServerState.Started)
-            .OfType<IGameServerContextProvider>()
-            .Select(provider => provider.Context)
-            .OrderBy(context => context.Id)
+            .Where(server => server is IGameServerContextProvider)
+            .OrderBy(server => server.Id)
             .ToList();
 
-        foreach (var context in candidates)
+        foreach (var server in candidates)
         {
-            if (await context.GetMapAsync(mapNumber).ConfigureAwait(false) is { } map)
+            var context = ((IGameServerContextProvider)server).Context;
+            if (await context.GetMapAsync(mapNumber).ConfigureAwait(false) is { IsTornDown: false } map
+                && server.ServerState == ServerState.Started)
             {
                 return new MapHost(context.Id, map);
             }

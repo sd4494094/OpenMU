@@ -100,7 +100,6 @@ public abstract class PacketPipeReaderBase
         ReadResult result = await this.Source.ReadAsync().ConfigureAwait(false);
         ReadOnlySequence<byte> buffer = result.Buffer;
         int? length = null;
-        var readingCancelledOrCompleted = false;
         do
         {
             if (buffer.Length > 2)
@@ -125,8 +124,9 @@ public abstract class PacketPipeReaderBase
                 var packet = buffer.Slice(0, length.Value);
                 if (!await this.ReadPacketAsync(packet).ConfigureAwait(false))
                 {
-                    readingCancelledOrCompleted = true;
-                    break;
+                    // A packet handler may have completed the source, e.g. by disconnecting.
+                    // Its current buffer must not be accessed or advanced after completion.
+                    return true;
                 }
 
                 buffer = buffer.Slice(buffer.GetPosition(length.Value), buffer.End);
@@ -151,6 +151,6 @@ public abstract class PacketPipeReaderBase
             this.Source.AdvanceTo(buffer.Start);
         }
 
-        return result.IsCompleted || readingCancelledOrCompleted;
+        return result.IsCompleted;
     }
 }

@@ -86,6 +86,9 @@ public class SharedMapTests
 
         var hostedMap = await this._hostingServer.Context.GetMapAsync((ushort)SharedMapNumber).ConfigureAwait(false);
         Assert.That(player.CurrentMap, Is.Not.Null.And.SameAs(hostedMap));
+        Assert.That(hostedMap!.HostServer!.ServerID, Is.EqualTo(HostingServerId));
+        Assert.That(hostedMap.HostServer.GetId(), Is.EqualTo(this._hostingServer.ConfigurationId));
+        Assert.That(hostedMap.InstanceId, Is.Null);
         Assert.That(await this._nonHostingServer.Context.GetMapAsync((ushort)SharedMapNumber).ConfigureAwait(false), Is.Null);
         Assert.That(player.GameContext, Is.SameAs(this._nonHostingServer.Context), "the player stays at its own game server");
     }

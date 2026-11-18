@@ -8,9 +8,11 @@ using System.Globalization;
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.NPC;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 using MUnique.OpenMU.Persistence.InMemory;
+using MUnique.OpenMU.PlugIns;
 
 /// <summary>
 /// Verifies the goddess's new database initialization and non-destructive existing database upgrade.
@@ -39,8 +41,9 @@ internal class CreatorGoddessDataTest
         Assert.That(town.MonsterSpawns.Count(spawn => spawn.X1 <= CreatorGoddessInitialization.NpcX
             && spawn.X2 >= CreatorGoddessInitialization.NpcX && spawn.Y1 <= CreatorGoddessInitialization.NpcY
             && spawn.Y2 >= CreatorGoddessInitialization.NpcY), Is.EqualTo(1));
-        Assert.That(config.Monsters.Single(monster => monster.Number == CreatorGoddessNpcPlugIn.NpcNumber)
-            .Designation.GetTranslation(CultureInfo.GetCultureInfo("en")), Is.EqualTo("创世神·艾莉雅"));
+        var designation = config.Monsters.Single(monster => monster.Number == CreatorGoddessNpcPlugIn.NpcNumber).Designation;
+        Assert.That(designation.GetTranslation(CultureInfo.GetCultureInfo("en")), Is.EqualTo("Creator Goddess Aria"));
+        Assert.That(designation.GetTranslation(CultureInfo.GetCultureInfo("zh-CN")), Is.EqualTo("创世神·艾莉雅"));
     }
 
     /// <summary>Repairs a missing NPC and repeats safely without duplicating any records.</summary>
@@ -116,6 +119,75 @@ internal class CreatorGoddessDataTest
         await new AddCreatorGoddessNpcPlugIn().ApplyUpdateAsync(context, config).ConfigureAwait(false);
         Assert.That(town.MonsterSpawns, Is.Empty);
         Assert.That(other.MonsterSpawns.Single(), Is.SameAs(spawn));
+    }
+
+    /// <summary>Repairs an unassigned talk reference while retaining its disabled state and identity.</summary>
+    /// <param name="customConfiguration">The preexisting unassigned configuration.</param>
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("{}")]
+    [TestCase("{\"Npc\":null}")]
+    public async Task UpgradeBindsUnassignedTalkWithoutEnablingItAsync(string? customConfiguration)
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        using var context = provider.CreateNewContext();
+        var config = context.CreateNew<GameConfiguration>();
+        var town = context.CreateNew<GameMapDefinition>();
+        town.Number = 0;
+        config.Maps.Add(town);
+        var talk = context.CreateNew<PlugInConfiguration>();
+        talk.TypeId = typeof(CreatorGoddessNpcPlugIn).GUID;
+        talk.IsActive = false;
+        talk.CustomConfiguration = customConfiguration;
+        config.PlugInConfigurations.Add(talk);
+
+        var update = new AddCreatorGoddessNpcPlugIn();
+        var installed = context.CreateNew<ConfigurationUpdate>();
+        installed.Key = update.Key;
+        installed.Version = 1;
+        await update.ApplyUpdateAsync(context, config).ConfigureAwait(false);
+        var repaired = talk.CustomConfiguration;
+        await update.ApplyUpdateAsync(context, config).ConfigureAwait(false);
+
+        Assert.That(config.PlugInConfigurations.Single(), Is.SameAs(talk));
+        Assert.That(talk.IsActive, Is.False);
+        Assert.That(talk.CustomConfiguration, Is.EqualTo(repaired));
+        Assert.That((await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Single(entry => entry.Key == update.Key), Is.SameAs(installed));
+        Assert.That(installed.Version, Is.EqualTo(2));
+        Assert.That(update.Version, Is.EqualTo(2));
+        Assert.That(update.UpdatedAt, Is.GreaterThan(update.CreatedAt));
+        Assert.That(update.IsMandatory, Is.False);
+        var source = new GameConfigurationDataSource(new NullLogger<GameConfigurationDataSource>(), provider);
+        await source.GetOwnerAsync(config.GetId()).ConfigureAwait(false);
+        var resolved = talk.GetConfiguration<NpcTalkPlugInConfiguration>(new ByDataSourceReferenceHandler(source));
+        Assert.That(resolved?.Npc, Is.SameAs(config.Monsters.Single()));
+    }
+
+    /// <summary>An owner-selected NPC reference remains selected when adding the goddess.</summary>
+    [Test]
+    public async Task UpgradePreservesOwnerSelectedTalkNpcAsync()
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        using var context = provider.CreateNewContext();
+        var config = context.CreateNew<GameConfiguration>();
+        var town = context.CreateNew<GameMapDefinition>();
+        town.Number = 0;
+        config.Maps.Add(town);
+        var selected = context.CreateNew<MonsterDefinition>();
+        selected.Number = 250;
+        config.Monsters.Add(selected);
+        var talk = context.CreateNew<PlugInConfiguration>();
+        talk.TypeId = typeof(CreatorGoddessNpcPlugIn).GUID;
+        talk.IsActive = false;
+        talk.SetConfiguration(new NpcTalkPlugInConfiguration { Npc = selected }, new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
+        config.PlugInConfigurations.Add(talk);
+        var original = talk.CustomConfiguration;
+
+        await new AddCreatorGoddessNpcPlugIn().ApplyUpdateAsync(context, config).ConfigureAwait(false);
+
+        Assert.That(talk.CustomConfiguration, Is.EqualTo(original));
+        Assert.That(talk.IsActive, Is.False);
+        Assert.That(config.Monsters.Count, Is.EqualTo(2));
     }
 
     private static void AssertConfiguration(GameConfiguration config)

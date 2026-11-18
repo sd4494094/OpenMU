@@ -17,6 +17,7 @@ using MUnique.OpenMU.Persistence.Initialization;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.PlugIns;
+using MUnique.OpenMU.Testing;
 using BasicModel = MUnique.OpenMU.Persistence.BasicModel;
 using EntityFramework = MUnique.OpenMU.Persistence.EntityFramework;
 
@@ -69,9 +70,11 @@ public class ItemPriceCalculatorGoldenMasterTest
     /// The database is created again, see <see cref="EntityFramework.PersistenceContextProvider.ReCreateDatabaseAsync"/>.
     /// </remarks>
     [Test]
-    [Ignore("This is not a real test which should run automatically. It requires a database.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task PricesAreUnchangedWhenLoadedFromDatabaseAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync().ConfigureAwait(false);
         // Like at the startup of the server.
         JsonConverterRegistry.RegisterConverter(new LocalizedStringJsonConverter());
         JsonConverterRegistry.RegisterConverter(new EntityFramework.Json.BinaryAsHexJsonConverter());

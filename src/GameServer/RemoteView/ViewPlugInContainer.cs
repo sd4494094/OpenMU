@@ -97,6 +97,17 @@ internal sealed class ViewPlugInContainer : CustomPlugInContainerBase<IViewPlugI
     {
         if (this.Client.IsPlugInSuitable(plugInType))
         {
+            if (this.FindKnownPlugin(plugInType) is { } knownPlugIn)
+            {
+                using var l = this.Lock.WriterLock();
+                if (!this.ActivePlugIns.Contains(knownPlugIn))
+                {
+                    this.ActivatePlugIn(knownPlugIn);
+                }
+
+                return;
+            }
+
             var plugIn = (IViewPlugIn)ActivatorUtilities.CreateInstance(this._serviceContainer, plugInType)!;
             this.AddPlugIn(plugIn, true);
         }
@@ -104,15 +115,19 @@ internal sealed class ViewPlugInContainer : CustomPlugInContainerBase<IViewPlugI
 
     private void OnClientVersionChanged(object? sender, EventArgs e)
     {
-        this.Client = this._player.ClientVersion;
-        foreach (var activePlugIn in this.ActivePlugIns)
+        using (this.Lock.WriterLock())
         {
-            if (!this.Client.IsPlugInSuitable(activePlugIn.GetType()))
+            this.Client = this._player.ClientVersion;
+            foreach (var activePlugIn in this.ActivePlugIns.ToArray())
             {
-                this.DeactivatePlugIn(activePlugIn);
+                if (!this.Client.IsPlugInSuitable(activePlugIn.GetType()))
+                {
+                    this.DeactivatePlugIn(activePlugIn);
+                }
             }
         }
 
+        // Initialization takes the same non-reentrant lock when adding or reactivating plugins.
         this.Initialize();
     }
 }

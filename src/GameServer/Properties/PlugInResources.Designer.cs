@@ -8085,5 +8085,11 @@ namespace MUnique.OpenMU.GameServer.Properties {
                 return ResourceManager.GetString("ShowStatAdvisor_Description", resourceCulture);
             }
         }
+        /// <summary>Gets the localized CharacterInventoryRequestPacketHandlerPlugIn_Description resource.</summary>
+        public static string CharacterInventoryRequestPacketHandlerPlugIn_Description => ResourceManager.GetString("CharacterInventoryRequestPacketHandlerPlugIn_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized CharacterInventoryRequestPacketHandlerPlugIn_Name resource.</summary>
+        public static string CharacterInventoryRequestPacketHandlerPlugIn_Name => ResourceManager.GetString("CharacterInventoryRequestPacketHandlerPlugIn_Name", resourceCulture)!;
+
     }
 }

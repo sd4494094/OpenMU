@@ -60,6 +60,56 @@ internal sealed class PlayerStorages
     }
 
     /// <summary>
+    /// Returns previously retained items when their rectangles fit in the current inventory.
+    /// </summary>
+    /// <returns>Whether any inventory items were added.</returns>
+    public async ValueTask<bool> RecoverInventoryItemsAsync()
+    {
+        if (this.Inventory is not { } inventory
+            || this._player.SelectedCharacter?.RecoveryStorage is not { } recovery)
+        {
+            return false;
+        }
+
+        var changed = false;
+        foreach (var item in recovery.Items.ToList())
+        {
+            if (inventory.CheckInvSpace(item) is not { } slot)
+            {
+                continue;
+            }
+
+            var previousSlot = item.ItemSlot;
+            recovery.Items.Remove(item);
+            try
+            {
+                if (await inventory.AddItemAsync(slot, item).ConfigureAwait(false))
+                {
+                    changed = true;
+                    continue;
+                }
+            }
+            catch
+            {
+                // Adding may fail before or after updating the inventory collection.
+                // Keep exactly one persistent owner even if a view callback throws.
+                if (!inventory.ItemStorage.Items.Contains(item))
+                {
+                    item.ItemSlot = previousSlot;
+                    recovery.Items.Add(item);
+                }
+
+                throw;
+            }
+
+            item.ItemSlot = previousSlot;
+            recovery.Items.Add(item);
+        }
+
+        return changed;
+    }
+
+    /// <summary>
     /// Restores the temporary storage items placed in an NPC or trade dialog when player is disconnected.
     /// </summary>
     public async ValueTask RestoreTemporaryStorageItemsAsync()
@@ -93,24 +143,25 @@ internal sealed class PlayerStorages
                 return;
             }
 
-            // We should never get so far, since the space is checked before doing anything with the temporary storage.
-            // Log this critical situation - items may be lost if fallback also fails
-            var items = temporaryStorage.Items.ToList();
-            this._player.Logger.LogError(
-                "CRITICAL: Could not return {count} items from temporary storage to inventory due to full inventory. Attempting fallback. Items: {items}",
-                items.Count,
-                string.Join(", ", items.Select(i => $"{i.Definition?.Name.ValueInNeutralLanguage ?? "Unknown"}(Slot:{i.ItemSlot})")));
+            // A successful mix can produce a larger item than its consumed inputs. The old
+            // backup is no longer valid; retain the current results under the character
+            // instead of discarding them or resurrecting the consumed ingredients.
+            if (this._player.SelectedCharacter is not { } character)
+            {
+                throw new InvalidOperationException("Temporary items have no selected character owner.");
+            }
 
-            // Try one more time to force-add items individually using the captured list
-            foreach (var item in items)
+            var recovery = character.RecoveryStorage ??= this._player.PersistenceContext.CreateNew<ItemStorage>();
+            foreach (var item in temporaryStorage.Items.ToList())
             {
                 await temporaryStorage.RemoveItemAsync(item).ConfigureAwait(false);
-                if (!await inventory.AddItemAsync(item).ConfigureAwait(false))
+                if (!recovery.Items.Contains(item))
                 {
-                    this._player.Logger.LogError("Failed to return item {item} to inventory. Item is lost. id: {itemid}", item, item.GetId());
+                    recovery.Items.Add(item);
                 }
             }
 
+            this._player.Logger.LogInformation("Retained {count} items in recovery storage of player {player}", recovery.Items.Count, this._player.Name);
             this.TemporaryStorage = null;
         }
         catch (Exception ex)

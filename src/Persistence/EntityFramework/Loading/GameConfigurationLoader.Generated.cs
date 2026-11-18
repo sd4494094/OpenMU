@@ -77,7 +77,8 @@ internal sealed partial class GameConfigurationLoader
         "select \"Id\", \"AddPercentage\", \"FailResult\", \"MaximumAmount\", \"MaximumItemLevel\", \"MinimumAmount\", \"MinimumItemLevel\", \"NpcPriceDivisor\", \"Reference\", \"SimpleCraftingSettingsId\", \"SuccessResult\" from config.\"ItemCraftingRequiredItem\"",
         "select \"Id\", \"AddLevel\", \"Durability\", \"ItemDefinitionId\", \"RandomMaximumLevel\", \"RandomMinimumLevel\", \"Reference\", \"SimpleCraftingSettingsId\" from config.\"ItemCraftingResultItem\"",
         "select \"Id\", \"Money\" from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))",
-        "select \"Id\", \"DefinitionId\", \"Durability\", \"HasSkill\", \"ItemSlot\", \"ItemStorageId\", \"Level\", \"PetExperience\", \"SocketCount\", \"StorePrice\", \"StorePriceCoinType\", \"StorePriceItemDefinitionId\" from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))",
+        "select \"Id\", \"DefinitionId\", \"Durability\", \"GroundDeliveryId\", \"HasSkill\", \"ItemSlot\", \"ItemStorageId\", \"Level\", \"PetExperience\", \"SocketCount\", \"StorePrice\", \"StorePriceCoinType\", \"StorePriceItemDefinitionId\" from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))",
+        "select \"Id\", \"DroppedAt\", \"ExpiresAt\", \"HostServerId\", \"MapDefinitionId\", \"MapInstanceId\", \"OwnerCharacterId\", \"OwnerPriorityUntil\", \"PositionX\", \"PositionY\" from data.\"GroundItemDelivery\" where (\"Id\" in (select \"GroundDeliveryId\" from (select * from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))) \"Item\"))",
         "select \"Id\", \"Index\", \"ItemId\", \"ItemOptionId\", \"Level\" from data.\"ItemOptionLink\" where (\"ItemId\" in (select \"Id\" from (select * from data.\"Item\" where (\"ItemStorageId\" in (select \"Id\" from (select * from data.\"ItemStorage\" where (\"Id\" in (select \"MerchantStoreId\" from config.\"MonsterDefinition\"))) \"ItemStorage\") or \"Id\" in (select \"ItemRewardId\" from config.\"QuestReward\"))) \"Item\"))",
         "select \"Id\", \"Group\", \"MaximumCharacterLevel\", \"MinimumCharacterLevel\", \"MonsterDefinitionId\", \"Name\", \"Number\", \"QualifiedCharacterId\", \"QuestGiverId\", \"RefuseNumber\", \"Repeatable\", \"RequiredStartMoney\", \"RequiresClientAction\", \"StartingNumber\" from config.\"QuestDefinition\"",
         "select \"Id\", \"DropItemGroupId\", \"ItemId\", \"MinimumNumber\", \"QuestDefinitionId\" from config.\"QuestItemRequirement\"",
@@ -231,7 +232,9 @@ internal sealed partial class GameConfigurationLoader
     private readonly global::System.Collections.Generic.Dictionary<global::System.Guid, global::MUnique.OpenMU.Persistence.EntityFramework.Model.ItemStorage> _ItemStorage = new();
     private readonly global::System.Collections.Generic.List<global::MUnique.OpenMU.Persistence.EntityFramework.Model.ItemStorage> _ItemStorageRows = new();
     private readonly global::System.Collections.Generic.Dictionary<global::System.Guid, global::MUnique.OpenMU.Persistence.EntityFramework.Model.Item> _Item = new();
-    private readonly global::System.Collections.Generic.List<(global::MUnique.OpenMU.Persistence.EntityFramework.Model.Item Entity, global::System.Guid? Key0, global::System.Guid? Key1, global::System.Guid? Key2)> _ItemRows = new();
+    private readonly global::System.Collections.Generic.List<(global::MUnique.OpenMU.Persistence.EntityFramework.Model.Item Entity, global::System.Guid? Key0, global::System.Guid? Key1, global::System.Guid? Key2, global::System.Guid? Key3)> _ItemRows = new();
+    private readonly global::System.Collections.Generic.Dictionary<global::System.Guid, global::MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery> _GroundItemDelivery = new();
+    private readonly global::System.Collections.Generic.List<global::MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery> _GroundItemDeliveryRows = new();
     private readonly global::System.Collections.Generic.Dictionary<global::System.Guid, global::MUnique.OpenMU.Persistence.EntityFramework.Model.ItemOptionLink> _ItemOptionLink = new();
     private readonly global::System.Collections.Generic.List<(global::MUnique.OpenMU.Persistence.EntityFramework.Model.ItemOptionLink Entity, global::System.Guid? Key0, global::System.Guid? Key1)> _ItemOptionLinkRows = new();
     private readonly global::System.Collections.Generic.Dictionary<global::System.Guid, global::MUnique.OpenMU.Persistence.EntityFramework.Model.QuestDefinition> _QuestDefinition = new();
@@ -334,28 +337,29 @@ internal sealed partial class GameConfigurationLoader
             case 62: await this.ReadItemCraftingResultItemAsync(reader, cancellationToken).ConfigureAwait(false); break;
             case 63: await this.ReadItemStorageAsync(reader, cancellationToken).ConfigureAwait(false); break;
             case 64: await this.ReadItemAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 65: await this.ReadItemOptionLinkAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 66: await this.ReadQuestDefinitionAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 67: await this.ReadQuestItemRequirementAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 68: await this.ReadQuestMonsterKillRequirementAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 69: await this.ReadQuestRewardAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 70: await this.ReadPlugInConfigurationAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 71: await this.ReadSkillAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 72: await this.ReadAreaSkillSettingsAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 73: await this.ReadMasterSkillDefinitionAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 74: await this.ReadWarpInfoAsync(reader, cancellationToken).ConfigureAwait(false); break;
-            case 75: await ReadJoinAsync(reader, this._DropItemGroupItemDefinitionRows, cancellationToken).ConfigureAwait(false); break;
-            case 76: await ReadJoinAsync(reader, this._ItemDefinitionItemOptionDefinitionRows, cancellationToken).ConfigureAwait(false); break;
-            case 77: await ReadJoinAsync(reader, this._ItemDefinitionItemSetGroupRows, cancellationToken).ConfigureAwait(false); break;
-            case 78: await ReadJoinAsync(reader, this._ItemDefinitionCharacterClassRows, cancellationToken).ConfigureAwait(false); break;
-            case 79: await ReadJoinAsync(reader, this._ItemDropItemGroupItemDefinitionRows, cancellationToken).ConfigureAwait(false); break;
-            case 80: await ReadJoinAsync(reader, this._GameMapDefinitionDropItemGroupRows, cancellationToken).ConfigureAwait(false); break;
-            case 81: await ReadJoinAsync(reader, this._MonsterDefinitionDropItemGroupRows, cancellationToken).ConfigureAwait(false); break;
-            case 82: await ReadJoinAsync(reader, this._ItemCraftingRequiredItemItemDefinitionRows, cancellationToken).ConfigureAwait(false); break;
-            case 83: await ReadJoinAsync(reader, this._ItemCraftingRequiredItemItemOptionTypeRows, cancellationToken).ConfigureAwait(false); break;
-            case 84: await ReadJoinAsync(reader, this._ItemItemOfItemSetRows, cancellationToken).ConfigureAwait(false); break;
-            case 85: await ReadJoinAsync(reader, this._SkillCharacterClassRows, cancellationToken).ConfigureAwait(false); break;
-            case 86: await ReadJoinAsync(reader, this._MasterSkillDefinitionSkillRows, cancellationToken).ConfigureAwait(false); break;
+            case 65: await this.ReadGroundItemDeliveryAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 66: await this.ReadItemOptionLinkAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 67: await this.ReadQuestDefinitionAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 68: await this.ReadQuestItemRequirementAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 69: await this.ReadQuestMonsterKillRequirementAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 70: await this.ReadQuestRewardAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 71: await this.ReadPlugInConfigurationAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 72: await this.ReadSkillAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 73: await this.ReadAreaSkillSettingsAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 74: await this.ReadMasterSkillDefinitionAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 75: await this.ReadWarpInfoAsync(reader, cancellationToken).ConfigureAwait(false); break;
+            case 76: await ReadJoinAsync(reader, this._DropItemGroupItemDefinitionRows, cancellationToken).ConfigureAwait(false); break;
+            case 77: await ReadJoinAsync(reader, this._ItemDefinitionItemOptionDefinitionRows, cancellationToken).ConfigureAwait(false); break;
+            case 78: await ReadJoinAsync(reader, this._ItemDefinitionItemSetGroupRows, cancellationToken).ConfigureAwait(false); break;
+            case 79: await ReadJoinAsync(reader, this._ItemDefinitionCharacterClassRows, cancellationToken).ConfigureAwait(false); break;
+            case 80: await ReadJoinAsync(reader, this._ItemDropItemGroupItemDefinitionRows, cancellationToken).ConfigureAwait(false); break;
+            case 81: await ReadJoinAsync(reader, this._GameMapDefinitionDropItemGroupRows, cancellationToken).ConfigureAwait(false); break;
+            case 82: await ReadJoinAsync(reader, this._MonsterDefinitionDropItemGroupRows, cancellationToken).ConfigureAwait(false); break;
+            case 83: await ReadJoinAsync(reader, this._ItemCraftingRequiredItemItemDefinitionRows, cancellationToken).ConfigureAwait(false); break;
+            case 84: await ReadJoinAsync(reader, this._ItemCraftingRequiredItemItemOptionTypeRows, cancellationToken).ConfigureAwait(false); break;
+            case 85: await ReadJoinAsync(reader, this._ItemItemOfItemSetRows, cancellationToken).ConfigureAwait(false); break;
+            case 86: await ReadJoinAsync(reader, this._SkillCharacterClassRows, cancellationToken).ConfigureAwait(false); break;
+            case 87: await ReadJoinAsync(reader, this._MasterSkillDefinitionSkillRows, cancellationToken).ConfigureAwait(false); break;
             default: throw new global::System.ArgumentOutOfRangeException(nameof(statementIndex));
         }
     }
@@ -1517,17 +1521,38 @@ internal sealed partial class GameConfigurationLoader
             entity.Id = reader.GetGuid(0);
             if (!reader.IsDBNull(1)) { entity.DefinitionId = reader.GetGuid(1); }
             entity.Durability = reader.GetDouble(2);
-            entity.HasSkill = reader.GetBoolean(3);
-            entity.ItemSlot = (global::System.Byte)reader.GetInt16(4);
-            if (!reader.IsDBNull(5)) { entity.ItemStorageId = reader.GetGuid(5); }
-            entity.Level = (global::System.Byte)reader.GetInt16(6);
-            entity.PetExperience = reader.GetInt32(7);
-            entity.SocketCount = reader.GetInt32(8);
-            if (!reader.IsDBNull(9)) { entity.StorePrice = reader.GetInt32(9); }
-            if (!reader.IsDBNull(10)) { entity.StorePriceCoinType = (global::MUnique.OpenMU.DataModel.Configuration.CashShopCoinType)reader.GetInt32(10); }
-            if (!reader.IsDBNull(11)) { entity.StorePriceItemDefinitionId = reader.GetGuid(11); }
+            if (!reader.IsDBNull(3)) { entity.GroundDeliveryId = reader.GetGuid(3); }
+            entity.HasSkill = reader.GetBoolean(4);
+            entity.ItemSlot = (global::System.Byte)reader.GetInt16(5);
+            if (!reader.IsDBNull(6)) { entity.ItemStorageId = reader.GetGuid(6); }
+            entity.Level = (global::System.Byte)reader.GetInt16(7);
+            entity.PetExperience = reader.GetInt32(8);
+            entity.SocketCount = reader.GetInt32(9);
+            if (!reader.IsDBNull(10)) { entity.StorePrice = reader.GetInt32(10); }
+            if (!reader.IsDBNull(11)) { entity.StorePriceCoinType = (global::MUnique.OpenMU.DataModel.Configuration.CashShopCoinType)reader.GetInt32(11); }
+            if (!reader.IsDBNull(12)) { entity.StorePriceItemDefinitionId = reader.GetGuid(12); }
             this._Item[entity.Id] = entity;
-            this._ItemRows.Add((entity, reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.IsDBNull(5) ? null : reader.GetGuid(5), reader.IsDBNull(11) ? null : reader.GetGuid(11)));
+            this._ItemRows.Add((entity, reader.IsDBNull(1) ? null : reader.GetGuid(1), reader.IsDBNull(3) ? null : reader.GetGuid(3), reader.IsDBNull(6) ? null : reader.GetGuid(6), reader.IsDBNull(12) ? null : reader.GetGuid(12)));
+        }
+    }
+
+    private async global::System.Threading.Tasks.ValueTask ReadGroundItemDeliveryAsync(global::System.Data.Common.DbDataReader reader, global::System.Threading.CancellationToken cancellationToken)
+    {
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var entity = new global::MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery();
+            entity.Id = reader.GetGuid(0);
+            entity.DroppedAt = reader.GetDateTime(1);
+            entity.ExpiresAt = reader.GetDateTime(2);
+            entity.HostServerId = reader.GetGuid(3);
+            entity.MapDefinitionId = reader.GetGuid(4);
+            if (!reader.IsDBNull(5)) { entity.MapInstanceId = reader.GetGuid(5); }
+            entity.OwnerCharacterId = reader.GetGuid(6);
+            entity.OwnerPriorityUntil = reader.GetDateTime(7);
+            entity.PositionX = (global::System.Byte)reader.GetInt16(8);
+            entity.PositionY = (global::System.Byte)reader.GetInt16(9);
+            this._GroundItemDelivery[entity.Id] = entity;
+            this._GroundItemDeliveryRows.Add(entity);
         }
     }
 
@@ -2345,6 +2370,14 @@ internal sealed partial class GameConfigurationLoader
             }
         }
 
+        foreach (var row in this._ItemRows)
+        {
+            if (row.Key1 is { } id && this._GroundItemDelivery.TryGetValue(id, out var target))
+            {
+                row.Entity.RawGroundDelivery = target;
+            }
+        }
+
         foreach (var row in this._ItemOptionLinkRows)
         {
             if (row.Key0 is { } id)
@@ -2355,7 +2388,7 @@ internal sealed partial class GameConfigurationLoader
 
         foreach (var row in this._ItemRows)
         {
-            if (row.Key1 is { } id)
+            if (row.Key2 is { } id)
             {
                 row.Entity.RawItemStorage = this.GetItemStorage(id);
             }
@@ -2363,7 +2396,7 @@ internal sealed partial class GameConfigurationLoader
 
         foreach (var row in this._ItemRows)
         {
-            if (row.Key2 is { } id)
+            if (row.Key3 is { } id)
             {
                 row.Entity.RawStorePriceItemDefinition = this.GetItemDefinition(id);
             }
@@ -3352,7 +3385,7 @@ internal sealed partial class GameConfigurationLoader
 
         foreach (var row in this._ItemRows)
         {
-            if (row.Key1 is { } id && this._ItemStorage.TryGetValue(id, out var parent))
+            if (row.Key2 is { } id && this._ItemStorage.TryGetValue(id, out var parent))
             {
                 var collection = (global::System.Collections.Generic.ICollection<global::MUnique.OpenMU.Persistence.EntityFramework.Model.Item>)parent.RawItems;
                 var item = row.Entity;
@@ -4454,6 +4487,18 @@ internal sealed partial class GameConfigurationLoader
             // A reference to an object which isn't loaded; the json deserializer creates a placeholder with the id.
             entity = new global::MUnique.OpenMU.Persistence.EntityFramework.Model.Item { Id = id };
             this._Item.Add(id, entity);
+        }
+
+        return entity;
+    }
+
+    private global::MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery GetGroundItemDelivery(global::System.Guid id)
+    {
+        if (!this._GroundItemDelivery.TryGetValue(id, out var entity))
+        {
+            // A reference to an object which isn't loaded; the json deserializer creates a placeholder with the id.
+            entity = new global::MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery { Id = id };
+            this._GroundItemDelivery.Add(id, entity);
         }
 
         return entity;

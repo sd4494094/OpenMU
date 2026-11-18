@@ -61,7 +61,7 @@ public class Program
             throw new NotImplementedException();
         }
 
-        public IContext CreateNewTradeContext()
+        public ITradeContext CreateNewTradeContext()
         {
             throw new NotImplementedException();
         }

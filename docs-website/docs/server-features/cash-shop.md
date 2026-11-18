@@ -28,6 +28,19 @@ holds its settings:
 | Can Gift To Own Account | yes | Players can send gifts to the characters of their own account. |
 | Maximum Storage Items | 0 | Maximum number of items in the storage of an account, including gifts; 0 means unlimited. A purchase or gift which doesn't fit is refused. |
 
+The capacity check, coin deduction and storage records commit together. If several
+players send gifts to the same account at once, only the purchases which fit are
+charged. A recipient can free capacity by claiming stored products and then receive
+another purchase or gift.
+
+Claiming a stored product is acknowledged only after its delivery and removal
+from cash shop storage have been saved together. If saving fails or cannot be
+confirmed, the server reports an error and disconnects the player. Reconnect to
+check the inventory and cash shop storage before claiming again. The normal
+disconnect save may finish the pending delivery; a failed acknowledgement does
+not guarantee that the product is still in storage. This also applies to special
+products such as inventory extensions and character cards.
+
 ## Opening the shop
 
 A player can open the cash shop when the character stands in a safezone, and
@@ -97,6 +110,42 @@ edits the catalog:
 Changes take effect when you save. The page doesn't change what the game client
 shows: a package you put on sale must exist in the client script, and a changed
 price is charged, but the client still shows the price of its script.
+
+### Exporting a catalog for MuMain
+
+An authenticated administrator can download a generated MuMain catalog from
+**Game configuration → Cash shop**, using **Download File: Script version**.
+The ZIP contains versioned `Data/InGameShopScript` files, an empty banner list
+(no advertising), and `cash-shop-source.json` with the exported IDs, prices,
+quantities, language and file hashes. Save changes before downloading: pending
+editor changes are excluded and remain in the editor.
+
+This creates a new catalog for MuMain from OpenMU's saved configuration. It
+preserves package/product/price sequence numbers, currencies, bundle prices,
+price options and sale/gift flags. It is not a reconstruction of MuEx's custom
+catalog or a verified replacement for an original Season 6 client. No currency
+or price is inferred from third-party scripts. Names use the current admin panel
+language; missing translations follow the resource's normal fallback.
+
+First extract the ZIP into a separate MuMain client candidate and keep its source
+manifest. Do not overwrite a stable client. When changing the server catalog,
+assign a new script version and redistribute the matching files. The exporter
+does not change the server version, enable products, implement expiring items,
+or deliver the download to players automatically. Each target server still
+checks sale permissions, supported delivery plugins and balances.
+
+Export fails if the catalog has duplicate or conflicting identifiers, invalid
+prices/quantities/items, text which cannot fit safely in the client, or a layout
+MuMain cannot represent. In particular, a product/price pair shared across
+packages must describe the same product, and all price options of a non-bundle
+package must share the product sequence. Correct the catalog rather than
+renumbering identifiers already used by storage items.
+
+After installing a matching catalog, verify displayed names, currencies, prices
+and quantities, then purchase, gift, storage withdrawal and rejection conditions
+with test accounts. A successful export is not transaction or persistence
+verification. Keep MuEx's `InGameShop*.txt` files for research: renaming them to
+`IBS*.txt` does not convert their custom format.
 
 ## Buying
 
@@ -217,6 +266,16 @@ on the **Plugins** page:
 An item can't be used when its effect is already applied, for example when the
 vault is already extended; it stays in the storage then. A new inventory
 extension can be used after selecting the character again.
+
+After buying a vault extension, reopen the warehouse to use the additional page.
+Each page has its own placement boundaries: an item's cells must fit entirely
+inside one page. Items saved across the page boundary by an older server can
+still be withdrawn or moved to a valid position.
+
+Character creation checks the account's unlock for each restricted class on the
+server. Unlocking one class does not permit creating another restricted class.
+A character card's unlock permits creation without a high-level character on
+the account; base classes without an unlock requirement remain available.
 
 The plugin *UnlockSummonerAtLevel1* unlocks the Summoner for every account,
 which makes the Summoner Character Card useless. Deactivate that plugin if you

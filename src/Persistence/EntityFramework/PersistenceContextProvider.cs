@@ -232,7 +232,7 @@ public class PersistenceContextProvider : IMigratableDatabaseContextProvider
     }
 
     /// <inheritdoc />
-    public IContext CreateNewTradeContext()
+    public ITradeContext CreateNewTradeContext()
     {
         return new CachingEntityFrameworkContext(new TradeContext(), this.RepositoryProvider, null, this._loggerFactory.CreateLogger<CachingEntityFrameworkContext>());
     }

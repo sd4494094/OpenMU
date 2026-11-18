@@ -143,6 +143,32 @@ internal partial class Character : MUnique.OpenMU.DataModel.Entities.Character, 
         }
     }
 
+    /// <summary>
+    /// Gets or sets the identifier of <see cref="RecoveryStorage"/>.
+    /// </summary>
+    public Guid? RecoveryStorageId { get; set; }
+
+    /// <summary>
+    /// Gets the raw object of <see cref="RecoveryStorage" />.
+    /// </summary>
+    [ForeignKey(nameof(RecoveryStorageId))]
+    public ItemStorage RawRecoveryStorage
+    {
+        get => base.RecoveryStorage as ItemStorage;
+        set => base.RecoveryStorage = value;
+    }
+
+    /// <inheritdoc/>
+    [NotMapped]
+    public override MUnique.OpenMU.DataModel.Entities.ItemStorage RecoveryStorage
+    {
+        get => base.RecoveryStorage;set
+        {
+            base.RecoveryStorage = value;
+            this.RecoveryStorageId = this.RawRecoveryStorage?.Id;
+        }
+    }
+
 
     /// <inheritdoc/>
     public override bool Equals(object obj)

@@ -18,6 +18,8 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
     // All contexts of one in-memory database share this lock.
     private static readonly ConditionalWeakTable<InMemoryRepositoryProvider, AsyncLock> LinkLocks = new();
 
+    private static readonly ConditionalWeakTable<InMemoryRepositoryProvider, AsyncLock> CashShopPurchaseLocks = new();
+
     /// <summary>
     /// Initializes a new instance of the <see cref="PlayerInMemoryContext"/> class.
     /// </summary>
@@ -34,6 +36,32 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
         return accounts.Where(account => account.IsBot || account.LoginName.StartsWith(generatedLoginPrefix, StringComparison.Ordinal))
             .Select(account => new BotAccountSummary(account.LoginName, account.IsBot,
                 account.Characters.ToDictionary(character => character.CharacterSlot, character => character.Name))).ToArray();
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<DataModel.Entities.Item>> GetGroundItemPageAsync(GroundItemQuery query, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        query.Validate();
+        cancellationToken.ThrowIfCancellationRequested();
+        // This provider deliberately shares its live repository objects between contexts;
+        // unlike the database provider, it does not emulate detached durable snapshots.
+        var storages = await this.Provider.GetRepository<ItemStorage>().GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var owned = storages.SelectMany(storage => storage.Items).Select(item => item.GetId()).ToHashSet();
+        var items = await this.Provider.GetRepository<Item>().GetAllAsync(cancellationToken).ConfigureAwait(false);
+        return items.Where(item => !owned.Contains(item.GetId()) && item.GroundDelivery is { } delivery
+                && delivery.HostServerId == query.HostServerId
+                && (query.MapDefinitionId is null || delivery.MapDefinitionId == query.MapDefinitionId)
+                && (query.IncludeAllInstances || delivery.MapInstanceId == query.MapInstanceId)
+                && (query.ExpiresAfterUtc is null || delivery.ExpiresAt > query.ExpiresAfterUtc)
+                && (query.ExpiresBeforeUtc is null || delivery.ExpiresAt <= query.ExpiresBeforeUtc)
+                && (query.AfterExpiresAtUtc is null || delivery.ExpiresAt > query.AfterExpiresAtUtc
+                    || (delivery.ExpiresAt == query.AfterExpiresAtUtc && delivery.GetId().CompareTo(query.AfterDeliveryId!.Value) > 0)))
+            .OrderBy(item => item.GroundDelivery!.ExpiresAt)
+            .ThenBy(item => item.GroundDelivery!.GetId())
+            .Take(query.Limit)
+            .Cast<DataModel.Entities.Item>()
+            .ToList();
     }
 
     /// <inheritdoc/>
@@ -176,6 +204,34 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
             .OrderBy(item => item.AddedAt)
             .ThenBy(item => item.Id)
             .ToList();
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<bool> TrySaveCashShopPurchaseAsync(
+        Guid senderAccountId,
+        Guid storageAccountId,
+        int itemCount,
+        int maximumStorageItems,
+        Action createPurchase,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(itemCount);
+        using var gate = await CashShopPurchaseLocks.GetValue(this.Provider, _ => new AsyncLock()).LockAsync(cancellationToken).ConfigureAwait(false);
+        if (maximumStorageItems > 0
+            && (long)(await this.GetCashShopStorageItemsAsync(storageAccountId, cancellationToken).ConfigureAwait(false)).Count + itemCount > maximumStorageItems)
+        {
+            return false;
+        }
+
+        // In-memory repositories expose new objects immediately. Create them only after
+        // the shared capacity gate, so competing senders cannot reserve the same slots.
+        createPurchase();
+        if (!await this.SaveChangesAsync(cancellationToken).ConfigureAwait(false))
+        {
+            throw new InvalidOperationException("The cash shop purchase could not be saved.");
+        }
+
+        return true;
     }
 
     /// <inheritdoc />

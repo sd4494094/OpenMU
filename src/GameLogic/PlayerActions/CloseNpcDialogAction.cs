@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.PlayerActions;
 
 using MUnique.OpenMU.GameLogic.Resets;
+using MUnique.OpenMU.GameLogic.Views.Inventory;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 
 /// <summary>
@@ -22,6 +23,25 @@ public class CloseNpcDialogAction
     {
         using var loggerScope = player.Logger.BeginScope(this.GetType());
         var npc = player.OpenedNpc;
+        var returnedTemporaryItems = false;
+        if (npc is not null
+            && player.PlayerState.CurrentState == PlayerState.NpcDialogOpened
+            && player.TemporaryStorage is { } temporaryStorage
+            && temporaryStorage.Items.Any())
+        {
+            // Temporary items have no persistent storage owner. Return them before leaving
+            // the dialog, so later loot or vault withdrawals cannot occupy their bag space.
+            // Use the current items, not the pre-mix backup which may contain consumed inputs.
+            if (player.Inventory is not { } inventory
+                || !await inventory.TryTakeAllAsync(temporaryStorage).ConfigureAwait(false))
+            {
+                await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.InventoryNotEnoughSpace)).ConfigureAwait(false);
+                return;
+            }
+
+            returnedTemporaryItems = true;
+        }
+
         if (npc != null && await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false))
         {
             player.Logger.LogDebug($"Player {player.SelectedCharacter?.Name} closes NPC {player.OpenedNpc}");
@@ -32,9 +52,13 @@ public class CloseNpcDialogAction
             {
                 // The backup which was taken when the crafting dialog opened only guards a disconnect while
                 // it's open. Kept beyond, a disconnect would roll the inventory back to that moment, losing or
-                // duplicating everything since. Items left in the machine are returned through the temporary
-                // storage instead.
+                // duplicating everything since. Items left in the machine have now been returned.
                 player.BackupInventory = null;
+            }
+
+            if (returnedTemporaryItems)
+            {
+                await player.InvokeViewPlugInAsync<IUpdateInventoryListPlugIn>(p => p.UpdateInventoryListAsync()).ConfigureAwait(false);
             }
 
             await player.InvokeViewPlugInAsync<INpcDialogClosedPlugIn>(p => p.DialogClosedAsync(npc.Definition)).ConfigureAwait(false);

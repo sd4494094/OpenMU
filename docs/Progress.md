@@ -36,8 +36,8 @@ complexity and effort). Complexity 0 means we wont implement it.
 | *TradeOK*                     | 0x3C              | 100%     | 6          |                                               |
 | *TradeCancel*                 | 0x3D              | 100%     | 3          |                                               |
 | *PersonalShopGroup*           | 0x3F              | 100%     | 10         |                                               |
-| *PartyRequest*                | 0x40              | 100%     | 2          |                                               |
-| *PartyRequestAnswer*          | 0x41              | 100%     | 4          |                                               |
+| *PartyRequest*                | 0x40              | 100%     | 2          | Reports full party before inviting             |
+| *PartyRequestAnswer*          | 0x41              | 100%     | 4          | Reports lost party vacancy to both players     |
 | *RequestPartyList*            | 0x42              | 100%     | 5          |                                               |
 | *PartyKick*                   | 0x43              | 100%     | 3          |                                               |
 | *GuildJoinRequest*            | 0x50              | 100%     | 1          |                                               |
@@ -117,6 +117,7 @@ complexity and effort). Complexity 0 means we wont implement it.
 |   - *Character delete request* | 0xF302            |      |          |                                               |
 |   - *Character select request* | 0xF303            |      |          |                                               |
 |   - *Character stat increase request* | 0xF306            |      |          |                                               |
+|   - *Inventory refresh request* | 0xF310 | | | Encrypted request; refreshes inventory and personal store while in the world. |
 |   - *Character focus request* | 0xF315            |      |          |                                               |
 |   - *Save key configuration* | 0xF330            |      |          |                                               |
 |   - *Master skill level increase request* | 0xF352            |      |          |                                               

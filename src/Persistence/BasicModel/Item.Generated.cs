@@ -103,6 +103,24 @@ public partial class Item : MUnique.OpenMU.DataModel.Entities.Item, IIdentifiabl
         set => base.StorePriceItemDefinition = value;
     }
 
+    /// <summary>
+    /// Gets the raw object of <see cref="GroundDelivery" />.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("groundDelivery")]
+    public GroundItemDelivery RawGroundDelivery
+    {
+        get => base.GroundDelivery as GroundItemDelivery;
+        set => base.GroundDelivery = value;
+    }
+
+    /// <inheritdoc/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public override MUnique.OpenMU.DataModel.Entities.GroundItemDelivery GroundDelivery
+    {
+        get => base.GroundDelivery;
+        set => base.GroundDelivery = value;
+    }
+
     /// <inheritdoc />
     public override MUnique.OpenMU.DataModel.Entities.Item Clone(MUnique.OpenMU.DataModel.Configuration.GameConfiguration gameConfiguration)
     {

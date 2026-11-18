@@ -39,7 +39,7 @@ public class JsonQueryBuilder
         var stringBuilder = new StringBuilder();
         stringBuilder.Append("select result.\"Id\" \"$id\", result.\"Id\" id, row_to_json(result) as ").AppendLine(entityType.GetTableName())
             .AppendLine("from (");
-        this.AddTypeToQuery(entityType, stringBuilder, "a");
+        this.AddTypeToQuery(entityType, stringBuilder, "a", isRoot: true);
         stringBuilder.AppendLine(") result");
         var result = stringBuilder.ToString();
 
@@ -61,11 +61,29 @@ public class JsonQueryBuilder
         return entityType.GetNavigations();
     }
 
-    private void AddTypeToQuery(IEntityType entityType, StringBuilder stringBuilder, string alias)
+    /// <summary>
+    /// Gets the source of the root aggregate. Specialized loaders may provide a bounded
+    /// database page here; nested navigations still use their own original tables.
+    /// </summary>
+    /// <param name="entityType">The root entity type.</param>
+    /// <returns>The trusted table or derived table expression.</returns>
+    protected virtual string GetRootSource(IEntityType entityType) => $"{entityType.GetSchema()}.\"{entityType.GetTableName()}\"";
+
+    private void AddTypeToQuery(IEntityType entityType, StringBuilder stringBuilder, string alias, bool isRoot = false)
     {
         stringBuilder.Append("select ").Append(alias).Append(".\"Id\" as \"$id\", ").Append(alias).Append(".*");
         this.AddNavigationsToQuery(entityType, stringBuilder, alias);
-        stringBuilder.Append(" from ").Append(entityType.GetSchema()).Append('.').Append('"').Append(entityType.GetTableName()).Append("\" ").AppendLine(alias);
+        stringBuilder.Append(" from ");
+        if (isRoot)
+        {
+            stringBuilder.Append(this.GetRootSource(entityType));
+        }
+        else
+        {
+            stringBuilder.Append(entityType.GetSchema()).Append('.').Append('"').Append(entityType.GetTableName()).Append('"');
+        }
+
+        stringBuilder.Append(' ').AppendLine(alias);
     }
 
     private void AddNavigationsToQuery(IEntityType entityType, StringBuilder stringBuilder, string parentAlias)

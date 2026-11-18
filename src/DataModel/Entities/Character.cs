@@ -253,6 +253,13 @@ public class Character
     public virtual ItemStorage? Inventory { get; set; }
 
     /// <summary>
+    /// Gets or sets items which could not return from a temporary dialog on logout.
+    /// They remain owned by this character until its inventory has sufficient space.
+    /// </summary>
+    [MemberOfAggregate]
+    public virtual ItemStorage? RecoveryStorage { get; set; }
+
+    /// <summary>
     /// Gets or sets the drop item groups.
     /// </summary>
     public virtual ICollection<DropItemGroup> DropItemGroups { get; protected set; } = null!;

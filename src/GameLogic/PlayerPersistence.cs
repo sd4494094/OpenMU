@@ -24,9 +24,10 @@ using Nito.AsyncEx;
 /// Invariant: never acquire another player's persistence lock (via their
 /// <see cref="Player.SaveProgressAsync"/> or <see cref="RunExclusiveAsync{T}"/>) from inside a
 /// packet handler, which already holds this player's lock, unless a global lock order is enforced.
-/// Today only the trade accept does a cross-player save, and it cannot form a cycle because a trade
-/// has a single accepting side (so the A-then-B acquisition order has no concurrent B-then-A
-/// counterpart). A second cross-player caller with the opposite order could deadlock.
+/// Trade acceptance acquires both persistence locks in their stable ID order before taking
+/// either trade lock. Acquiring the partner's persistence lock while already holding a trade
+/// lock would deadlock with a partner packet holding its persistence lock and waiting for the trade.
+/// Cross-player operations must enter through the paired overload before holding either lock.
 /// </para>
 /// </remarks>
 internal sealed class PlayerPersistence
@@ -65,7 +66,7 @@ internal sealed class PlayerPersistence
         }
 
         return await this.RunExclusiveAsync(
-            () => this._player.PersistenceContext.SaveChangesAsync(cancellationToken),
+            () => this.SaveChangesAsync(cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -119,6 +120,69 @@ internal sealed class PlayerPersistence
         finally
         {
             this._lockHeld.Value = false;
+        }
+    }
+
+    /// <summary>
+    /// Runs an operation with two players' persistence locks in a stable order.
+    /// </summary>
+    /// <param name="other">The other player's persistence coordinator.</param>
+    /// <param name="operation">The operation to run exclusively.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The task.</returns>
+    /// <exception cref="InvalidOperationException">Only one of the two locks is already held by this flow.</exception>
+    public ValueTask RunExclusiveAsync(PlayerPersistence other, Func<ValueTask> operation, CancellationToken cancellationToken = default)
+    {
+        if (ReferenceEquals(this, other) || (this._lockHeld.Value && other._lockHeld.Value))
+        {
+            return this.RunExclusiveAsync(operation, cancellationToken);
+        }
+
+        if (this._lockHeld.Value || other._lockHeld.Value)
+        {
+            throw new InvalidOperationException("Acquire both persistence locks before entering a single-player persistence scope.");
+        }
+
+        var first = this._lock.Id < other._lock.Id ? this : other;
+        var second = ReferenceEquals(first, this) ? other : this;
+        return first.RunExclusiveAsync(() => second.RunExclusiveAsync(operation, cancellationToken), cancellationToken);
+    }
+
+    private async ValueTask<bool> SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        if (this._player.PlayerState.CurrentState != PlayerState.NpcDialogOpened
+            || this._player.OpenedNpc?.Definition.ItemCraftings.Any() != true
+            || this._player.SelectedCharacter is not { } character
+            || this._player.TemporaryStorage is not { } temporary
+            || !temporary.Items.Any())
+        {
+            return await this._player.PersistenceContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        // The machine's storage is deliberately transient. During a save, give its current
+        // items a persistent character owner, in the same commit as payment and consumed
+        // ingredients. A new session can then recover them even if the process stops before
+        // the dialog closes. Trade reservations must never enter this path.
+        var recovery = character.RecoveryStorage ??= this._player.PersistenceContext.CreateNew<ItemStorage>();
+        var staged = temporary.Items.Where(item => !recovery.Items.Contains(item)).ToList();
+        foreach (var item in staged)
+        {
+            recovery.Items.Add(item);
+        }
+
+        try
+        {
+            return await this._player.PersistenceContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            // Keep the live dialog authoritative. Leaving these references here would let
+            // normal recovery return a second copy after the item is moved or consumed.
+            // Every later save stages the current dialog contents again under this gate.
+            foreach (var item in staged)
+            {
+                recovery.Items.Remove(item);
+            }
         }
     }
 }
