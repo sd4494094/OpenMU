@@ -83,8 +83,13 @@ public class TalkNpcAction
 
                 if (!eventArgs.HasBeenHandled)
                 {
-                    await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TalkingNotImplementedFormat), npcStats.Number, npcStats.Designation).ConfigureAwait(false);
+                    if (npcStats.Number is not (EnterBarracksOfBalgassAction.WerewolfNpcNumber or EnterBalgassRefugeeAction.GatekeeperNpcNumber))
+                    {
+                        await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.TalkingNotImplementedFormat), npcStats.Number, npcStats.Designation).ConfigureAwait(false);
+                    }
 
+                    // The client shows the quest entrance dialogs and sends a separate
+                    // request on confirmation. Keep OpenedNpc for that request.
                     await player.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false);
                 }
                 else if (!eventArgs.LeavesDialogOpen)

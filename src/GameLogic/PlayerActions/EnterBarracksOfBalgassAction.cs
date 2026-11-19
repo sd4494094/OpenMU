@@ -9,10 +9,14 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions;
 /// </summary>
 public class EnterBarracksOfBalgassAction : EnterQuestMapAction
 {
+    /// <summary>
+    /// The NPC for which Season 3 and later clients show the barracks entrance dialog.
+    /// </summary>
+    internal const short WerewolfNpcNumber = 407;
+
     private const byte InfiltrationOfBarracksOfBalgassQuestNumber = 5;
     private const byte IntoTheDarknessZoneQuestNumber = 6;
     private const byte LegacyQuestGroup = 0;
-    private const short WerewolfNpcNumber = 407;
     private const short BarracksOfBalgassMapNumber = 41;
 
     /// <summary>

@@ -9,9 +9,13 @@ namespace MUnique.OpenMU.GameLogic.PlayerActions;
 /// </summary>
 public class EnterBalgassRefugeeAction : EnterQuestMapAction
 {
+    /// <summary>
+    /// The NPC for which Season 3 and later clients show the refuge entrance dialog.
+    /// </summary>
+    internal const short GatekeeperNpcNumber = 408;
+
     private const byte IntoTheDarknessZoneQuestNumber = 6;
     private const byte LegacyQuestGroup = 0;
-    private const short GatekeepterNpcNumber = 408;
     private const short BalgassRefugeeMapNumber = 42;
 
     /// <summary>
@@ -19,7 +23,7 @@ public class EnterBalgassRefugeeAction : EnterQuestMapAction
     /// </summary>
     public EnterBalgassRefugeeAction()
         : base(
-            GatekeepterNpcNumber,
+            GatekeeperNpcNumber,
             0,
             BalgassRefugeeMapNumber,
             LegacyQuestGroup,
