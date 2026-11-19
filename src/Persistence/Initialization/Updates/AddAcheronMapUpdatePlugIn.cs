@@ -12,7 +12,7 @@ using MUnique.OpenMU.Persistence.Initialization.Version075.Maps;
 using MUnique.OpenMU.PlugIns;
 
 /// <summary>
-/// Adds the verified Acheron map 91 terrain and internal gates to the game configuration.
+/// Adds the Acheron terrain, internal gates and menu warp to the game configuration.
 /// </summary>
 [PlugIn]
 [Display(Name = UpdateName, Description = UpdateDescription)]
@@ -20,8 +20,9 @@ using MUnique.OpenMU.PlugIns;
 public sealed class AddAcheronMapUpdatePlugIn : UpdatePlugInBase
 {
     private const byte MapNumber = 91;
+    private const int WarpIndex = 40;
     private const string UpdateName = "Acheron map 91";
-    private const string UpdateDescription = "Adds the Acheron terrain and internal gates for the MuEx client.";
+    private const string UpdateDescription = "Adds the Acheron terrain, internal gates and menu warp for the MuEx client.";
     private static readonly (short Number, GateRectangle Entrance, GateRectangle Exit)[] InternalGates =
     [
         (418, new(26, 168, 28, 172), new(112, 161, 114, 166)),
@@ -43,6 +44,12 @@ public sealed class AddAcheronMapUpdatePlugIn : UpdatePlugInBase
     public override DateTime CreatedAt => new(2026, 11, 19, 0, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
+    public override int Version => 2;
+
+    /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 19, 21, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
     public override bool IsMandatory => false;
 
     /// <inheritdoc />
@@ -51,11 +58,32 @@ public sealed class AddAcheronMapUpdatePlugIn : UpdatePlugInBase
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
     {
-        if (gameConfiguration.Maps.Any(map => map.Number == MapNumber))
+        var map = gameConfiguration.Maps.FirstOrDefault(map => map.Number == MapNumber)
+                  ?? CreateMap(context, gameConfiguration);
+        if (gameConfiguration.WarpList.Any(warp => warp.Index == WarpIndex))
         {
             return ValueTask.CompletedTask;
         }
 
+        // The MuEx move list entry 40 targets gate 453, a non-spawn exit in Acheron.
+        var target = context.CreateNew<ExitGate>();
+        target.Map = map;
+        new GateRectangle(62, 213, 64, 214).SetBounds(target);
+        target.Direction = Direction.South;
+        map.ExitGates.Add(target);
+
+        var warp = context.CreateNew<WarpInfo>();
+        warp.Index = WarpIndex;
+        warp.Name = map.Name;
+        warp.Costs = 2_000;
+        warp.LevelRequirement = 100;
+        warp.Gate = target;
+        gameConfiguration.WarpList.Add(warp);
+        return ValueTask.CompletedTask;
+    }
+
+    private static GameMapDefinition CreateMap(IContext context, GameConfiguration gameConfiguration)
+    {
         var terrain = TerrainUpdateHelper.ReadTerrainResource("Terrain92.att")
             ?? throw new InvalidOperationException("The Acheron server terrain resource is missing.");
         var safezoneMap = gameConfiguration.Maps.Single(map => map.Number == Lorencia.Number);
@@ -81,7 +109,7 @@ public sealed class AddAcheronMapUpdatePlugIn : UpdatePlugInBase
         }
 
         gameConfiguration.Maps.Add(map);
-        return ValueTask.CompletedTask;
+        return map;
     }
 
     private readonly record struct GateRectangle(byte X1, byte Y1, byte X2, byte Y2)

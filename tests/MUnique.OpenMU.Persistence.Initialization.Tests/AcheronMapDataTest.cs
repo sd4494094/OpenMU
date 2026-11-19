@@ -30,19 +30,75 @@ internal class AcheronMapDataTest
         var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
         var update = new AddAcheronMapUpdatePlugIn();
         Assert.That(configuration.Maps.Any(map => map.Number == 91), Is.False);
+        Assert.That(configuration.WarpList.Any(warp => warp.Index == 40), Is.False);
         Assert.That((await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Any(log => log.Key == update.Key), Is.False);
 
         await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
         var map = configuration.Maps.Single(map => map.Number == 91);
         this.AssertMapData(map);
+        var warp = configuration.WarpList.Single(candidate => candidate.Index == 40);
+        AssertWarp(warp, map);
 
         var firstGate = map.EnterGates.Single(gate => gate.Number == 418);
         firstGate.LevelRequirement = 120;
+        warp.Costs = 4_000;
         await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
         Assert.That(configuration.Maps.Single(map => map.Number == 91), Is.SameAs(map));
         Assert.That(firstGate.LevelRequirement, Is.EqualTo(120));
         Assert.That(map.EnterGates, Has.Count.EqualTo(4));
-        Assert.That(map.ExitGates, Has.Count.EqualTo(4));
+        Assert.That(map.ExitGates, Has.Count.EqualTo(5));
+        Assert.That(configuration.WarpList.Single(candidate => candidate.Index == 40), Is.SameAs(warp));
+        Assert.That(warp.Costs, Is.EqualTo(4_000));
+    }
+
+    /// <summary>
+    /// Upgrades an installed version-one Acheron map and keeps its internal gates.
+    /// </summary>
+    [Test]
+    public async Task AddsMenuWarpToVersionOneAsync()
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        var initialize = new VersionSeasonSix.DataInitialization(provider, new NullLoggerFactory());
+        await initialize.CreateInitialDataAsync(1, true).ConfigureAwait(false);
+        using var context = provider.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var update = new AddAcheronMapUpdatePlugIn();
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        var map = configuration.Maps.Single(candidate => candidate.Number == 91);
+        var oldGate = map.EnterGates.First();
+        var warp = configuration.WarpList.Single(candidate => candidate.Index == 40);
+        configuration.WarpList.Remove(warp);
+        map.ExitGates.Remove(warp.Gate!);
+        var installed = (await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Single(entry => entry.Key == update.Key);
+        installed.Version = 1;
+
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+
+        Assert.That(installed.Version, Is.EqualTo(2));
+        Assert.That(configuration.Maps.Single(candidate => candidate.Number == 91), Is.SameAs(map));
+        Assert.That(map.EnterGates, Does.Contain(oldGate));
+        Assert.That(map.ExitGates, Has.Count.EqualTo(5));
+        AssertWarp(configuration.WarpList.Single(candidate => candidate.Index == 40), map);
+    }
+
+    private static void AssertWarp(WarpInfo warp, GameMapDefinition map)
+    {
+        var gate = warp.Gate!;
+        Assert.That(gate.Map, Is.SameAs(map));
+        Assert.That(gate.IsSpawnGate, Is.False);
+        Assert.That(gate.Direction, Is.EqualTo(Direction.South));
+        Assert.That(warp.Name.Value, Is.EqualTo(map.Name.Value));
+        Assert.That(warp.LevelRequirement, Is.EqualTo(100));
+        Assert.That(warp.Costs, Is.EqualTo(2_000));
+        Assert.That(new[] { gate.X1, gate.Y1, gate.X2, gate.Y2 }, Is.EqualTo(new byte[] { 62, 213, 64, 214 }));
+        var terrain = new GameMapTerrain(map);
+        for (int x = gate.X1; x <= gate.X2; ++x)
+        {
+            for (int y = gate.Y1; y <= gate.Y2; ++y)
+            {
+                Assert.That(terrain.WalkMap[x, y] && terrain.SafezoneMap[x, y], Is.True);
+            }
+        }
     }
 
     private void AssertMapData(GameMapDefinition map)
@@ -56,7 +112,7 @@ internal class AcheronMapDataTest
         };
         var gates = map.EnterGates.OrderBy(gate => gate.Number).ToList();
         Assert.That(gates.Select(gate => gate.Number), Is.EqualTo(new short[] { 418, 420, 422, 424 }));
-        Assert.That(map.ExitGates, Has.Count.EqualTo(4));
+        Assert.That(map.ExitGates, Has.Count.EqualTo(5));
         Assert.That(map.ExitGates.Any(gate => gate.IsSpawnGate), Is.False);
         Assert.That(map.MonsterSpawns, Is.Empty);
         Assert.That(map.SafezoneMap?.Number, Is.EqualTo(0));
