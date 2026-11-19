@@ -24,8 +24,9 @@ internal static class TestGameServers
     /// its game context starts timers.
     /// </summary>
     /// <param name="gameConfiguration">The game configuration.</param>
+    /// <param name="loginServer">The login server to use, or <c>null</c> for a mock.</param>
     /// <returns>The game server.</returns>
-    public static GameServer Create(BasicModel.GameConfiguration gameConfiguration)
+    public static GameServer Create(BasicModel.GameConfiguration gameConfiguration, ILoginServer? loginServer = null)
     {
         return new GameServer(
             new BasicModel.GameServerDefinition
@@ -36,7 +37,7 @@ internal static class TestGameServers
             },
             new Mock<IGuildServer>().Object,
             new Mock<IEventPublisher>().Object,
-            new Mock<ILoginServer>().Object,
+            loginServer ?? new Mock<ILoginServer>().Object,
             new InMemoryPersistenceContextProvider(),
             new Mock<IFriendServer>().Object,
             NullLoggerFactory.Instance,

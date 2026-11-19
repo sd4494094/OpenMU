@@ -8,7 +8,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.MuHelper;
 using MUnique.OpenMU.GameLogic.PlayerActions;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameServer;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.InMemory;
@@ -95,6 +98,81 @@ public class LoginServerRegistrationTest
 
         loginServer.Verify(server => server.LogOffAsync(LoginName, It.IsAny<byte>()), Times.Once);
         Assert.That(player.ReleaseLoginServerRegistration(), Is.Null);
+    }
+
+    /// <summary>
+    /// Verifies that running out of Zen cannot block disconnect and that reconnect waits for the old save.
+    /// </summary>
+    [Test]
+    public async ValueTask HeartbeatTimeoutAfterHelperRunsOutOfZenReleasesRegistrationAsync()
+    {
+        var loginServer = new LoginServer.LoginServer();
+        var config = TestGameServers.CreateStartableConfiguration();
+        config.RecoveryInterval = int.MaxValue;
+        config.Maps.Add(new BasicModel.GameMapDefinition { TerrainData = new byte[ushort.MaxValue + 3] });
+        var server = TestGameServers.Create(config, loginServer);
+        await using var serverLifetime = server.ConfigureAwait(false);
+        var context = (GameServerContext)server.Context;
+        context.ServerConfiguration.Maps.Add(config.Maps.Single());
+        var helperFeature = context.FeaturePlugIns.GetPlugIn<MuHelperFeaturePlugIn>();
+        if (helperFeature is null)
+        {
+            helperFeature = new MuHelperFeaturePlugIn();
+            context.FeaturePlugIns.AddPlugIn(helperFeature, true);
+        }
+
+        helperFeature.Configuration = new MuHelperConfiguration { PayInterval = TimeSpan.FromMilliseconds(20) };
+
+        AsyncEventHandler<PlayerConnectedEventArgs>? onConnected = null;
+        var listener = new Mock<IGameServerListener>();
+        listener.SetupAdd(l => l.PlayerConnected += It.IsAny<AsyncEventHandler<PlayerConnectedEventArgs>>())
+            .Callback<AsyncEventHandler<PlayerConnectedEventArgs>>(handler => onConnected = handler);
+        server.AddListener(listener.Object);
+        var player = new LoginTestPlayer(context);
+        await onConnected!(new PlayerConnectedEventArgs(player)).ConfigureAwait(false);
+        var character = PlayerTestHelper.CreateCharacter(context);
+        await PlayerTestHelper.EnterWorldAsync(player, character).ConfigureAwait(false);
+        player.Attributes![Stats.Level] = 1;
+        player.Money = 20;
+        Assert.That(await loginServer.TryLoginAsync(LoginName, server.Id).ConfigureAwait(false), Is.True);
+        player.SetLoginServerRegistration(LoginName);
+
+        Assert.That(await player.MuHelper.TryStartAsync().ConfigureAwait(false), Is.True);
+        Assert.That(player.Money, Is.Zero);
+        await WaitUntilAsync(() => player.Attributes[Stats.IsMuHelperActive] == 0).ConfigureAwait(false);
+
+        var continueSaving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var holdSaveLock = player.RunPersistenceExclusiveAsync(() => new ValueTask(continueSaving.Task)).AsTask();
+        var detection = new LostConnectionDetectionPlugIn
+        {
+            Configuration = new LostConnectionDetectionConfiguration { Timeout = TimeSpan.FromTicks(1) },
+        };
+        player.ReportAlive();
+        detection.ForceStart();
+        var disconnect = detection.ExecuteTaskAsync(context).AsTask();
+        try
+        {
+            await WaitUntilAsync(() => player.SelectedCharacter is null).ConfigureAwait(false);
+            Assert.That(await loginServer.TryLoginAsync(LoginName, server.Id).ConfigureAwait(false), Is.False);
+        }
+        finally
+        {
+            continueSaving.SetResult();
+            await holdSaveLock.ConfigureAwait(false);
+        }
+
+        await disconnect.WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+        Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.Finished));
+        Assert.That(await loginServer.TryLoginAsync(LoginName, server.Id).ConfigureAwait(false), Is.True);
+    }
+
+    private static async ValueTask WaitUntilAsync(Func<bool> condition)
+    {
+        using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (!condition())
+        {
+            await Task.Delay(10, timeout.Token).ConfigureAwait(false);
+        }
     }
 
     private async ValueTask<GameServerContext> CreateGameServerContextAsync(ILoginServer loginServer)

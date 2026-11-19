@@ -4,12 +4,12 @@
 
 namespace MUnique.OpenMU.GameLogic.MuHelper;
 
-using System.Diagnostics;
 using System.Threading;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.GameLogic.PlugIns.ChatCommands;
 using MUnique.OpenMU.GameLogic.Views.MuHelper;
+using Nito.AsyncEx;
 
 /// <summary>
 /// Implements the logic of the 'MU Helper'.
@@ -32,6 +32,8 @@ public class MuHelper : AsyncDisposable
     /// </summary>
     private readonly MuHelperConfiguration _configuration;
 
+    private readonly AsyncLock _lifecycleLock = new();
+
     private CancellationTokenSource? _stopCts;
     private Task? _runTask;
     private DateTime _startTimestamp;
@@ -51,7 +53,8 @@ public class MuHelper : AsyncDisposable
     /// </summary>
     public async ValueTask<bool> TryStartAsync()
     {
-        if (this._runTask is not null)
+        using var gate = await this._lifecycleLock.LockAsync().ConfigureAwait(false);
+        if (this._runTask is { IsCompleted: false })
         {
             await this._player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.MuHelperAlreadyRunning)).ConfigureAwait(false);
             return false;
@@ -84,8 +87,7 @@ public class MuHelper : AsyncDisposable
         this._player.Attributes?.AddElement(ActiveElement, Stats.IsMuHelperActive);
         this._stopCts?.Dispose();
         this._stopCts = new CancellationTokenSource();
-        var cts = this._stopCts.Token;
-        this._runTask = this.RunLoopAsync(cts);
+        this._runTask = this.RunLoopAsync(this._stopCts.Token);
         return true;
     }
 
@@ -94,35 +96,17 @@ public class MuHelper : AsyncDisposable
     /// </summary>
     public async ValueTask StopAsync()
     {
-        if (this._runTask is not { } runTask
-            || this._stopCts is not { } stopCts)
+        using var gate = await this._lifecycleLock.LockAsync().ConfigureAwait(false);
+        if (this._runTask is not { } runTask || this._stopCts is not { } stopCts)
         {
             return;
         }
 
-        try
-        {
-            this._player.Attributes?.RemoveElement(ActiveElement, Stats.IsMuHelperActive);
-
-            await stopCts.CancelAsync().ConfigureAwait(false);
-
-            // Skip awaiting the loop task if we are currently executing inside it
-            // (i.e. CollectAsync triggered StopAsync), to avoid a self-deadlock.
-            if (runTask.Id != Task.CurrentId)
-            {
-                await runTask.ConfigureAwait(false);
-            }
-
-            this._runTask = null;
-            stopCts.Dispose();
-            this._stopCts = null;
-
-            await this._player.InvokeViewPlugInAsync<IMuHelperStatusUpdatePlugIn>(p => p.StopAsync()).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            this._player.Logger.LogWarning(ex, "Exception during stopping the mu helper for {CharacterName}: {Error}", this._player.Name, ex.Message);
-        }
+        await stopCts.CancelAsync().ConfigureAwait(false);
+        await runTask.ConfigureAwait(false);
+        this._runTask = null;
+        this._stopCts = null;
+        stopCts.Dispose();
     }
 
     /// <inheritdoc />
@@ -145,36 +129,53 @@ public class MuHelper : AsyncDisposable
             }
 
             using var timer = new PeriodicTimer(this._configuration.PayInterval);
-            while (true)
+            while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false);
-                await this.CollectAsync().ConfigureAwait(false);
+                if (!await this.TryCollectAsync().ConfigureAwait(false))
+                {
+                    return;
+                }
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // expected when StopAsync cancels the token.
+            // StopAsync requested cancellation.
         }
         catch (Exception ex)
         {
-            Debug.Fail(ex.Message, ex.StackTrace);
+            this._player.Logger.LogWarning(ex, "MU Helper billing failed for {CharacterName}.", this._player.Name);
+        }
+        finally
+        {
+            // The billing task owns this cleanup. Calling StopAsync here would wait for this task itself.
+            try
+            {
+                this._player.Attributes?.RemoveElement(ActiveElement, Stats.IsMuHelperActive);
+                if (this._player.IsConnected)
+                {
+                    await this._player.InvokeViewPlugInAsync<IMuHelperStatusUpdatePlugIn>(p => p.StopAsync()).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                this._player.Logger.LogWarning(ex, "MU Helper cleanup failed for {CharacterName}.", this._player.Name);
+            }
         }
     }
 
     /// <summary>
-    /// Performs the money collection.
+    /// Collects the fee for the current interval.
     /// </summary>
-    private async ValueTask CollectAsync()
+    /// <returns>Whether the fee was paid and the helper can keep running.</returns>
+    private async ValueTask<bool> TryCollectAsync()
     {
         var amount = this.CalculateRequiredMoney();
-        if (amount > 0 && this._player.TryRemoveMoney(amount))
+        if (amount <= 0 || !this._player.TryRemoveMoney(amount))
         {
-            await this._player.InvokeViewPlugInAsync<IMuHelperStatusUpdatePlugIn>(p => p.ConsumeMoneyAsync((uint)amount)).ConfigureAwait(false);
+            return false;
         }
-        else
-        {
-            await this.StopAsync().ConfigureAwait(false);
-        }
+
+        await this._player.InvokeViewPlugInAsync<IMuHelperStatusUpdatePlugIn>(p => p.ConsumeMoneyAsync((uint)amount)).ConfigureAwait(false);
+        return true;
     }
 }
