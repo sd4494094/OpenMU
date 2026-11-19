@@ -2316,4 +2316,10 @@
   <data name="TalismanOfChaosAssembly" xml:space="preserve">
     <value>Talisman of Chaos Assembly</value>
   </data>
+  <data name="SpiritMapFragment" xml:space="preserve">
+    <value>Spirit Map Fragment</value>
+  </data>
+  <data name="SpiritMap" xml:space="preserve">
+    <value>Spirit Map</value>
+  </data>
 </root>

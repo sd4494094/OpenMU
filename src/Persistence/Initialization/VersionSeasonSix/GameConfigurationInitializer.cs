@@ -61,6 +61,7 @@ public class GameConfigurationInitializer : GameConfigurationInitializerBase
         new Orbs(this.Context, this.GameConfiguration).Initialize();
         new Scrolls(this.Context, this.GameConfiguration).Initialize();
         new EventTicketItems(this.Context, this.GameConfiguration).Initialize();
+        new AcheronEntryItems(this.Context, this.GameConfiguration).Initialize();
         new Wings(this.Context, this.GameConfiguration).Initialize();
         new Pets(this.Context, this.GameConfiguration).Initialize();
         new ExcellentOptions(this.Context, this.GameConfiguration).Initialize();

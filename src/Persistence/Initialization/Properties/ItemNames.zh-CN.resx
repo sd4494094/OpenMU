@@ -2316,4 +2316,10 @@
   <data name="TalismanOfChaosAssembly" xml:space="preserve">
     <value>混沌合成符咒</value>
   </data>
+  <data name="SpiritMapFragment" xml:space="preserve">
+    <value>精灵地图碎片</value>
+  </data>
+  <data name="SpiritMap" xml:space="preserve">
+    <value>精灵地图</value>
+  </data>
 </root>
