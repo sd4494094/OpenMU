@@ -12,6 +12,7 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.Initialization.Captions;
 using MUnique.OpenMU.Persistence.Initialization.Properties;
+using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.InMemory;
 
 /// <summary>
@@ -47,7 +48,7 @@ internal class ItemNameResourcesTests
     }
 
     /// <summary>
-    /// Every supported configuration initializes its item names from resources, and existing
+    /// Built-in items and optional MuEx materials get their names from resources, and existing
     /// neutral names can be linked and translated through the caption workflow.
     /// </summary>
     /// <param name="version">The configuration version.</param>
@@ -67,6 +68,11 @@ internal class ItemNameResourcesTests
         await initializer.CreateInitialDataAsync(1, false).ConfigureAwait(false);
         using var context = provider.CreateNewContext();
         var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        if (initializer is VersionSeasonSix.DataInitialization)
+        {
+            await new AddMuExCraftingMaterialsUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        }
+
         var culture = CultureInfo.GetCultureInfo("zh-CN");
         var items = configuration.Items.Where(item => item.Name.SourceKey?.StartsWith("ItemNames/", StringComparison.Ordinal) == true).ToArray();
         Assert.That(items, Is.Not.Empty);
