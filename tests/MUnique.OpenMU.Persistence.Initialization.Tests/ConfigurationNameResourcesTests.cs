@@ -12,6 +12,7 @@ using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.Persistence.Initialization.Captions;
 using MUnique.OpenMU.Persistence.Initialization.Properties;
+using MUnique.OpenMU.Persistence.Initialization.Updates;
 using Microsoft.Extensions.Logging.Abstractions;
 
 /// <summary>Checks the configuration name resources and their usage by the initializations.</summary>
@@ -93,7 +94,7 @@ internal class ConfigurationNameResourcesTests
 
     /// <summary>
     /// The built-in names of all initializations are taken from the resources, including their source keys,
-    /// and every resource key is used by at least one initialization.
+    /// and every resource key is used by an initialization or the optional Acheron map update.
     /// </summary>
     /// <returns>The task.</returns>
     [Test]
@@ -112,6 +113,11 @@ internal class ConfigurationNameResourcesTests
             await initializer.CreateInitialDataAsync(1, false).ConfigureAwait(false);
             using var context = provider.CreateNewContext();
             var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+            if (initializer is VersionSeasonSix.DataInitialization)
+            {
+                await new AddAcheronMapUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+            }
+
             var names = LocalizedCaption.FindAll(configuration).Select(caption => caption.Value)
                 .Where(name => name.SourceKey is not null && !name.SourceKey.StartsWith("ItemNames/", StringComparison.Ordinal));
             foreach (var name in names.Where(n => n.SourceKey is not null))
