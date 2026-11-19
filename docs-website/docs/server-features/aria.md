@@ -92,5 +92,7 @@ class ranges and treats master class as an additional requirement. Context
 includes the configured class number and special/master flags. Optional class
 and normal level inputs evaluate the same range rule as live entry; this is not
 a guarantee of tickets, fees, opening time or other runtime eligibility.
-The Aria API key allowlist must include \`events_entry_requirements\` alongside the
-six existing gameplay tools. Old conversation answers are not admission facts.
+Aria can look up crafting materials and results by recipe or output name. For example, \`三代翅膀\` finds both third-wing stages and \`神鹰之羽\` finds the recipe that produces it.
+
+The Aria API key allowlist must include \`crafting_find_recipes\` and \`events_entry_requirements\` alongside the
+six existing gameplay tools. Old conversation answers are not admission facts. Explicit third-wing crafting and Feather of Condor acquisition questions load the corresponding recipe before answer generation.

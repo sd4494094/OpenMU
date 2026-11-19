@@ -123,7 +123,7 @@ Enable only for Aria, using a **separate Viewer API key** whose allowed MCP tool
 are exactly:
 
 ```text
-rates_get,drops_explain,drops_find_sources,spawns_list,content_list,events_schedule
+rates_get,drops_explain,drops_find_sources,spawns_list,content_list,events_schedule,events_entry_requirements,crafting_find_recipes
 ```
 
 Supply private host configuration (never put the key in Git, the prompt, CPA,

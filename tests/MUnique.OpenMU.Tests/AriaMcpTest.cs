@@ -24,7 +24,7 @@ public class AriaMcpTest
     public void CatalogContainsExactlyTheApprovedTools()
     {
         var names = AriaGameplayTools.Definitions.EnumerateArray().Select(tool => tool.GetProperty("name").GetString()).ToArray();
-        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements" }));
+        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements", "crafting_find_recipes" }));
     }
 
     /// <summary>Rejects malformed, oversized and privileged arguments before any remote request.</summary>
@@ -318,6 +318,30 @@ public class AriaMcpTest
         Assert.That(handler.Bodies[0], Does.Contain("function_call_output").And.Contain("maximumCharacterLevel"));
     }
 
+    /// <summary>Common crafting and acquisition questions read current recipes before generation.</summary>
+    /// <param name="question">The player question.</param>
+    /// <param name="name">The recipe or output to look up.</param>
+    [TestCase("三代翅膀怎么合成", "三代翅膀")]
+    [TestCase("什么怪掉神鹰之羽", "神鹰之羽")]
+    public async Task CraftingRulesAreReadBeforeGenerationAsync(string question, string name)
+    {
+        var tools = new ToolClient((tool, _) =>
+        {
+            Assert.That(tool, Is.EqualTo("crafting_find_recipes"));
+            return JsonSerializer.SerializeToElement(new { status = "configured", items = new[] { new { maximumSuccessPercent = 60 } } });
+        });
+        using var handler = new Handler((_, _) =>
+        {
+            Assert.That(tools.Names, Is.EqualTo(new[] { "crafting_find_recipes" }));
+            return Task.FromResult(Answer("神鹰之羽由玛雅合成获得，成功率上限60%。"));
+        });
+        using var http = new HttpClient(handler);
+        var answer = await new AriaModelClient(http, Options(), tools: tools).CompleteAsync("role", [new AriaMessage("user", question)], default).ConfigureAwait(false);
+        Assert.That(answer, Does.Contain("60%"));
+        Assert.That(tools.Arguments.Single().GetProperty("text").GetString(), Is.EqualTo(name));
+        Assert.That(handler.Bodies[0], Does.Contain("function_call_output").And.Contain("maximumSuccessPercent"));
+    }
+
     /// <summary>Failed, missing, truncated or disabled rules never fall through to an ungrounded model answer.</summary>
     /// <param name="mode">The unavailable-data scenario.</param>
     [TestCase("failure")]
@@ -376,9 +400,12 @@ public class AriaMcpTest
     {
         public List<string> Names { get; } = new();
 
+        public List<JsonElement> Arguments { get; } = new();
+
         public ValueTask<JsonElement> CallAsync(string name, JsonElement arguments, CancellationToken cancellationToken)
         {
             this.Names.Add(name);
+            this.Arguments.Add(arguments.Clone());
             return ValueTask.FromResult(callback(name, cancellationToken));
         }
     }

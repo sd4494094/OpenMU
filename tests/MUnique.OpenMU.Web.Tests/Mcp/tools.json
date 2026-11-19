@@ -325,6 +325,38 @@
     }
   },
   {
+    "Name": "crafting_find_recipes",
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Recipe or output item name, partial name, or output item group/number.",
+          "type": "string"
+        },
+        "offset": {
+          "description": "Number of recipes to skip.",
+          "type": "integer",
+          "default": 0
+        },
+        "limit": {
+          "description": "Maximum recipes to return.",
+          "type": "integer",
+          "default": 4
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "Annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
     "Name": "diagnostics_check",
     "InputSchema": {
       "type": "object",

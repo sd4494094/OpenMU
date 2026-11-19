@@ -114,11 +114,12 @@ public static class AriaGameplayTools
             "rates_get" or "events_schedule" => Array.Empty<string>(),
             "spawns_list" => new[] { "mapNumber" },
             "drops_explain" => new[] { "mapNumber", "monsterNumber" },
-            "drops_find_sources" or "events_entry_requirements" => new[] { "text" },
+            "drops_find_sources" or "events_entry_requirements" or "crafting_find_recipes" => new[] { "text" },
             "content_list" => new[] { "type" },
             _ => throw new InvalidDataException("Tool is not allowed."),
         };
-        if (name is "drops_find_sources" or "events_entry_requirements" && (!fields.Contains("text") || string.IsNullOrWhiteSpace(arguments.GetProperty("text").GetString())))
+        if (name is "drops_find_sources" or "events_entry_requirements" or "crafting_find_recipes"
+            && (!fields.Contains("text") || string.IsNullOrWhiteSpace(arguments.GetProperty("text").GetString())))
         {
             throw new InvalidDataException("An item name or key is required.");
         }
@@ -170,6 +171,7 @@ public static class AriaGameplayTools
             "rates_get" => false,
             "events_schedule" => field == "serverId",
             "events_entry_requirements" => field is "text" or "characterLevel" or "characterClassNumber",
+            "crafting_find_recipes" => field is "text" or "offset" or "limit",
             "spawns_list" => field is "mapNumber" or "offset" or "limit",
             "drops_explain" => field is "mapNumber" or "monsterNumber" or "offset" or "limit",
             "drops_find_sources" => field is "text" or "map" or "itemLevel" or "offset" or "limit",
@@ -212,6 +214,7 @@ public static class AriaGameplayTools
             Tool("drops_find_sources", "物品哪里掉、哪些怪掉：优先直接用这个工具。text填玩家物品名或中文简称，无需先查编号；map可直接填死亡沙漠等地图名，不填查所有地图。支持中英文别名、普通随机掉落池、指定掉落及任务条件。歧义需澄清；空结果或分页不代表绝对不掉；groupChance不是单件掉率。", new { text = new { type = "string", minLength = 1, maxLength = 64 }, map = new { type = "string", maxLength = 64 }, itemLevel = new { type = new[] { "integer", "null" }, minimum = 0, maximum = 255 }, offset, limit }, ["text"]),
             Tool("drops_explain", "按地图和怪物编号解释候选掉落组及条件。不是按物品查全部来源；组概率不是单件实际掉率，不能完整覆盖动态任务掉落。默认10行，注意分页。", new { mapNumber = number, monsterNumber = number, offset, limit }, ["mapNumber", "monsterNumber"]),
             Tool("events_entry_requirements", "查询本服活动层数、普通和特殊职业入场等级、门票等级、大师职业要求。问多少级进几层必须先查，不用模型记忆。text填活动名或类型。characterLevel是普通等级，不是大师等级；characterClassNumber用上下文职业编号。matchesLevelAndClass只校验等级职业，不能保证有票或正在开放。", new { text = new { type = "string", minLength = 1, maxLength = 64 }, characterLevel = new { type = new[] { "integer", "null" }, minimum = 1, maximum = (int)ushort.MaxValue }, characterClassNumber = new { type = new[] { "integer", "null" }, minimum = 0, maximum = (int)byte.MaxValue } }, ["text"]),
+            Tool("crafting_find_recipes", "按配方名或产物查询本服合成材料、费用、成功率和产物池。问三代翅膀怎么合成用三代翅膀，问神鹰之羽怎么获得或掉落无结果用神鹰之羽。text 填名称。", new { text = new { type = "string", minLength = 1, maxLength = 64 }, offset, limit }, ["text"]),
             Tool("events_schedule", "查询指定游戏服的活动时间和启用状态，未指定时用后台默认游戏服。", new { serverId = number }, []),
         });
     }

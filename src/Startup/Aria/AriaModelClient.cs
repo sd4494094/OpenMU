@@ -176,7 +176,7 @@ public sealed class AriaModelClient : IAriaModelClient
             _ => false,
         };
 
-    private async ValueTask<string> CompleteCoreAsync(string instructions, IReadOnlyList<AriaMessage> messages, bool allowTools, bool checkAdmission, CancellationToken cancellationToken)
+    private async ValueTask<string> CompleteCoreAsync(string instructions, IReadOnlyList<AriaMessage> messages, bool allowTools, bool checkGameplay, CancellationToken cancellationToken)
     {
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(this._options.TimeoutSeconds, 5, 60)));
@@ -186,28 +186,32 @@ public sealed class AriaModelClient : IAriaModelClient
         var usedCalls = 0;
         var remainingBytes = AriaGameplayTools.ResultBudget;
         var callIds = new HashSet<string>(StringComparer.Ordinal);
-        if (checkAdmission && AriaEventEntryQuery.CreateArguments(messages) is { } admissionArguments)
+        var crafting = checkGameplay ? AriaCraftingQuery.CreateArguments(messages) : null;
+        var admission = checkGameplay && crafting is null ? AriaEventEntryQuery.CreateArguments(messages) : null;
+        if ((crafting ?? admission) is { } queryArguments)
         {
             // The model cannot choose to answer from memory before the current rules are read.
             if (!allowTools)
             {
-                throw new InvalidDataException("Current event admission queries are unavailable.");
+                throw new InvalidDataException("Current gameplay queries are unavailable.");
             }
 
-            const string admissionCallId = "aria_event_admission";
-            var call = JsonSerializer.SerializeToElement(new { type = "function_call", name = "events_entry_requirements", call_id = admissionCallId, arguments = admissionArguments.GetRawText() });
+            var toolName = crafting is null ? "events_entry_requirements" : "crafting_find_recipes";
+            var callId = crafting is null ? "aria_event_admission" : "aria_crafting_recipe";
+            var emptyStatus = crafting is null ? "no_configured_event" : "no_configured_recipe";
+            var call = JsonSerializer.SerializeToElement(new { type = "function_call", name = toolName, call_id = callId, arguments = queryArguments.GetRawText() });
             var result = await this.QueryAsync(call, 8192, token).ConfigureAwait(false);
             using var document = JsonDocument.Parse(result);
             if (!document.RootElement.TryGetProperty("status", out var status)
-                || status.GetString() is not ("configured" or "no_configured_event")
+                || (status.GetString() != "configured" && status.GetString() != emptyStatus)
                 || document.RootElement.TryGetProperty("ariaTruncated", out _))
             {
-                throw new InvalidDataException("Current event admission rules could not be verified.");
+                throw new InvalidDataException("Current gameplay configuration could not be verified.");
             }
 
             input.Add(call);
-            input.Add(JsonSerializer.SerializeToElement(new { type = "function_call_output", call_id = admissionCallId, output = result }));
-            callIds.Add(admissionCallId);
+            input.Add(JsonSerializer.SerializeToElement(new { type = "function_call_output", call_id = callId, output = result }));
+            callIds.Add(callId);
             usedCalls++;
             remainingBytes -= Encoding.UTF8.GetByteCount(result);
         }

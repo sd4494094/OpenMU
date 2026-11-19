@@ -193,7 +193,7 @@ public sealed class McpIntegrationTests : System.IDisposable
     {
         await using var client = await this.ConnectAsync().ConfigureAwait(false);
         var tools = await client.ListToolsAsync().ConfigureAwait(false);
-        Assert.That(tools.Count, Is.EqualTo(27));
+        Assert.That(tools.Count, Is.EqualTo(28));
         var servers = new List<IManageableServer>();
         foreach (var id in new[] { 0, 4 })
         {
@@ -215,6 +215,7 @@ public sealed class McpIntegrationTests : System.IDisposable
             ["drops_explain"] = new() { ["monsterNumber"] = 1, ["mapNumber"] = 0 },
             ["drops_find_sources"] = new() { ["text"] = "Test Sword" },
             ["events_entry_requirements"] = new() { ["text"] = "BloodCastle" },
+            ["crafting_find_recipes"] = new() { ["text"] = "神鹰之羽" },
             ["spawns_list"] = new() { ["mapNumber"] = 0 },
             ["accounts_get"] = new() { ["loginName"] = "tester" },
             ["characters_get"] = new() { ["characterName"] = "Hero" },
@@ -304,6 +305,50 @@ public sealed class McpIntegrationTests : System.IDisposable
         var denied = await client.CallToolAsync("config_types", new Dictionary<string, object?>()).ConfigureAwait(false);
         Assert.That(denied.IsError, Is.True);
         Assert.That(JsonSerializer.Serialize(denied), Does.Contain("allowlist"));
+    }
+
+    /// <summary>A dedicated viewer can find a configured recipe by its output without broad configuration access.</summary>
+    [Test]
+    public async Task RestrictedCraftingQueryReadsConfiguredRecipeAsync()
+    {
+        var key = (await this._keys.GetAllAsync().ConfigureAwait(false)).Single(k => k.Name == "test-viewer");
+        key.AllowedToolGroups = "crafting_find_recipes";
+        await this._keys.UpdateAsync(key).ConfigureAwait(false);
+        var config = await this._app.Services.GetRequiredService<IDataSource<GameConfiguration>>().GetOwnerAsync().ConfigureAwait(false);
+        using var context = this._app.Services.GetRequiredService<IPersistenceContextProvider>().CreateNewContext();
+        var settings = context.CreateNew<MUnique.OpenMU.DataModel.Configuration.ItemCrafting.SimpleCraftingSettings>();
+        settings.MaximumSuccessPercent = 60;
+        var feather = context.CreateNew<MUnique.OpenMU.DataModel.Configuration.Items.ItemDefinition>();
+        feather.Group = 13;
+        feather.Number = 53;
+        feather.Name = "Feather of Condor||zh-CN=神鹰之羽";
+        var output = context.CreateNew<MUnique.OpenMU.DataModel.Configuration.ItemCrafting.ItemCraftingResultItem>();
+        output.ItemDefinition = feather;
+        settings.ResultItems.Add(output);
+        var recipe = context.CreateNew<MUnique.OpenMU.DataModel.Configuration.ItemCrafting.ItemCrafting>();
+        recipe.Number = 38;
+        recipe.Name = "3rd Level Wings, Stage 1||zh-CN=三代翅膀合成（第一阶段）";
+        recipe.SimpleCraftingSettings = settings;
+        var npc = config.Monsters.Single();
+        npc.IsActive = true;
+        npc.ItemCraftings.Add(recipe);
+
+        await using var client = await this.ConnectAsync().ConfigureAwait(false);
+        var tools = await client.ListToolsAsync().ConfigureAwait(false);
+        Assert.That(tools.Select(t => t.Name), Is.EqualTo(new[] { "crafting_find_recipes" }));
+        Assert.That(tools.Single().ProtocolTool.Annotations!.ReadOnlyHint, Is.True);
+        foreach (var text in new[] { "神鹰之羽", "三代翅膀", "13/53" })
+        {
+            var result = await client.CallToolAsync("crafting_find_recipes", new Dictionary<string, object?> { ["text"] = text }).ConfigureAwait(false);
+            Assert.That(result.IsError, Is.Not.True);
+            var data = JsonSerializer.SerializeToNode(result.StructuredContent)!;
+            var recipeSettings = data["items"]!.AsArray().Single()!["settings"]!;
+            Assert.That(recipeSettings["maximumSuccessPercent"]!.GetValue<int>(), Is.EqualTo(60));
+            Assert.That(recipeSettings["outputs"]!.AsArray().Single()!["item"]!["name"]!.GetValue<string>(), Is.EqualTo("神鹰之羽"));
+        }
+
+        var denied = await client.CallToolAsync("config_types", new Dictionary<string, object?>()).ConfigureAwait(false);
+        Assert.That(denied.IsError, Is.True);
     }
 
     /// <summary>The real tools/list schema is held stable for clients.</summary>
