@@ -172,6 +172,7 @@
     <EmbeddedResource Include="Resources\Terrain81.att" />
     <EmbeddedResource Include="Resources\Terrain82.att" />
     <EmbeddedResource Include="Resources\Terrain9.att" />
+    <EmbeddedResource Include="Resources\Terrain92.att" />
   </ItemGroup>
 
   <ItemGroup>
