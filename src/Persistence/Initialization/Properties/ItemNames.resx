@@ -2322,4 +2322,79 @@
   <data name="SpiritMap" xml:space="preserve">
     <value>Spirit Map</value>
   </data>
+  <data name="MuExSkeletonKingBone" xml:space="preserve">
+    <value>Skeleton King's Bone</value>
+  </data>
+  <data name="MuExForestSummonerHide" xml:space="preserve">
+    <value>Forest Summoner's Hide</value>
+  </data>
+  <data name="MuExDarkPhoenixSpark" xml:space="preserve">
+    <value>Dark Phoenix's Spark</value>
+  </data>
+  <data name="MuExHellMaineSoul" xml:space="preserve">
+    <value>Hell Maine's Soul</value>
+  </data>
+  <data name="MuExIceWalkerMane" xml:space="preserve">
+    <value>Ice Walker's Mane</value>
+  </data>
+  <data name="MuExMammothFur" xml:space="preserve">
+    <value>Mammoth Fur</value>
+  </data>
+  <data name="MuExGiantIce" xml:space="preserve">
+    <value>Giant Ice</value>
+  </data>
+  <data name="MuExSpiderVenom" xml:space="preserve">
+    <value>Spider Venom</value>
+  </data>
+  <data name="MuExIronKnightHeart" xml:space="preserve">
+    <value>Iron Knight's Heart</value>
+  </data>
+  <data name="MuExDarkMammothHorn" xml:space="preserve">
+    <value>Dark Mammoth's Horn</value>
+  </data>
+  <data name="MuExDarkGiantAxe" xml:space="preserve">
+    <value>Dark Giant's Axe</value>
+  </data>
+  <data name="MuExDarkSpiderBlood" xml:space="preserve">
+    <value>Dark Spider Blood</value>
+  </data>
+  <data name="MuExDarkIronKnightSword" xml:space="preserve">
+    <value>Dark Iron Knight's Sword</value>
+  </data>
+  <data name="MuExGaleSwordNote" xml:space="preserve">
+    <value>Gale Sword Crafting Note</value>
+  </data>
+  <data name="MuExWhirlwindSwordNote" xml:space="preserve">
+    <value>Whirlwind Sword Crafting Note</value>
+  </data>
+  <data name="MuExIceCrystalSwordNote" xml:space="preserve">
+    <value>Ice Crystal Sword Crafting Note</value>
+  </data>
+  <data name="MuExLavaSpearNote" xml:space="preserve">
+    <value>Lava Spear Crafting Note</value>
+  </data>
+  <data name="MuExDoomHammerNote" xml:space="preserve">
+    <value>Doom Hammer Crafting Note</value>
+  </data>
+  <data name="MuExArchangelBowNote" xml:space="preserve">
+    <value>Archangel Bow Crafting Note</value>
+  </data>
+  <data name="MuExDemonCrossbowNote" xml:space="preserve">
+    <value>Demon Crossbow Crafting Note</value>
+  </data>
+  <data name="MuExReincarnationStaffNote" xml:space="preserve">
+    <value>Reincarnation Staff Crafting Note</value>
+  </data>
+  <data name="MuExResentmentStaffNote" xml:space="preserve">
+    <value>Resentment Staff Crafting Note</value>
+  </data>
+  <data name="MuExAsuraSwordNote" xml:space="preserve">
+    <value>Asura Sword Crafting Note</value>
+  </data>
+  <data name="MuExThunderScepterNote" xml:space="preserve">
+    <value>Thunder Scepter Crafting Note</value>
+  </data>
+  <data name="MuExHolySpiritStaffNote" xml:space="preserve">
+    <value>Holy Spirit Staff Crafting Note</value>
+  </data>
 </root>

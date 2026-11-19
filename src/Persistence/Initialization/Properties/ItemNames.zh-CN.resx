@@ -2322,4 +2322,79 @@
   <data name="SpiritMap" xml:space="preserve">
     <value>精灵地图</value>
   </data>
+  <data name="MuExSkeletonKingBone" xml:space="preserve">
+    <value>骷髅王骨头</value>
+  </data>
+  <data name="MuExForestSummonerHide" xml:space="preserve">
+    <value>丛林召唤者的皮</value>
+  </data>
+  <data name="MuExDarkPhoenixSpark" xml:space="preserve">
+    <value>天魔菲尼斯的火花</value>
+  </data>
+  <data name="MuExHellMaineSoul" xml:space="preserve">
+    <value>炽炎魔的灵魂</value>
+  </data>
+  <data name="MuExIceWalkerMane" xml:space="preserve">
+    <value>冰之魔犬的鬃毛</value>
+  </data>
+  <data name="MuExMammothFur" xml:space="preserve">
+    <value>猛犸的毛片</value>
+  </data>
+  <data name="MuExGiantIce" xml:space="preserve">
+    <value>巨人的冰块</value>
+  </data>
+  <data name="MuExSpiderVenom" xml:space="preserve">
+    <value>魔蛛的猛毒</value>
+  </data>
+  <data name="MuExIronKnightHeart" xml:space="preserve">
+    <value>铁轮战士的心脏</value>
+  </data>
+  <data name="MuExDarkMammothHorn" xml:space="preserve">
+    <value>黑暗魔象的角</value>
+  </data>
+  <data name="MuExDarkGiantAxe" xml:space="preserve">
+    <value>黑暗巨人的斧头</value>
+  </data>
+  <data name="MuExDarkSpiderBlood" xml:space="preserve">
+    <value>黑暗魔蛛的血</value>
+  </data>
+  <data name="MuExDarkIronKnightSword" xml:space="preserve">
+    <value>黑暗钢铁骑士的剑</value>
+  </data>
+  <data name="MuExGaleSwordNote" xml:space="preserve">
+    <value>疾风之剑合成纸条</value>
+  </data>
+  <data name="MuExWhirlwindSwordNote" xml:space="preserve">
+    <value>旋风之剑合成纸条</value>
+  </data>
+  <data name="MuExIceCrystalSwordNote" xml:space="preserve">
+    <value>冰晶之剑合成纸条</value>
+  </data>
+  <data name="MuExLavaSpearNote" xml:space="preserve">
+    <value>熔岩之矛合成纸条</value>
+  </data>
+  <data name="MuExDoomHammerNote" xml:space="preserve">
+    <value>灭世之锤合成纸条</value>
+  </data>
+  <data name="MuExArchangelBowNote" xml:space="preserve">
+    <value>圣天使之弓合成纸条</value>
+  </data>
+  <data name="MuExDemonCrossbowNote" xml:space="preserve">
+    <value>恶魔之弩合成纸条</value>
+  </data>
+  <data name="MuExReincarnationStaffNote" xml:space="preserve">
+    <value>轮回之杖合成纸条</value>
+  </data>
+  <data name="MuExResentmentStaffNote" xml:space="preserve">
+    <value>怨恨之杖合成纸条</value>
+  </data>
+  <data name="MuExAsuraSwordNote" xml:space="preserve">
+    <value>阿修罗之剑合成纸条</value>
+  </data>
+  <data name="MuExThunderScepterNote" xml:space="preserve">
+    <value>巨电权杖合成纸条</value>
+  </data>
+  <data name="MuExHolySpiritStaffNote" xml:space="preserve">
+    <value>圣灵之杖合成纸条</value>
+  </data>
 </root>

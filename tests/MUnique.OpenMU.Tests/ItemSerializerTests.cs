@@ -80,6 +80,39 @@ public class ItemSerializerTests<T>
     }
 
     /// <summary>
+    /// Round trips item numbers on both sides of the low byte's high bit and the nine-bit boundary.
+    /// </summary>
+    /// <param name="number">The item number to round trip.</param>
+    [TestCase(127)]
+    [TestCase(128)]
+    [TestCase(176)]
+    [TestCase(202)]
+    [TestCase(255)]
+    [TestCase(256)]
+    [TestCase(383)]
+    [TestCase(384)]
+    [TestCase(511)]
+    public void HighItemNumbers(short number)
+    {
+        using var context = this._contextProvider.CreateNewContext(this._gameConfiguration);
+        var configuration = context.CreateNew<GameConfiguration>();
+        var definition = context.CreateNew<ItemDefinition>();
+        definition.Group = 14;
+        definition.Number = number;
+        configuration.Items.Add(definition);
+        var item = context.CreateNew<Item>();
+        item.Definition = definition;
+        item.Durability = 1;
+
+        var data = new byte[this._itemSerializer.NeededSpace];
+        this._itemSerializer.SerializeItem(data, item);
+        var decoded = this._itemSerializer.DeserializeItem(data, configuration, context);
+
+        Assert.That(decoded.Definition, Is.SameAs(definition));
+        Assert.That(decoded.Durability, Is.EqualTo(1));
+    }
+
+    /// <summary>
     /// Tests if <see cref="Item.Level"/> is correctly (de)serialized.
     /// </summary>
     [Test]
