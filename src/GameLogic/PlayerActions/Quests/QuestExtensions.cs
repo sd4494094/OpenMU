@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic.PlayerActions.Quests;
 
+using MUnique.OpenMU.DataModel.Configuration.Quests;
 using MUnique.OpenMU.Persistence;
 
 /// <summary>
@@ -11,6 +12,16 @@ using MUnique.OpenMU.Persistence;
 /// </summary>
 public static class QuestExtensions
 {
+    /// <summary>
+    /// Determines whether an inventory item satisfies the configured item and level requirement.
+    /// </summary>
+    /// <param name="requirement">The quest item requirement.</param>
+    /// <param name="item">The inventory item.</param>
+    /// <returns>Whether the item matches.</returns>
+    public static bool Matches(this QuestItemRequirement requirement, Item item)
+        => Equals(item.Definition, requirement.Item)
+           && (requirement.DropItemGroup?.ItemLevel is not { } requiredLevel || requiredLevel == item.Level);
+
     /// <summary>
     /// Clears the quest state for the specified player.
     /// </summary>

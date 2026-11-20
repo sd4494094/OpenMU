@@ -167,9 +167,7 @@ public class QuestCompletionAction
         foreach (var requiredItem in activeQuest.RequiredItems)
         {
             var requiredLevel = requiredItem.DropItemGroup?.ItemLevel;
-            var itemCount = player.Inventory?.Items
-                .Count(i => Equals(i.Definition, requiredItem.Item)
-                            && (requiredLevel is null || requiredLevel == i.Level));
+            var itemCount = player.Inventory?.Items.Count(requiredItem.Matches);
 
             if (requiredItem.MinimumNumber <= itemCount)
             {
@@ -207,10 +205,8 @@ public class QuestCompletionAction
         questState!.LastFinishedQuest = activeQuest;
         foreach (var requiredItem in activeQuest.RequiredItems)
         {
-            var requiredLevel = requiredItem.DropItemGroup?.ItemLevel;
             var items = player.Inventory!.Items
-                .Where(item => Equals(item.Definition, requiredItem.Item)
-                               && (requiredLevel is null || requiredLevel == item.Level))
+                .Where(requiredItem.Matches)
                 .Take(requiredItem.MinimumNumber)
                 .ToList();
 

@@ -133,6 +133,35 @@ public class QuestPersistenceTests
     }
 
     /// <summary>
+    /// Completing a level-specific requirement keeps items at other levels in the inventory.
+    /// </summary>
+    /// <returns>The task.</returns>
+    [Test]
+    public async Task CompletionConsumesOnlyTheRequiredItemLevelAsync()
+    {
+        var (player, context, quest, state, ingredient) = await CreateAsync(true).ConfigureAwait(false);
+        await using var ownedPlayer = player;
+        quest.RequiredItems.Single().DropItemGroup = new B.DropItemGroup { ItemLevel = 5 };
+        ingredient.Level = 4;
+        var higherLevel = new B.Item { Id = Guid.NewGuid(), Definition = ingredient.Definition, Level = 6, Durability = 1 };
+        await player.Inventory!.AddItemAsync(13, higherLevel).ConfigureAwait(false);
+        context.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        var completion = new QuestCompletionAction();
+
+        await completion.CompleteQuestAsync(player, quest.Group, quest.Number).ConfigureAwait(false);
+        Assert.That(state.ActiveQuest, Is.SameAs(quest));
+        Assert.That(player.Inventory.Items, Is.EquivalentTo(new[] { ingredient, higherLevel }));
+        context.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+
+        var matching = new B.Item { Id = Guid.NewGuid(), Definition = ingredient.Definition, Level = 5, Durability = 1 };
+        await player.Inventory.AddItemAsync(14, matching).ConfigureAwait(false);
+        await completion.CompleteQuestAsync(player, quest.Group, quest.Number).ConfigureAwait(false);
+        Assert.That(state.ActiveQuest, Is.Null);
+        Assert.That(player.Inventory.Items, Is.EquivalentTo(new[] { ingredient, higherLevel }));
+        context.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    /// <summary>
     /// A failed or ambiguous save closes the session without success or another application of the outcome.
     /// </summary>
     /// <param name="completion">Whether to complete rather than accept.</param>

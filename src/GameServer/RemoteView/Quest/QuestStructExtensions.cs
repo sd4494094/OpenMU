@@ -8,6 +8,7 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Configuration.Quests;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.PlayerActions.Quests;
 using MUnique.OpenMU.Network;
 using MUnique.OpenMU.Network.Packets;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
@@ -88,7 +89,7 @@ public static class QuestStructExtensions
             int i = 0;
             foreach (var requiredItem in activeQuest.RequiredItems)
             {
-                requiredItem.AssignTo(message.GetQuestCondition(i), player);
+                requiredItem.AssignTo(message.GetQuestCondition(i), player.Inventory?.Items, itemSerializer);
                 i++;
             }
         }
@@ -140,7 +141,7 @@ public static class QuestStructExtensions
             int i = 0;
             foreach (var requiredItem in activeQuest.RequiredItems)
             {
-                requiredItem.AssignTo(message.GetQuestConditionExtended(i), player);
+                requiredItem.AssignTo(message.GetQuestConditionExtended(i), player.Inventory?.Items, itemSerializer);
                 i++;
             }
         }
@@ -169,26 +170,47 @@ public static class QuestStructExtensions
         message.RewardCount = (byte)r;
     }
 
-    private static void AssignTo(this QuestItemRequirement itemRequirement, QuestConditionRef condition, RemotePlayer player)
+    /// <summary>
+    /// Writes an item requirement to the standard quest condition.
+    /// </summary>
+    /// <param name="itemRequirement">The item requirement.</param>
+    /// <param name="condition">The packet condition.</param>
+    /// <param name="inventoryItems">The inventory items, if available.</param>
+    /// <param name="itemSerializer">The serializer for the item preview.</param>
+    internal static void AssignTo(this QuestItemRequirement itemRequirement, QuestConditionRef condition, IEnumerable<Item>? inventoryItems, IItemSerializer itemSerializer)
     {
         condition.Type = ConditionType.Item;
         condition.RequiredCount = (uint)itemRequirement.MinimumNumber;
-        condition.CurrentCount = (uint)(player.Inventory?.Items.Count(item => Equals(item.Definition, itemRequirement.Item)) ?? 0);
+        condition.CurrentCount = (uint)(inventoryItems?.Count(itemRequirement.Matches) ?? 0);
         condition.RequirementId = itemRequirement.Item!.GetItemType();
-        var temporaryItem = new TemporaryItem { Definition = itemRequirement.Item };
-        temporaryItem.Durability = temporaryItem.GetMaximumDurabilityOfOnePiece();
-        player.ItemSerializer.SerializeItem(condition.RequiredItemData, temporaryItem);
+        WriteRequiredItem(itemRequirement, condition.RequiredItemData, itemSerializer);
     }
 
-    private static void AssignTo(this QuestItemRequirement itemRequirement, QuestConditionExtendedRef condition, RemotePlayer player)
+    /// <summary>
+    /// Writes an item requirement to the extended quest condition.
+    /// </summary>
+    /// <param name="itemRequirement">The item requirement.</param>
+    /// <param name="condition">The packet condition.</param>
+    /// <param name="inventoryItems">The inventory items, if available.</param>
+    /// <param name="itemSerializer">The serializer for the item preview.</param>
+    internal static void AssignTo(this QuestItemRequirement itemRequirement, QuestConditionExtendedRef condition, IEnumerable<Item>? inventoryItems, IItemSerializer itemSerializer)
     {
         condition.Type = ConditionType.Item;
         condition.RequiredCount = (uint)itemRequirement.MinimumNumber;
-        condition.CurrentCount = (uint)(player.Inventory?.Items.Count(item => Equals(item.Definition, itemRequirement.Item)) ?? 0);
+        condition.CurrentCount = (uint)(inventoryItems?.Count(itemRequirement.Matches) ?? 0);
         condition.RequirementId = itemRequirement.Item!.GetItemType();
-        var temporaryItem = new TemporaryItem { Definition = itemRequirement.Item };
+        WriteRequiredItem(itemRequirement, condition.RequiredItemData, itemSerializer);
+    }
+
+    private static void WriteRequiredItem(QuestItemRequirement requirement, Span<byte> target, IItemSerializer itemSerializer)
+    {
+        var temporaryItem = new TemporaryItem
+        {
+            Definition = requirement.Item,
+            Level = requirement.DropItemGroup?.ItemLevel ?? 0,
+        };
         temporaryItem.Durability = temporaryItem.GetMaximumDurabilityOfOnePiece();
-        player.ItemSerializer.SerializeItem(condition.RequiredItemData, temporaryItem);
+        itemSerializer.SerializeItem(target, temporaryItem);
     }
 
     private static void AssignTo(this QuestMonsterKillRequirement killRequirement, QuestConditionRef condition, CharacterQuestState questState)
