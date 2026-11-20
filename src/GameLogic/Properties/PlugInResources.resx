@@ -1862,4 +1862,10 @@
   <data name="CreatorGoddessNpc_Description" xml:space="preserve"><value>Provides a greeting from the decorative creator goddess without leaving a conversation open.</value></data>
   <data name="AriaChat_Name" xml:space="preserve"><value>Aria private AI conversation</value></data>
   <data name="AriaChat_Description" xml:space="preserve"><value>Chats privately with Aria using shared aliases and character-isolated memory. Requires host configuration.</value></data>
+  <data name="WeaponOffhandRestrictionPlugIn_Name" xml:space="preserve">
+    <value>Weapon offhand restrictions</value>
+  </data>
+  <data name="WeaponOffhandRestrictionPlugIn_Description" xml:space="preserve">
+    <value>Restricts configured weapon definitions to the listed classes when equipped in the offhand.</value>
+  </data>
 </root>

@@ -466,4 +466,10 @@
   <data name="AddMuExDarkLightningPendant_Description" xml:space="preserve">
     <value>Adds the dark lightning pendant as a separate item, using the ordinary pendant’s base equipment properties. Shop and set entries are configured separately.</value>
   </data>
+  <data name="AddMuExDarkangelStaff_Name" xml:space="preserve">
+    <value>Add the MuEx Darkangel Staff</value>
+  </data>
+  <data name="AddMuExDarkangelStaff_Description" xml:space="preserve">
+    <value>Adds the Darkangel Staff item and its offhand class restriction to the Season 6 configuration.</value>
+  </data>
 </root>

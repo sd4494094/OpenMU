@@ -5587,5 +5587,14 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("MuExDarkLightningPendant", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Darkangel Staff.
+        /// </summary>
+        public static string MuExDarkangelStaff {
+            get {
+                return ResourceManager.GetString("MuExDarkangelStaff", resourceCulture);
+            }
+        }
     }
 }

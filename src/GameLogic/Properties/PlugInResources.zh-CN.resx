@@ -1782,4 +1782,10 @@
   <data name="CreatorGoddessNpc_Description" xml:space="preserve"><value>提供创世神的问候，不占用玩家对话状态。</value></data>
   <data name="AriaChat_Name" xml:space="preserve"><value>艾莉雅私人AI对话</value></data>
   <data name="AriaChat_Description" xml:space="preserve"><value>使用四个命令别名与艾莉雅私聊，按角色隔离记忆；需要配置服务端模型连接。</value></data>
+  <data name="WeaponOffhandRestrictionPlugIn_Name" xml:space="preserve">
+    <value>武器副手装备限制</value>
+  </data>
+  <data name="WeaponOffhandRestrictionPlugIn_Description" xml:space="preserve">
+    <value>限制指定武器的副手装备职业。</value>
+  </data>
 </root>

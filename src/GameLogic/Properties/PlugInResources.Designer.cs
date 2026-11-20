@@ -5143,5 +5143,23 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("CreatorGoddessNpc_Description", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Restricts configured weapon definitions to the listed classes when equipped in the offhand..
+        /// </summary>
+        public static string WeaponOffhandRestrictionPlugIn_Description {
+            get {
+                return ResourceManager.GetString("WeaponOffhandRestrictionPlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Weapon offhand restrictions.
+        /// </summary>
+        public static string WeaponOffhandRestrictionPlugIn_Name {
+            get {
+                return ResourceManager.GetString("WeaponOffhandRestrictionPlugIn_Name", resourceCulture);
+            }
+        }
     }
 }

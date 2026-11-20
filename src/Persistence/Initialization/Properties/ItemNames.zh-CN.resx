@@ -2472,4 +2472,7 @@
   <data name="MuExDarkLightningPendant" xml:space="preserve">
     <value>雷之项链(黑暗)</value>
   </data>
+  <data name="MuExDarkangelStaff" xml:space="preserve">
+    <value>黑暗天使魔杖</value>
+  </data>
 </root>

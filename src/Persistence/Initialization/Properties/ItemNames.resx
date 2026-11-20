@@ -2472,4 +2472,7 @@
   <data name="MuExDarkLightningPendant" xml:space="preserve">
     <value>Pendant of Lightning (Dark)</value>
   </data>
+  <data name="MuExDarkangelStaff" xml:space="preserve">
+    <value>Darkangel Staff</value>
+  </data>
 </root>

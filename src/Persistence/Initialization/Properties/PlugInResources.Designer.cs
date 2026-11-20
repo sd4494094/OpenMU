@@ -1148,5 +1148,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddMuExDarkLightningPendant_Name", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the Darkangel Staff item and its offhand class restriction to the Season 6 configuration..
+        /// </summary>
+        public static string AddMuExDarkangelStaff_Description {
+            get {
+                return ResourceManager.GetString("AddMuExDarkangelStaff_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add the MuEx Darkangel Staff.
+        /// </summary>
+        public static string AddMuExDarkangelStaff_Name {
+            get {
+                return ResourceManager.GetString("AddMuExDarkangelStaff_Name", resourceCulture);
+            }
+        }
     }
 }

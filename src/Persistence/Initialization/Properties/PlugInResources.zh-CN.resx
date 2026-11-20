@@ -483,4 +483,10 @@
   <data name="AddMuExDarkLightningPendant_Description" xml:space="preserve">
     <value>新增独立的雷之项链(黑暗)物品定义，沿用普通雷之项链的基础装备属性。商城商品与套装另行配置。</value>
   </data>
+  <data name="AddMuExDarkangelStaff_Name" xml:space="preserve">
+    <value>添加 MuEx 黑暗天使魔杖</value>
+  </data>
+  <data name="AddMuExDarkangelStaff_Description" xml:space="preserve">
+    <value>为 Season 6 配置添加黑暗天使魔杖及其副手职业限制。</value>
+  </data>
 </root>

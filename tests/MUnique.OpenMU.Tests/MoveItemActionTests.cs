@@ -16,7 +16,9 @@ using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 using MUnique.OpenMU.GameLogic.PlayerActions.Trade;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.Trade;
+using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.PlugIns;
 
@@ -410,6 +412,46 @@ public class MoveItemActionTests
 
         Assert.That(player.Inventory.GetItem(20), Is.SameAs(wings));
         Assert.That(player.Inventory.GetItem(InventoryConstants.WingsSlot), Is.Null);
+    }
+
+    /// <summary>
+    /// Verifies that a configured restriction applies only to offhand equipment moves.
+    /// </summary>
+    /// <param name="classNumber">The player's character class number.</param>
+    /// <param name="offhandAllowed">Whether that class may use the offhand.</param>
+    [TestCase(3, false)]
+    [TestCase(13, true)]
+    public async ValueTask ConfiguredWeaponOffhandRestrictionAsync(byte classNumber, bool offhandAllowed)
+    {
+        const byte storageSlot = 20;
+        var player = await CreateTestPlayerAsync().ConfigureAwait(false);
+        var characterClass = player.PersistenceContext.CreateNew<CharacterClass>();
+        characterClass.Number = classNumber;
+        player.SelectedCharacter!.CharacterClass = characterClass;
+        var definition = player.PersistenceContext.CreateNew<ItemDefinition>();
+        definition.Width = 1;
+        definition.Height = 4;
+        definition.Durability = 100;
+        definition.QualifiedCharacters.Add(characterClass);
+        var slotType = player.PersistenceContext.CreateNew<ItemSlotType>();
+        slotType.ItemSlots.Add(InventoryConstants.LeftHandSlot);
+        slotType.ItemSlots.Add(InventoryConstants.RightHandSlot);
+        definition.ItemSlot = slotType;
+        var restriction = new WeaponOffhandRestrictionPlugIn
+        {
+            Configuration = new Dictionary<Guid, List<byte>> { [definition.GetId()] = [13] },
+        };
+        player.GameContext.PlugInManager.RegisterPlugInAtPlugInPoint<IItemMovingPlugIn>(restriction);
+        var item = CreateItem(definition, 100);
+        await player.Inventory!.AddItemAsync(storageSlot, item).ConfigureAwait(false);
+
+        var action = new MoveItemAction();
+        await action.MoveItemAsync(player, storageSlot, Storages.Inventory, InventoryConstants.RightHandSlot, Storages.Inventory).ConfigureAwait(false);
+        var slot = offhandAllowed ? InventoryConstants.RightHandSlot : storageSlot;
+        Assert.That(player.Inventory.GetItem(slot), Is.SameAs(item));
+        await action.MoveItemAsync(player, slot, Storages.Inventory, InventoryConstants.LeftHandSlot, Storages.Inventory).ConfigureAwait(false);
+        Assert.That(player.Inventory.GetItem(InventoryConstants.LeftHandSlot), Is.SameAs(item));
+        Assert.That(player.Inventory.GetItem(InventoryConstants.RightHandSlot), Is.Null);
     }
 
     private static Storage CreateVaultStorage()

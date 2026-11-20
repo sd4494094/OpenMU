@@ -274,6 +274,54 @@ internal class Weapons : InitializerBase
     }
 
     /// <summary>
+    /// Creates the Darkangel Staff from the item catalog data.
+    /// </summary>
+    /// <param name="number">The item number in the staff group.</param>
+    /// <returns>The newly created definition.</returns>
+    internal ItemDefinition CreateMuExDarkangelStaff(byte number)
+    {
+        this._weaponDamageIncreaseTable = this.GameConfiguration.ItemLevelBonusTables.Single(table => table.Name.ValueInNeutralLanguage == LevelBonusNames.DamageIncreaseWeapons);
+        this._staffRiseTableOdd = this.GameConfiguration.ItemLevelBonusTables.Single(table => table.Name.ValueInNeutralLanguage == LevelBonusNames.StaffRiseOdd);
+        const int magicPower = 173;
+        const byte dropLevel = 160;
+        var staff = this.CreateWeapon(
+            (byte)ItemGroups.Staff,
+            number,
+            slot: 0,
+            skillNumber: 0,
+            width: 1,
+            height: 4,
+            dropsFromMonsters: false,
+            LocalizedString.FromResource(() => ItemNames.MuExDarkangelStaff),
+            dropLevel,
+            minimumDamage: 120,
+            maximumDamage: 126,
+            attackSpeed: 30,
+            durability: 100,
+            magicPower,
+            levelRequirement: 400,
+            strengthRequirement: 47,
+            agilityRequirement: 14,
+            energyRequirement: 0,
+            vitalityRequirement: 0,
+            wizardClass: 3,
+            knightClass: 0,
+            elfClass: 0,
+            magicGladiatorClass: 3,
+            darkLordClass: 0,
+            summonerClass: 0,
+            ragefighterClass: 0);
+
+        // MuMain halves the full integer magic power. The odd staff table supplies the matching
+        // rounded level increases. This item's excellent part is even, so it halves independently.
+        var rise = staff.BasePowerUpAttributes.Single(powerUp => powerUp.TargetAttribute == Stats.StaffRise);
+        rise.BaseValue = magicPower / 2;
+        staff.StatProfile = this.GetMuExDarkangelStaffProfile(rise.TargetAttribute!, (magicPower * 25 / dropLevel) + 5);
+        staff.PossibleItemOptions.Add(this.GetGuardianWeaponOption());
+        return staff;
+    }
+
+    /// <summary>
     /// Creates the item with the specified parameters.
     /// </summary>
     /// <param name="group">The group number.</param>
@@ -302,7 +350,8 @@ internal class Weapons : InitializerBase
     /// <param name="darkLordClass">The dark lord class.</param>
     /// <param name="summonerClass">The summoner class.</param>
     /// <param name="ragefighterClass">The ragefighter class.</param>
-    protected void CreateWeapon(
+    /// <returns>The newly created definition.</returns>
+    protected ItemDefinition CreateWeapon(
         byte @group,
         byte number,
         byte slot,
@@ -373,7 +422,7 @@ internal class Weapons : InitializerBase
             item.BasePowerUpAttributes.Add(manaCostPowerUp);
 
             item.IsAmmunition = true;
-            return;
+            return item;
         }
 
         if (minimumDamage > 0)
@@ -531,11 +580,39 @@ internal class Weapons : InitializerBase
                 item.BasePowerUpAttributes.Add(this.CreateItemBasePowerUpDefinition(Stats.IsBookEquipped, 1, AggregateType.AddRaw));
             }
         }
+
+        return item;
+    }
+
+    private ItemStatProfile GetMuExDarkangelStaffProfile(AttributeDefinition staffRise, int excellentMagicPowerBonus)
+    {
+        const string name = "muExDarkangelStaff";
+        if (this.GameConfiguration.ItemStatProfiles.SingleOrDefault(profile => profile.Name == name) is { } existing)
+        {
+            return existing;
+        }
+
+        var profile = this.Context.CreateNew<ItemStatProfile>();
+        profile.Name = name;
+        profile.StrengthPerOptionLevel = this.GameConfiguration.ItemStatProfiles.Single(p => p.Name == BuiltInItemStatProfiles.Weapon).StrengthPerOptionLevel;
+        var terms = this.Context.CreateNew<ItemStatTerms>();
+        terms.Attribute = staffRise;
+        terms.ExcellentState = ItemStatTermState.Values;
+        terms.ExcellentAdd = excellentMagicPowerBonus;
+        profile.StatTerms.Add(terms);
+        this.GameConfiguration.ItemStatProfiles.Add(profile);
+        return profile;
+    }
+
+    private ItemOptionDefinition GetGuardianWeaponOption()
+    {
+        return this.GameConfiguration.ItemOptions.First(option =>
+            option.PossibleOptions.Any(entry => entry.OptionType == ItemOptionTypes.GuardianOption && entry.Number == (int)ItemGroups.Weapon));
     }
 
     private void AddGuardianOptions()
     {
-        var weaponOption = this.GameConfiguration.ItemOptions.First(io => io.PossibleOptions.Any(po => po.OptionType == ItemOptionTypes.GuardianOption && po.Number == (int)ItemGroups.Weapon));
+        var weaponOption = this.GetGuardianWeaponOption();
 
         var boneBlade = this.GameConfiguration.Items.First(i => i.Number == 22 && i.Group == (int)ItemGroups.Swords);
         var explosionBlade = this.GameConfiguration.Items.First(i => i.Number == 23 && i.Group == (int)ItemGroups.Swords);
