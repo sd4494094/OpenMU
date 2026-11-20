@@ -63,6 +63,7 @@ internal class MuExMemoryResetItemsDataTest
             Assert.That(item.Durability, Is.EqualTo(1));
             Assert.That(item.DropsFromMonsters, Is.False);
             Assert.That(item.IsRepairable, Is.False);
+            Assert.That(item.IsTradable, Is.EqualTo(item.Number < 156));
         }
 
         items[0].Durability = 7;
@@ -76,6 +77,7 @@ internal class MuExMemoryResetItemsDataTest
             Assert.That(custom.Width, Is.EqualTo(3));
             Assert.That(custom.Height, Is.EqualTo(3));
             Assert.That(custom.Durability, Is.EqualTo(20));
+            Assert.That(custom.IsTradable, Is.True);
         }
     }
 

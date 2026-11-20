@@ -18,6 +18,7 @@ using MUnique.OpenMU.PlugIns;
 public sealed class AddMuExMemoryResetItemsUpdatePlugIn : UpdatePlugInBase
 {
     private const byte MemoryResetItemGroup = 13;
+    private const short FirstSealedScrollNumber = 156;
 
     private static readonly (short Number, string NameKey, byte Width)[] Items =
     [
@@ -73,6 +74,7 @@ public sealed class AddMuExMemoryResetItemsUpdatePlugIn : UpdatePlugInBase
             item.Width = width;
             item.Height = 2;
             item.IsRepairable = false;
+            item.IsTradable = number < FirstSealedScrollNumber;
 
             // Use one point of durability for inventory until the original item behavior is verified.
             item.Durability = 1;
