@@ -5380,5 +5380,113 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("MuExLevelTwoCommissionLetter", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Blue Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExBlueForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExBlueForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Blue Ink.
+        /// </summary>
+        public static string MuExBlueInk {
+            get {
+                return ResourceManager.GetString("MuExBlueInk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Gray Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExGrayForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExGrayForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Green Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExGreenForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExGreenForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Green Ink.
+        /// </summary>
+        public static string MuExGreenInk {
+            get {
+                return ResourceManager.GetString("MuExGreenInk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Red Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExRedForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExRedForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Red Ink.
+        /// </summary>
+        public static string MuExRedInk {
+            get {
+                return ResourceManager.GetString("MuExRedInk", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sealed Blue Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExSealedBlueForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExSealedBlueForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sealed Gray Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExSealedGrayForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExSealedGrayForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sealed Green Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExSealedGreenForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExSealedGreenForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sealed Red Scroll of Forgetfulness.
+        /// </summary>
+        public static string MuExSealedRedForgetfulnessScroll {
+            get {
+                return ResourceManager.GetString("MuExSealedRedForgetfulnessScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Spirit Parchment.
+        /// </summary>
+        public static string MuExSpiritParchment {
+            get {
+                return ResourceManager.GetString("MuExSpiritParchment", resourceCulture);
+            }
+        }
     }
 }

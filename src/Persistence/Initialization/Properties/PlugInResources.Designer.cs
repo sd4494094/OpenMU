@@ -1094,5 +1094,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddCreatorGoddessNpc_Description", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the inks, spirit parchment and forgetfulness scroll item definitions. Existing item definitions are preserved..
+        /// </summary>
+        public static string AddMuExMemoryResetItems_Description {
+            get {
+                return ResourceManager.GetString("AddMuExMemoryResetItems_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx memory reset items.
+        /// </summary>
+        public static string AddMuExMemoryResetItems_Name {
+            get {
+                return ResourceManager.GetString("AddMuExMemoryResetItems_Name", resourceCulture);
+            }
+        }
     }
 }

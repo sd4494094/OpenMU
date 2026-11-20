@@ -2403,4 +2403,40 @@
   <data name="MuExLevelTwoCommissionCompletionScroll" xml:space="preserve">
     <value>2级委托完成卷轴</value>
   </data>
+  <data name="MuExGreenInk" xml:space="preserve">
+    <value>绿色墨水</value>
+  </data>
+  <data name="MuExBlueInk" xml:space="preserve">
+    <value>蓝色墨水</value>
+  </data>
+  <data name="MuExRedInk" xml:space="preserve">
+    <value>红色墨水</value>
+  </data>
+  <data name="MuExSpiritParchment" xml:space="preserve">
+    <value>精神的羊皮纸</value>
+  </data>
+  <data name="MuExGreenForgetfulnessScroll" xml:space="preserve">
+    <value>绿色忘却卷轴</value>
+  </data>
+  <data name="MuExBlueForgetfulnessScroll" xml:space="preserve">
+    <value>蓝色忘却卷轴</value>
+  </data>
+  <data name="MuExRedForgetfulnessScroll" xml:space="preserve">
+    <value>红色忘却卷轴</value>
+  </data>
+  <data name="MuExGrayForgetfulnessScroll" xml:space="preserve">
+    <value>灰色忘却卷轴</value>
+  </data>
+  <data name="MuExSealedGreenForgetfulnessScroll" xml:space="preserve">
+    <value>封印的绿色忘却卷轴</value>
+  </data>
+  <data name="MuExSealedBlueForgetfulnessScroll" xml:space="preserve">
+    <value>封印的蓝色忘却卷轴</value>
+  </data>
+  <data name="MuExSealedRedForgetfulnessScroll" xml:space="preserve">
+    <value>封印的红色忘却卷轴</value>
+  </data>
+  <data name="MuExSealedGrayForgetfulnessScroll" xml:space="preserve">
+    <value>封印的灰色忘却卷轴</value>
+  </data>
 </root>

@@ -465,4 +465,10 @@
   <data name="AddMuExCommissionItems_Description" xml:space="preserve">
     <value>添加2级委托书和2级委托完成卷轴的物品定义，保留已有定义。</value>
   </data>
+  <data name="AddMuExMemoryResetItems_Name" xml:space="preserve">
+    <value>MuEx 消除记忆物品</value>
+  </data>
+  <data name="AddMuExMemoryResetItems_Description" xml:space="preserve">
+    <value>添加三色墨水、精神的羊皮纸和忘却卷轴的物品定义，保留已有定义。</value>
+  </data>
 </root>

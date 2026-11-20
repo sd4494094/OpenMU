@@ -448,4 +448,10 @@
   <data name="AddMuExCommissionItems_Description" xml:space="preserve">
     <value>Adds the level 2 commission letter and completion scroll definitions. Existing item definitions are preserved.</value>
   </data>
+  <data name="AddMuExMemoryResetItems_Name" xml:space="preserve">
+    <value>MuEx memory reset items</value>
+  </data>
+  <data name="AddMuExMemoryResetItems_Description" xml:space="preserve">
+    <value>Adds the inks, spirit parchment and forgetfulness scroll item definitions. Existing item definitions are preserved.</value>
+  </data>
 </root>

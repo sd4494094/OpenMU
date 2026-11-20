@@ -2403,4 +2403,40 @@
   <data name="MuExLevelTwoCommissionCompletionScroll" xml:space="preserve">
     <value>Lv. 2 Completion Certificate</value>
   </data>
+  <data name="MuExGreenInk" xml:space="preserve">
+    <value>Green Ink</value>
+  </data>
+  <data name="MuExBlueInk" xml:space="preserve">
+    <value>Blue Ink</value>
+  </data>
+  <data name="MuExRedInk" xml:space="preserve">
+    <value>Red Ink</value>
+  </data>
+  <data name="MuExSpiritParchment" xml:space="preserve">
+    <value>Spirit Parchment</value>
+  </data>
+  <data name="MuExGreenForgetfulnessScroll" xml:space="preserve">
+    <value>Green Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExBlueForgetfulnessScroll" xml:space="preserve">
+    <value>Blue Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExRedForgetfulnessScroll" xml:space="preserve">
+    <value>Red Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExGrayForgetfulnessScroll" xml:space="preserve">
+    <value>Gray Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExSealedGreenForgetfulnessScroll" xml:space="preserve">
+    <value>Sealed Green Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExSealedBlueForgetfulnessScroll" xml:space="preserve">
+    <value>Sealed Blue Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExSealedRedForgetfulnessScroll" xml:space="preserve">
+    <value>Sealed Red Scroll of Forgetfulness</value>
+  </data>
+  <data name="MuExSealedGrayForgetfulnessScroll" xml:space="preserve">
+    <value>Sealed Gray Scroll of Forgetfulness</value>
+  </data>
 </root>
