@@ -5578,5 +5578,14 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("MuExTalismanOfWingsOfSpirits", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Pendant of Lightning (Dark).
+        /// </summary>
+        public static string MuExDarkLightningPendant {
+            get {
+                return ResourceManager.GetString("MuExDarkLightningPendant", resourceCulture);
+            }
+        }
     }
 }

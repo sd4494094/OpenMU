@@ -2469,4 +2469,7 @@
   <data name="MuExTalismanOfWingsOfDarkness" xml:space="preserve">
     <value>Talisman of Wings of Darkness</value>
   </data>
+  <data name="MuExDarkLightningPendant" xml:space="preserve">
+    <value>Pendant of Lightning (Dark)</value>
+  </data>
 </root>

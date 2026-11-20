@@ -460,4 +460,10 @@
   <data name="AddMuExWingTalismans_Description" xml:space="preserve">
     <value>Adds ten inventory item definitions for the MuEx wing and cape talismans. Existing definitions are preserved. Crafting recipes are configured separately.</value>
   </data>
+  <data name="AddMuExDarkLightningPendant_Name" xml:space="preserve">
+    <value>MuEx dark lightning pendant</value>
+  </data>
+  <data name="AddMuExDarkLightningPendant_Description" xml:space="preserve">
+    <value>Adds the dark lightning pendant as a separate item, using the ordinary pendant’s base equipment properties. Shop and set entries are configured separately.</value>
+  </data>
 </root>

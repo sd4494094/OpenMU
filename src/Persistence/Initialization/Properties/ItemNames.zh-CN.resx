@@ -2469,4 +2469,7 @@
   <data name="MuExTalismanOfWingsOfDarkness" xml:space="preserve">
     <value>暗黑之翼合成符咒</value>
   </data>
+  <data name="MuExDarkLightningPendant" xml:space="preserve">
+    <value>雷之项链(黑暗)</value>
+  </data>
 </root>

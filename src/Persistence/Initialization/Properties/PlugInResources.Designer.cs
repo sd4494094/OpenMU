@@ -1130,5 +1130,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddMuExWingTalismans_Name", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the dark lightning pendant as a separate item, using the ordinary pendant’s base equipment properties. Shop and set entries are configured separately..
+        /// </summary>
+        public static string AddMuExDarkLightningPendant_Description {
+            get {
+                return ResourceManager.GetString("AddMuExDarkLightningPendant_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx dark lightning pendant.
+        /// </summary>
+        public static string AddMuExDarkLightningPendant_Name {
+            get {
+                return ResourceManager.GetString("AddMuExDarkLightningPendant_Name", resourceCulture);
+            }
+        }
     }
 }
