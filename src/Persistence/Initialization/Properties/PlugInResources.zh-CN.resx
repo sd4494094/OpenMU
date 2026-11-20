@@ -459,4 +459,10 @@
   </data>
   <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>添加创世神·艾莉雅</value></data>
   <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>在勇者大陆（147,133）诺亚附近添加创世神，保留已有位置和设置。</value></data>
+  <data name="AddMuExCommissionItems_Name" xml:space="preserve">
+    <value>MuEx 2级委托物品</value>
+  </data>
+  <data name="AddMuExCommissionItems_Description" xml:space="preserve">
+    <value>添加2级委托书和2级委托完成卷轴的物品定义，保留已有定义。</value>
+  </data>
 </root>

@@ -442,4 +442,10 @@
   </data>
   <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>Add Creator Goddess Aria</value></data>
   <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>Adds the decorative creator goddess at Lorencia (147,133) beside Noah, preserving existing placements and settings.</value></data>
+  <data name="AddMuExCommissionItems_Name" xml:space="preserve">
+    <value>MuEx level 2 commission items</value>
+  </data>
+  <data name="AddMuExCommissionItems_Description" xml:space="preserve">
+    <value>Adds the level 2 commission letter and completion scroll definitions. Existing item definitions are preserved.</value>
+  </data>
 </root>

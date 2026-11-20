@@ -2397,4 +2397,10 @@
   <data name="MuExHolySpiritStaffNote" xml:space="preserve">
     <value>Holy Spirit Staff Crafting Note</value>
   </data>
+  <data name="MuExLevelTwoCommissionLetter" xml:space="preserve">
+    <value>Lv. 2 Letter of Request</value>
+  </data>
+  <data name="MuExLevelTwoCommissionCompletionScroll" xml:space="preserve">
+    <value>Lv. 2 Completion Certificate</value>
+  </data>
 </root>

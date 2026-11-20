@@ -151,6 +151,24 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adds the level 2 commission letter and completion scroll definitions. Existing item definitions are preserved..
+        /// </summary>
+        public static string AddMuExCommissionItems_Description {
+            get {
+                return ResourceManager.GetString("AddMuExCommissionItems_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx level 2 commission items.
+        /// </summary>
+        public static string AddMuExCommissionItems_Name {
+            get {
+                return ResourceManager.GetString("AddMuExCommissionItems_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Adds the ring, which can be dropped at level 40..
         /// </summary>
         public static string AddRingOfWarriorLevel40ForNewCharacters_Description {

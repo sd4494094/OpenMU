@@ -5362,5 +5362,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("TalismanOfChaosAssembly", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lv. 2 Completion Certificate.
+        /// </summary>
+        public static string MuExLevelTwoCommissionCompletionScroll {
+            get {
+                return ResourceManager.GetString("MuExLevelTwoCommissionCompletionScroll", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Lv. 2 Letter of Request.
+        /// </summary>
+        public static string MuExLevelTwoCommissionLetter {
+            get {
+                return ResourceManager.GetString("MuExLevelTwoCommissionLetter", resourceCulture);
+            }
+        }
     }
 }
