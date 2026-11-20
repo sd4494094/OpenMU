@@ -31,20 +31,10 @@ public class ItemCraftAction
     /// <returns>The relevant <see cref="ItemCrafting"/>.</returns>
     public ItemCrafting? FindAppropriateCraftingByItems(Player player)
     {
-        if (player.OpenedNpc?.Definition is { } npc)
-        {
-            // Wing crafting is similar but has one extra requirement (chaos weapon) than
-            // chaos weapon crafting, so we set a descending order so it gets checked first
-            foreach (var itemCrafting in npc.ItemCraftings.OrderByDescending(c => c.Number))
-            {
-                if (this.GetCraftingHandler(itemCrafting).TryGetRequiredItems(player, out _, out _) is null)
-                {
-                    return itemCrafting;
-                }
-            }
-        }
-
-        return null;
+        // Wing crafting has one more requirement than chaos weapon crafting, so check it first.
+        return player.OpenedNpc?.Definition.ItemCraftings
+            .OrderByDescending(c => c.Number)
+            .FirstOrDefault(c => this.MatchesItems(player, c));
     }
 
     /// <summary>
@@ -79,11 +69,19 @@ public class ItemCraftAction
 
         var npcStats = player.OpenedNpc?.Definition;
 
-        var crafting = npcStats?.ItemCraftings.FirstOrDefault(c => c.Number == mixTypeId);
-        if (crafting is null)
+        var craftings = npcStats?.ItemCraftings.Where(c => c.Number == mixTypeId).ToList();
+        if (craftings is not { Count: > 0 })
         {
             await player.InvokeViewPlugInAsync<IShowItemCraftingResultPlugIn>(p => p.ShowResultAsync(CraftingResult.IncorrectMixItems, null)).ConfigureAwait(false);
             return;
+        }
+
+        var crafting = craftings[0];
+        if (craftings.Count > 1)
+        {
+            // Some recipes share a request number. When no variant matches, keep
+            // the first handler's original validation result.
+            crafting = craftings.FirstOrDefault(c => this.MatchesItems(player, c)) ?? crafting;
         }
 
         var craftingHandler = this.GetCraftingHandler(crafting);
@@ -132,6 +130,9 @@ public class ItemCraftAction
 
         await this.ShowCraftingPreviewAsync(player).ConfigureAwait(false);
     }
+
+    private bool MatchesItems(Player player, ItemCrafting crafting)
+        => this.GetCraftingHandler(crafting).TryGetRequiredItems(player, out _, out _) is null;
 
     private IItemCraftingHandler GetCraftingHandler(ItemCrafting crafting)
     {
