@@ -454,4 +454,10 @@
   <data name="AddMuExMemoryResetItems_Description" xml:space="preserve">
     <value>Adds the inks, spirit parchment and forgetfulness scroll item definitions. Existing item definitions are preserved.</value>
   </data>
+  <data name="AddMuExWingTalismans_Name" xml:space="preserve">
+    <value>MuEx wing and cape talismans</value>
+  </data>
+  <data name="AddMuExWingTalismans_Description" xml:space="preserve">
+    <value>Adds ten inventory item definitions for the MuEx wing and cape talismans. Existing definitions are preserved. Crafting recipes are configured separately.</value>
+  </data>
 </root>

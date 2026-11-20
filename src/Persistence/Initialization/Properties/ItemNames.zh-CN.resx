@@ -2439,4 +2439,34 @@
   <data name="MuExSealedGrayForgetfulnessScroll" xml:space="preserve">
     <value>封印的灰色忘却卷轴</value>
   </data>
+  <data name="MuExTalismanOfWingsOfSatan" xml:space="preserve">
+    <value>恶魔之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfHeaven" xml:space="preserve">
+    <value>天使之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfElf" xml:space="preserve">
+    <value>精灵之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingOfCurse" xml:space="preserve">
+    <value>灾难之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfCapeOfEmperor" xml:space="preserve">
+    <value>王者披风合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfDragon" xml:space="preserve">
+    <value>飞龙之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfSoul" xml:space="preserve">
+    <value>魔魂之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfSpirits" xml:space="preserve">
+    <value>圣灵之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingOfDespair" xml:space="preserve">
+    <value>绝望之翼合成符咒</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfDarkness" xml:space="preserve">
+    <value>暗黑之翼合成符咒</value>
+  </data>
 </root>

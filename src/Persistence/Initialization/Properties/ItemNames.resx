@@ -2439,4 +2439,34 @@
   <data name="MuExSealedGrayForgetfulnessScroll" xml:space="preserve">
     <value>Sealed Gray Scroll of Forgetfulness</value>
   </data>
+  <data name="MuExTalismanOfWingsOfSatan" xml:space="preserve">
+    <value>Talisman of Wings of Satan</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfHeaven" xml:space="preserve">
+    <value>Talisman of Wings of Heaven</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfElf" xml:space="preserve">
+    <value>Talisman of Wings of Elf</value>
+  </data>
+  <data name="MuExTalismanOfWingOfCurse" xml:space="preserve">
+    <value>Talisman of Wing of Curse</value>
+  </data>
+  <data name="MuExTalismanOfCapeOfEmperor" xml:space="preserve">
+    <value>Talisman of Cape of Emperor</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfDragon" xml:space="preserve">
+    <value>Talisman of Wings of Dragon</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfSoul" xml:space="preserve">
+    <value>Talisman of Wings of Soul</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfSpirits" xml:space="preserve">
+    <value>Talisman of Wings of Spirits</value>
+  </data>
+  <data name="MuExTalismanOfWingOfDespair" xml:space="preserve">
+    <value>Talisman of Wing of Despair</value>
+  </data>
+  <data name="MuExTalismanOfWingsOfDarkness" xml:space="preserve">
+    <value>Talisman of Wings of Darkness</value>
+  </data>
 </root>

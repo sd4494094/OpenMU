@@ -5488,5 +5488,95 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("MuExSpiritParchment", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Cape of Emperor.
+        /// </summary>
+        public static string MuExTalismanOfCapeOfEmperor {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfCapeOfEmperor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wing of Curse.
+        /// </summary>
+        public static string MuExTalismanOfWingOfCurse {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingOfCurse", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wing of Despair.
+        /// </summary>
+        public static string MuExTalismanOfWingOfDespair {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingOfDespair", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Darkness.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfDarkness {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfDarkness", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Dragon.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfDragon {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfDragon", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Elf.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfElf {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfElf", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Heaven.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfHeaven {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfHeaven", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Satan.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfSatan {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfSatan", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Soul.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfSoul {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfSoul", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Talisman of Wings of Spirits.
+        /// </summary>
+        public static string MuExTalismanOfWingsOfSpirits {
+            get {
+                return ResourceManager.GetString("MuExTalismanOfWingsOfSpirits", resourceCulture);
+            }
+        }
     }
 }

@@ -471,4 +471,10 @@
   <data name="AddMuExMemoryResetItems_Description" xml:space="preserve">
     <value>添加三色墨水、精神的羊皮纸和忘却卷轴的物品定义，保留已有定义。</value>
   </data>
+  <data name="AddMuExWingTalismans_Name" xml:space="preserve">
+    <value>MuEx 翅膀和披风合成符咒</value>
+  </data>
+  <data name="AddMuExWingTalismans_Description" xml:space="preserve">
+    <value>添加十种 MuEx 翅膀和披风合成符咒的库存物品定义，保留已有定义。合成配方单独配置。</value>
+  </data>
 </root>

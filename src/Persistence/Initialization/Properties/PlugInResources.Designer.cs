@@ -1112,5 +1112,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddMuExMemoryResetItems_Name", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds ten inventory item definitions for the MuEx wing and cape talismans. Existing definitions are preserved. Crafting recipes are configured separately..
+        /// </summary>
+        public static string AddMuExWingTalismans_Description {
+            get {
+                return ResourceManager.GetString("AddMuExWingTalismans_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx wing and cape talismans.
+        /// </summary>
+        public static string AddMuExWingTalismans_Name {
+            get {
+                return ResourceManager.GetString("AddMuExWingTalismans_Name", resourceCulture);
+            }
+        }
     }
 }
