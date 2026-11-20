@@ -48,7 +48,7 @@ internal class ItemNameResourcesTests
     }
 
     /// <summary>
-    /// Built-in items and optional MuEx materials get their names from resources, and existing
+    /// Built-in items and optional MuEx items get their names from resources, and existing
     /// neutral names can be linked and translated through the caption workflow.
     /// </summary>
     /// <param name="version">The configuration version.</param>
@@ -71,6 +71,7 @@ internal class ItemNameResourcesTests
         if (initializer is VersionSeasonSix.DataInitialization)
         {
             await new AddMuExCraftingMaterialsUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+            await new AddMuExCommissionItemsUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
         }
 
         var culture = CultureInfo.GetCultureInfo("zh-CN");
