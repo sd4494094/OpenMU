@@ -39,8 +39,11 @@ public class ShowAvailableQuestsPlugIn : IShowAvailableQuestsPlugIn
             return;
         }
 
-        var totalQuests = this._player.GetAvailableQuestsOfOpenedNpc().ToList();
-        var questCount = totalQuests.Count;
+        var questEntries = this._player.GetAvailableQuestsOfOpenedNpc()
+            .Select(quest => (quest.StartingNumber, quest.Group))
+            .Distinct()
+            .ToList();
+        var questCount = questEntries.Count;
         int Write()
         {
             var size = AvailableQuestsRef.GetRequiredSize(questCount);
@@ -54,9 +57,9 @@ public class ShowAvailableQuestsPlugIn : IShowAvailableQuestsPlugIn
             for (int i = 0; i < questCount; i++)
             {
                 var block = packet[i];
-                var quest = totalQuests[i];
-                block.Number = (ushort)quest.StartingNumber;
-                block.Group = (ushort)quest.Group;
+                var (number, group) = questEntries[i];
+                block.Number = (ushort)number;
+                block.Group = (ushort)group;
             }
 
             return size;
