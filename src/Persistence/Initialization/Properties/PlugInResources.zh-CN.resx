@@ -513,4 +513,10 @@
   <data name="AddMuExHolySpiritStaffAndSuccubusSet_Description" xml:space="preserve">
     <value>可选添加圣灵之杖和五件女妖防具的物品定义，不添加掉落或合成规则。</value>
   </data>
+  <data name="SetMuExWarpRequirements_Name" xml:space="preserve">
+    <value>MuEx 狼魂要塞与罗兰市场传送</value>
+  </data>
+  <data name="SetMuExWarpRequirements_Description" xml:space="preserve">
+    <value>将狼魂要塞传送设为 10 级、免费，罗兰市场设为 1 级、10,000 金币。适用于采用对应 MuEx 传送菜单数据的服务器。</value>
+  </data>
 </root>

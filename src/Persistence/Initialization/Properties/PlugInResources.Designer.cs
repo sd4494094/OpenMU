@@ -1238,5 +1238,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("SetMuExSeedSpherePrices_Name", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sets Crywolf Fortress to level 10 and free travel, and Loren Market to level 1 and 10,000 Zen. Select for a realm with matching MuEx client menu data..
+        /// </summary>
+        public static string SetMuExWarpRequirements_Description {
+            get {
+                return ResourceManager.GetString("SetMuExWarpRequirements_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx Crywolf Fortress and Loren Market travel.
+        /// </summary>
+        public static string SetMuExWarpRequirements_Name {
+            get {
+                return ResourceManager.GetString("SetMuExWarpRequirements_Name", resourceCulture);
+            }
+        }
     }
 }

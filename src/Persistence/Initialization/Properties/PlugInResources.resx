@@ -496,4 +496,10 @@
   <data name="AddMuExHolySpiritStaffAndSuccubusSet_Description" xml:space="preserve">
     <value>Adds optional item definitions for the Holy Spirit Staff and five Succubus armor pieces. Does not add drop or crafting rules.</value>
   </data>
+  <data name="SetMuExWarpRequirements_Name" xml:space="preserve">
+    <value>MuEx Crywolf Fortress and Loren Market travel</value>
+  </data>
+  <data name="SetMuExWarpRequirements_Description" xml:space="preserve">
+    <value>Sets Crywolf Fortress to level 10 and free travel, and Loren Market to level 1 and 10,000 Zen. Select for a realm with matching MuEx client menu data.</value>
+  </data>
 </root>
