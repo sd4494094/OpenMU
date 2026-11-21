@@ -322,6 +322,48 @@ internal class Weapons : InitializerBase
     }
 
     /// <summary>
+    /// Creates the Holy Spirit Staff using the MuEx item catalog fields.
+    /// </summary>
+    /// <param name="number">The item number in the staff group.</param>
+    /// <returns>The newly created definition.</returns>
+    internal ItemDefinition CreateMuExHolySpiritStaff(byte number)
+    {
+        const byte mainHandSlot = 0;
+        var itemSlot = this.GameConfiguration.ItemSlotTypes.First(type => type.ItemSlots.Count == 1 && type.ItemSlots.Contains(mainHandSlot));
+        this._weaponDamageIncreaseTable = this.GameConfiguration.ItemLevelBonusTables.Single(table => table.Name.ValueInNeutralLanguage == LevelBonusNames.DamageIncreaseWeapons);
+        this._staffRiseTableEven = this.GameConfiguration.ItemLevelBonusTables.Single(table => table.Name.ValueInNeutralLanguage == LevelBonusNames.StaffRiseEven);
+        var staff = this.CreateWeapon(
+            (byte)ItemGroups.Staff,
+            number,
+            slot: mainHandSlot,
+            skillNumber: 0,
+            width: 1,
+            height: 4,
+            dropsFromMonsters: false,
+            LocalizedString.FromResource(() => ItemNames.MuExHolySpiritStaff),
+            dropLevel: 149,
+            minimumDamage: 59,
+            maximumDamage: 61,
+            attackSpeed: 30,
+            durability: 130,
+            magicPower: 110,
+            levelRequirement: 400,
+            strengthRequirement: 56,
+            agilityRequirement: 14,
+            energyRequirement: 0,
+            vitalityRequirement: 0,
+            wizardClass: 0,
+            knightClass: 0,
+            elfClass: 0,
+            magicGladiatorClass: 0,
+            darkLordClass: 0,
+            summonerClass: 3,
+            ragefighterClass: 0);
+        staff.ItemSlot = itemSlot;
+        return staff;
+    }
+
+    /// <summary>
     /// Creates the item with the specified parameters.
     /// </summary>
     /// <param name="group">The group number.</param>

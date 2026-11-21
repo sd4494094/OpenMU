@@ -5623,5 +5623,59 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Holy Spirit Staff.
+        /// </summary>
+        public static string MuExHolySpiritStaff {
+            get {
+                return ResourceManager.GetString("MuExHolySpiritStaff", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Succubus Helm.
+        /// </summary>
+        public static string MuExSuccubusHelm {
+            get {
+                return ResourceManager.GetString("MuExSuccubusHelm", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Succubus Armor.
+        /// </summary>
+        public static string MuExSuccubusArmor {
+            get {
+                return ResourceManager.GetString("MuExSuccubusArmor", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Succubus Pants.
+        /// </summary>
+        public static string MuExSuccubusPants {
+            get {
+                return ResourceManager.GetString("MuExSuccubusPants", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Succubus Gloves.
+        /// </summary>
+        public static string MuExSuccubusGloves {
+            get {
+                return ResourceManager.GetString("MuExSuccubusGloves", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Succubus Boots.
+        /// </summary>
+        public static string MuExSuccubusBoots {
+            get {
+                return ResourceManager.GetString("MuExSuccubusBoots", resourceCulture);
+            }
+        }
+
     }
 }

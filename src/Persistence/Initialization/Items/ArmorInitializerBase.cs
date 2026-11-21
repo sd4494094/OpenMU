@@ -50,6 +50,15 @@ public abstract class ArmorInitializerBase : InitializerBase
     }
 
     /// <summary>
+    /// Binds the existing armor bonus tables when adding item definitions to an initialized configuration.
+    /// </summary>
+    protected void InitializeFromExistingBonusTables()
+    {
+        this._defenseIncreaseTable = this.GameConfiguration.ItemLevelBonusTables.Single(table => table.Name.ValueInNeutralLanguage == LevelBonusNames.DefenseIncreaseArmors);
+        this._runningMovementSpeedTable = this.GameConfiguration.ItemLevelBonusTables.Single(table => table.Name.ValueInNeutralLanguage == LevelBonusNames.RunningMovementSpeed);
+    }
+
+    /// <summary>
     /// Builds the <see cref="ItemSetGroup"/> for whole sets.
     /// </summary>
     protected void BuildSets()

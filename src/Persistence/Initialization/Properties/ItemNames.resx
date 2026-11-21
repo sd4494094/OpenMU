@@ -2484,4 +2484,22 @@
   <data name="MuExBattlefieldSpoils" xml:space="preserve">
     <value>Battlefield Spoils</value>
   </data>
+  <data name="MuExHolySpiritStaff" xml:space="preserve">
+    <value>Holy Spirit Staff</value>
+  </data>
+  <data name="MuExSuccubusHelm" xml:space="preserve">
+    <value>Succubus Helm</value>
+  </data>
+  <data name="MuExSuccubusArmor" xml:space="preserve">
+    <value>Succubus Armor</value>
+  </data>
+  <data name="MuExSuccubusPants" xml:space="preserve">
+    <value>Succubus Pants</value>
+  </data>
+  <data name="MuExSuccubusGloves" xml:space="preserve">
+    <value>Succubus Gloves</value>
+  </data>
+  <data name="MuExSuccubusBoots" xml:space="preserve">
+    <value>Succubus Boots</value>
+  </data>
 </root>

@@ -1202,6 +1202,24 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Adds optional item definitions for the Holy Spirit Staff and five Succubus armor pieces. Does not add drop or crafting rules..
+        /// </summary>
+        public static string AddMuExHolySpiritStaffAndSuccubusSet_Description {
+            get {
+                return ResourceManager.GetString("AddMuExHolySpiritStaffAndSuccubusSet_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx Holy Spirit Staff and Succubus equipment.
+        /// </summary>
+        public static string AddMuExHolySpiritStaffAndSuccubusSet_Name {
+            get {
+                return ResourceManager.GetString("AddMuExHolySpiritStaffAndSuccubusSet_Name", resourceCulture);
+            }
+        }
+
 
         /// <summary>
         ///   Looks up a localized string similar to Sets fixed prices for seed spheres (12,100–129) to the MuEx client catalog values. Select for a realm using that catalog..

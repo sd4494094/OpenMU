@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
 
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.Initialization.Items;
 using MUnique.OpenMU.Persistence.Initialization.Properties;
@@ -349,6 +350,50 @@ public class Armors : ArmorInitializerBase
 
         this.BuildSets();
         this.AddGuardianOptionsToSets();
+    }
+
+    /// <summary>
+    /// Creates one Succubus armor piece using the MuEx item catalog fields.
+    /// </summary>
+    /// <param name="itemGroup">The armor item group.</param>
+    /// <returns>The newly created armor definition.</returns>
+    internal ItemDefinition CreateMuExSuccubusPiece(byte itemGroup)
+    {
+        this.InitializeFromExistingBonusTables();
+
+        var item = itemGroup switch
+        {
+            7 => this.CreateArmor(53, 2, 2, 2, LocalizedString.FromResource(() => ItemNames.MuExSuccubusHelm), 143, 44, 90, 400, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0),
+            8 => this.CreateArmor(53, 3, 2, 2, LocalizedString.FromResource(() => ItemNames.MuExSuccubusArmor), 148, 58, 90, 400, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0),
+            9 => this.CreateArmor(53, 4, 2, 2, LocalizedString.FromResource(() => ItemNames.MuExSuccubusPants), 145, 50, 90, 400, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0),
+            10 => this.CreateSuccubusGloves(),
+            11 => this.CreateBoots(53, LocalizedString.FromResource(() => ItemNames.MuExSuccubusBoots), 140, 41, 0, 90, 400, 56, 19, 157, 0, 0, 0, 0, 0, 0, 0, 3, 0),
+            _ => throw new ArgumentOutOfRangeException(nameof(itemGroup), itemGroup, "The item group is not part of the Succubus set."),
+        };
+        item.DropsFromMonsters = false;
+        return item;
+    }
+
+    private ItemDefinition CreateSuccubusGloves()
+    {
+        var gloves = this.CreateGloves(
+            53,
+            LocalizedString.FromResource(() => ItemNames.MuExSuccubusGloves),
+            dropLevel: 142,
+            defense: 38,
+            attackSpeed: 6,
+            durability: 90,
+            levelRequirement: 400,
+            strengthRequirement: 56,
+            agilityRequirement: 19,
+            darkWizardClassLevel: 0,
+            darkKnightClassLevel: 0,
+            elfClassLevel: 0,
+            magicGladiatorClassLevel: 0,
+            darkLordClassLevel: 0,
+            summonerClassLevel: 3);
+        this.CreateItemRequirementIfNeeded(gloves, Stats.TotalEnergyRequirementValue, 157);
+        return gloves;
     }
 
     private void AddGuardianOptionsToSets()

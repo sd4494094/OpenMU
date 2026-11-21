@@ -507,4 +507,10 @@
   <data name="SetMuExSeedSpherePrices_Description" xml:space="preserve">
     <value>将种子球 (12,100–129) 的固定价格设为 MuEx 客户端目录中的价格。用于采用该目录的服务器。</value>
   </data>
+  <data name="AddMuExHolySpiritStaffAndSuccubusSet_Name" xml:space="preserve">
+    <value>MuEx 圣灵之杖与女妖装备</value>
+  </data>
+  <data name="AddMuExHolySpiritStaffAndSuccubusSet_Description" xml:space="preserve">
+    <value>可选添加圣灵之杖和五件女妖防具的物品定义，不添加掉落或合成规则。</value>
+  </data>
 </root>

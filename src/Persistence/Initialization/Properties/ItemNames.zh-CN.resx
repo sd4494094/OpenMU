@@ -2484,4 +2484,22 @@
   <data name="MuExBattlefieldSpoils" xml:space="preserve">
     <value>战场战利品</value>
   </data>
+  <data name="MuExHolySpiritStaff" xml:space="preserve">
+    <value>圣灵之杖</value>
+  </data>
+  <data name="MuExSuccubusHelm" xml:space="preserve">
+    <value>女妖之盔</value>
+  </data>
+  <data name="MuExSuccubusArmor" xml:space="preserve">
+    <value>女妖之铠</value>
+  </data>
+  <data name="MuExSuccubusPants" xml:space="preserve">
+    <value>女妖之护腿</value>
+  </data>
+  <data name="MuExSuccubusGloves" xml:space="preserve">
+    <value>女妖之护手</value>
+  </data>
+  <data name="MuExSuccubusBoots" xml:space="preserve">
+    <value>女妖之靴</value>
+  </data>
 </root>
