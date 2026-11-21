@@ -93,6 +93,11 @@ public partial class ItemStatTerms
     /// Gets or sets what each item level adds after the magic power is halved. Only for the rises of the magic power;
     /// <c>null</c> means it isn't written by the profile.
     /// </summary>
+    /// <remarks>
+    /// When an item profile supplies both this value and a level table for the rise, that table holds the raw
+    /// increments before halving. The server uses them to round excellent and ancient bonuses together with the
+    /// base and level contribution. The item's base power-up still holds the rounded normal contribution.
+    /// </remarks>
     public int? PerLevelAfterHalving { get; set; }
 
     /// <inheritdoc />

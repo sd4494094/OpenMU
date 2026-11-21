@@ -368,25 +368,24 @@ public class ItemPowerUpFactory : IItemPowerUpFactory
 
         PowerUpWrapper Wrap(int value, AttributeDefinition target) => new(new SimpleElement(value * durabilityFactor, AggregateType.AddRaw), target, attributeHolder);
 
-        void AddPart(int? part, int divisor, AttributeDefinition target, AttributeDefinition? secondTarget)
+        void AddPart(int? part, AttributeDefinition target, AttributeDefinition? secondTarget = null)
         {
             if (part is not { } value)
             {
                 return;
             }
 
-            powerUps.Add(Wrap(value / divisor, target));
+            powerUps.Add(Wrap(value, target));
             if (secondTarget is not null)
             {
-                powerUps.Add(Wrap(value / divisor, secondTarget));
+                powerUps.Add(Wrap(value, secondTarget));
             }
         }
 
         // Adds the excellent part of the attribute, or the fixed excellent bonus when it's above 0, and for an ancient
         // item the ancient part, whose value is the base value plus the excellent part (and the level bonus, when the
         // part says so). An item with a drop level of 0 gets no excellent part, as in the game client. The terms of a
-        // rise of the magic power are for the full magic power, which is twice the rise, and each part is halved (the
-        // client halves their sum).
+        // rise of the magic power are for the full magic power, which is twice the rise.
         void AddParts(AttributeDefinition attribute, int baseValue, AttributeDefinition target, AttributeDefinition? secondTarget = null, int fixedExcellentBonus = 0, bool isRise = false)
         {
             var factor = isRise ? 2 : 1;
@@ -398,12 +397,25 @@ public class ItemPowerUpFactory : IItemPowerUpFactory
                 : fixedExcellentBonus > 0 ? fixedExcellentBonus
                 : excellentPart.HasValues ? excellentPart.Compute(value, baseDropLevel)
                 : null;
-            AddPart(excellent, factor, target, secondTarget);
+
+            // A profile with a raw magic level table can reproduce MuMain's single truncation.
+            // The base power-up already grants the rounded base and level bonus.
+            var rawLevelBonus = isRise ? profile.GetRawMagicLevelBonus(attribute, item.Level) : null;
+            var rawNormal = value + (rawLevelBonus ?? 0);
+            var withExcellent = rawNormal + (excellent ?? 0);
+            var excellentRise = rawLevelBonus.HasValue && excellent.HasValue
+                ? (int)((withExcellent / 2) - (rawNormal / 2))
+                : excellent / factor;
+            AddPart(excellentRise, target, secondTarget);
 
             if (itemIsAncient && profile.GetAncientPart(attribute) is { HasValues: true } ancientPart)
             {
-                var levelBonus = ancientPart.AfterLevelBonus ? (long)GetLevelBonus(item, attribute) * factor : 0;
-                AddPart(ancientPart.Compute(value + (excellent ?? 0) + levelBonus, ancientDropLevel), factor, target, secondTarget);
+                var levelBonus = ancientPart.AfterLevelBonus ? rawLevelBonus ?? ((long)GetLevelBonus(item, attribute) * factor) : 0;
+                var ancient = ancientPart.Compute(value + (excellent ?? 0) + levelBonus, ancientDropLevel);
+                var ancientRise = rawLevelBonus.HasValue
+                    ? (int)(((withExcellent + ancient) / 2) - (withExcellent / 2))
+                    : ancient / factor;
+                AddPart(ancientRise, target, secondTarget);
             }
         }
 

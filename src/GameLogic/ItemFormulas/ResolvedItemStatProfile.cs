@@ -113,6 +113,23 @@ public sealed class ResolvedItemStatProfile
     /// <returns>The ancient part.</returns>
     public ItemStatTermPart GetAncientPart(AttributeDefinition attribute) => this.GetPart(attribute, isAncient: true);
 
+    /// <summary>
+    /// Gets the unhalved magic bonus for a profile that explicitly supplies the raw level table and the post-halving increment.
+    /// </summary>
+    /// <param name="attribute">The magic rise attribute.</param>
+    /// <param name="level">The item level.</param>
+    /// <returns>The raw increment, or <c>null</c> when the item profile leaves it unspecified.</returns>
+    internal int? GetRawMagicLevelBonus(AttributeDefinition attribute, int level)
+    {
+        var terms = this._profile?.StatTerms.FirstOrDefault(part => part.Attribute == attribute);
+        if (terms is not { TableState: ItemStatTermState.Values, Table: { } table, PerLevelAfterHalving: not null })
+        {
+            return null;
+        }
+
+        return (int)(table.BonusPerLevel.FirstOrDefault(bonus => bonus.Level == level)?.AdditionalValue ?? 0);
+    }
+
     private static ItemStatProfile? FindDefaultProfile(GameConfiguration gameConfiguration)
     {
         return gameConfiguration.ItemStatProfiles.FirstOrDefault(profile => profile.Name == ItemStatProfile.DefaultName);

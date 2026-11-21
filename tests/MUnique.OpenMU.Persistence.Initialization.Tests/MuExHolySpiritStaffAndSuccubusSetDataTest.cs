@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.Tests;
 
 using System.Globalization;
 using Microsoft.Extensions.Logging.Abstractions;
+using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
@@ -126,6 +127,7 @@ internal class MuExHolySpiritStaffAndSuccubusSetDataTest
             staffPowers[Stats.MaximumPhysBaseDmgByWeapon].BaseValue,
             staffPowers[Stats.AttackSpeedByWeapon].BaseValue,
             staffPowers[Stats.StaffRise].BaseValue), Is.EqualTo((59f, 61f, 30f, 55f)));
+        AssertStaffRise(context, configuration, staff);
         var succubusPieces = importedItems.Skip(1).ToArray();
         foreach (var item in succubusPieces)
         {
@@ -188,7 +190,7 @@ internal class MuExHolySpiritStaffAndSuccubusSetDataTest
         entry.Version = 1;
 
         await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
-        Assert.That(entry.Version, Is.EqualTo(2));
+        Assert.That(entry.Version, Is.EqualTo(3));
         Assert.That(configuration.Items.Where(IsTargetItem), Is.EquivalentTo(imported));
         Assert.That(staff.Durability, Is.EqualTo(77));
         Assert.That(boots.StatProfile, Is.SameAs(customProfile));
@@ -197,6 +199,39 @@ internal class MuExHolySpiritStaffAndSuccubusSetDataTest
             Is.EqualTo(imported.Select((item, index) => (item, index)).Where(pair => pair.item != boots && pair.item != gloves).Select(pair => originalProfiles[pair.index])));
         AssertAdditionalStrength(context, configuration, staff);
         AssertAdditionalStrength(context, configuration, imported.Single(item => item.Group == 7));
+        AssertStaffRise(context, configuration, staff);
+
+        var terms = staff.StatProfile!.StatTerms.Single();
+        terms.Table!.Name = "Renamed weapon level bonuses";
+        staff.StatProfile.StatTerms.Remove(terms);
+        await context.DeleteAsync(terms).ConfigureAwait(false);
+        entry.Version = 2;
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        Assert.That(entry.Version, Is.EqualTo(3));
+        AssertStaffRise(context, configuration, staff);
+        Assert.That(staff.StatProfile.StatTerms, Has.Count.EqualTo(1));
+    }
+
+    private static void AssertStaffRise(IContext context, GameConfiguration configuration, ItemDefinition definition)
+    {
+        var item = context.CreateNew<Item>();
+        item.Definition = definition;
+        item.Level = 1;
+        item.ItemSlot = (byte)definition.ItemSlot!.ItemSlots.Single();
+        var excellentOption = context.CreateNew<ItemOptionLink>();
+        excellentOption.ItemOption = definition.PossibleItemOptions.SelectMany(set => set.PossibleOptions).First(option => option.OptionType == ItemOptionTypes.Excellent);
+        excellentOption.Level = 1;
+        item.ItemOptions.Add(excellentOption);
+        item.Durability = item.GetMaximumDurabilityOfOnePiece();
+
+        using var attributes = new AttributeSystem([], [], []);
+        var factory = new ItemPowerUpFactory(NullLogger<ItemPowerUpFactory>.Instance, configuration);
+        var powerUps = factory.GetPowerUps(item, attributes).ToArray();
+        Assert.That(attributes[Stats.StaffRise], Is.EqualTo(70));
+        foreach (var powerUp in powerUps)
+        {
+            powerUp.Dispose();
+        }
     }
 
     private static void AssertAdditionalStrength(IContext context, GameConfiguration configuration, ItemDefinition definition)

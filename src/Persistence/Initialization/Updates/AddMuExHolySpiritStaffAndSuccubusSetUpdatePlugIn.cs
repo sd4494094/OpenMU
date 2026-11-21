@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.Updates;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.Initialization.Items;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
@@ -38,10 +39,10 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
     public override DateTime CreatedAt => new(2026, 11, 21, 0, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
-    public override DateTime UpdatedAt => new(2026, 11, 21, 9, 0, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 21, 9, 10, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
-    public override int Version => 2;
+    public override int Version => 3;
 
     /// <inheritdoc />
     public override IEnumerable<UpdateDependency> DependsOn => [new(typeof(AddItemStatProfilesUpdatePlugInSeasonSix).GUID)];
@@ -63,11 +64,18 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
         if (staff is null)
         {
             var weapons = new Weapons(context, gameConfiguration);
-            weapons.CreateMuExHolySpiritStaff(StaffNumber).StatProfile = GetStaffProfile(context, gameConfiguration);
+            staff = weapons.CreateMuExHolySpiritStaff(StaffNumber);
+            staff.StatProfile = GetStaffProfile(context, gameConfiguration, staff);
         }
         else if (installedVersion == 1 && IsUnprofiledImport(staff, nameof(ItemNames.MuExHolySpiritStaff)))
         {
-            staff.StatProfile = GetStaffProfile(context, gameConfiguration);
+            staff.StatProfile = GetStaffProfile(context, gameConfiguration, staff);
+        }
+        else if (installedVersion == 2
+                 && IsImportedDefinition(staff, nameof(ItemNames.MuExHolySpiritStaff))
+                 && staff.StatProfile is { Name: StaffProfileName } profile)
+        {
+            AddStaffMagicTerms(context, gameConfiguration, profile, staff);
         }
 
         var armors = new Armors(context, gameConfiguration);
@@ -98,11 +106,13 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
     }
 
     private static bool IsUnprofiledImport(ItemDefinition item, string nameResource)
-        => item.StatProfile is null
-           && item.GetId() == GuidHelper.CreateGuid<ItemDefinition>(item.Group, item.Number)
+        => item.StatProfile is null && IsImportedDefinition(item, nameResource);
+
+    private static bool IsImportedDefinition(ItemDefinition item, string nameResource)
+        => item.GetId() == GuidHelper.CreateGuid<ItemDefinition>(item.Group, item.Number)
            && item.Name.SourceKey == $"ItemNames/{nameResource}";
 
-    private static ItemStatProfile GetStaffProfile(IContext context, GameConfiguration gameConfiguration)
+    private static ItemStatProfile GetStaffProfile(IContext context, GameConfiguration gameConfiguration, ItemDefinition staff)
     {
         if (gameConfiguration.ItemStatProfiles.SingleOrDefault(profile => profile.Name == StaffProfileName) is { } existing)
         {
@@ -111,9 +121,33 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
 
         var profile = context.CreateNew<ItemStatProfile>();
         profile.Name = StaffProfileName;
+
         // MuMain's weapon profile requires 5 strength per additional option level.
         profile.StrengthPerOptionLevel = 5;
+        AddStaffMagicTerms(context, gameConfiguration, profile, staff);
         gameConfiguration.ItemStatProfiles.Add(profile);
         return profile;
+    }
+
+    private static void AddStaffMagicTerms(IContext context, GameConfiguration configuration, ItemStatProfile profile, ItemDefinition staff)
+    {
+        if (profile.StatTerms.Any(terms => terms.Attribute == Stats.StaffRise))
+        {
+            return;
+        }
+
+        // MuMain uses the same raw level increments for staff magic power and weapon damage.
+        var damage = staff.BasePowerUpAttributes.FirstOrDefault(power => power.TargetAttribute == Stats.MinimumPhysBaseDmgByWeapon);
+        if (damage?.BonusPerLevelTable is not { } table)
+        {
+            return;
+        }
+
+        var terms = context.CreateNew<ItemStatTerms>();
+        terms.Attribute = Stats.StaffRise.GetPersistent(configuration);
+        terms.TableState = ItemStatTermState.Values;
+        terms.Table = table;
+        terms.PerLevelAfterHalving = 2;
+        profile.StatTerms.Add(terms);
     }
 }
