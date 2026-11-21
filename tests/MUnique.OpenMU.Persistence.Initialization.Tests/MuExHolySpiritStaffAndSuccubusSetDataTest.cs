@@ -8,6 +8,8 @@ using System.Globalization;
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
+using MUnique.OpenMU.DataModel.Entities;
+using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.InMemory;
@@ -101,6 +103,7 @@ internal class MuExHolySpiritStaffAndSuccubusSetDataTest
         {
             Assert.That(item.ItemSlot!.ItemSlots, Is.EqualTo(new[] { item.Group - 5 }));
             Assert.That(item.QualifiedCharacters.Select(character => character.Number), Is.EqualTo(new[] { (byte)CharacterClassNumber.DimensionMaster }));
+            AssertAdditionalStrength(context, configuration, item);
         }
 
         var expectedItemValues = new[]
@@ -149,6 +152,65 @@ internal class MuExHolySpiritStaffAndSuccubusSetDataTest
         Assert.That(configuration.Items.Where(IsTargetItem), Is.EquivalentTo(items));
         Assert.That(installedStaff.Durability, Is.EqualTo(77));
         Assert.That((await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Count(entry => entry.Key == update.Key), Is.EqualTo(1));
+    }
+
+    /// <summary>
+    /// Upgrades version 1 items without replacing custom definitions or assigned profiles.
+    /// </summary>
+    [Test]
+    public async Task UpdatesOnlyUnprofiledImportedEquipmentFromVersionOneAsync()
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        await new VersionSeasonSix.DataInitialization(provider, NullLoggerFactory.Instance)
+            .CreateInitialDataAsync(1, false).ConfigureAwait(false);
+        using var context = provider.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var update = new AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn();
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+
+        var imported = configuration.Items.Where(IsTargetItem).ToArray();
+        var originalProfiles = imported.Select(item => item.StatProfile).ToArray();
+        foreach (var item in imported)
+        {
+            item.StatProfile = null;
+        }
+
+        var staff = imported.Single(item => item.Group == 5);
+        staff.Durability = 77;
+        var boots = imported.Single(item => item.Group == 11);
+        var customProfile = context.CreateNew<ItemStatProfile>();
+        customProfile.Name = "customBoots";
+        configuration.ItemStatProfiles.Add(customProfile);
+        boots.StatProfile = customProfile;
+        var gloves = imported.Single(item => item.Group == 10);
+        gloves.Name = new LocalizedString("Custom gloves");
+        var entry = (await context.GetAsync<ConfigurationUpdate>().ConfigureAwait(false)).Single(current => current.Key == update.Key);
+        entry.Version = 1;
+
+        await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        Assert.That(entry.Version, Is.EqualTo(2));
+        Assert.That(configuration.Items.Where(IsTargetItem), Is.EquivalentTo(imported));
+        Assert.That(staff.Durability, Is.EqualTo(77));
+        Assert.That(boots.StatProfile, Is.SameAs(customProfile));
+        Assert.That(gloves.StatProfile, Is.Null);
+        Assert.That(imported.Except([boots, gloves]).Select(item => item.StatProfile),
+            Is.EqualTo(imported.Select((item, index) => (item, index)).Where(pair => pair.item != boots && pair.item != gloves).Select(pair => originalProfiles[pair.index])));
+        AssertAdditionalStrength(context, configuration, staff);
+        AssertAdditionalStrength(context, configuration, imported.Single(item => item.Group == 7));
+    }
+
+    private static void AssertAdditionalStrength(IContext context, GameConfiguration configuration, ItemDefinition definition)
+    {
+        var item = context.CreateNew<Item>();
+        item.Definition = definition;
+        item.Level = 15;
+        var baseStrength = item.GetRequirements(configuration).Single(requirement => requirement.Attr == Stats.TotalStrength).Value;
+        var option = context.CreateNew<ItemOptionLink>();
+        option.ItemOption = definition.PossibleItemOptions.SelectMany(set => set.PossibleOptions).First(entry => entry.OptionType == ItemOptionTypes.Option);
+        option.Level = 4;
+        item.ItemOptions.Add(option);
+        var withOption = item.GetRequirements(configuration).Single(requirement => requirement.Attr == Stats.TotalStrength).Value;
+        Assert.That(withOption - baseStrength, Is.EqualTo(20));
     }
 
     private static bool IsTargetItem(ItemDefinition item) =>

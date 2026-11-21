@@ -6,7 +6,9 @@ namespace MUnique.OpenMU.Persistence.Initialization.Updates;
 
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.Interfaces;
+using MUnique.OpenMU.Persistence.Initialization.Items;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
 using MUnique.OpenMU.PlugIns;
 
@@ -21,6 +23,7 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
     private const byte StaffGroup = 5;
     private const byte StaffNumber = 32;
     private const byte SuccubusNumber = 53;
+    private const string StaffProfileName = "muExHolySpiritStaff";
 
     /// <inheritdoc />
     public override string DataInitializationKey => VersionSeasonSix.DataInitialization.Id;
@@ -35,6 +38,15 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
     public override DateTime CreatedAt => new(2026, 11, 21, 0, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
+    public override DateTime UpdatedAt => new(2026, 11, 21, 9, 0, 0, DateTimeKind.Utc);
+
+    /// <inheritdoc />
+    public override int Version => 2;
+
+    /// <inheritdoc />
+    public override IEnumerable<UpdateDependency> DependsOn => [new(typeof(AddItemStatProfilesUpdatePlugInSeasonSix).GUID)];
+
+    /// <inheritdoc />
     public override bool IsMandatory => false;
 
     /// <inheritdoc />
@@ -42,24 +54,66 @@ public sealed class AddMuExHolySpiritStaffAndSuccubusSetUpdatePlugIn : UpdatePlu
 
     /// <inheritdoc />
     protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration)
+        => this.ApplyAsync(context, gameConfiguration, null);
+
+    /// <inheritdoc />
+    protected override ValueTask ApplyAsync(IContext context, GameConfiguration gameConfiguration, int? installedVersion)
     {
-        if (!gameConfiguration.Items.Any(item => item.Group == StaffGroup && item.Number == StaffNumber))
+        var staff = gameConfiguration.Items.FirstOrDefault(item => item.Group == StaffGroup && item.Number == StaffNumber);
+        if (staff is null)
         {
             var weapons = new Weapons(context, gameConfiguration);
-            weapons.CreateMuExHolySpiritStaff(StaffNumber);
+            weapons.CreateMuExHolySpiritStaff(StaffNumber).StatProfile = GetStaffProfile(context, gameConfiguration);
+        }
+        else if (installedVersion == 1 && IsUnprofiledImport(staff, nameof(ItemNames.MuExHolySpiritStaff)))
+        {
+            staff.StatProfile = GetStaffProfile(context, gameConfiguration);
         }
 
         var armors = new Armors(context, gameConfiguration);
-        foreach (var itemGroup in new byte[] { 7, 8, 9, 10, 11 })
+        (byte Group, string NameResource)[] pieces =
+        [
+            (7, nameof(ItemNames.MuExSuccubusHelm)),
+            (8, nameof(ItemNames.MuExSuccubusArmor)),
+            (9, nameof(ItemNames.MuExSuccubusPants)),
+            (10, nameof(ItemNames.MuExSuccubusGloves)),
+            (11, nameof(ItemNames.MuExSuccubusBoots)),
+        ];
+        foreach (var (group, nameResource) in pieces)
         {
-            if (gameConfiguration.Items.Any(item => item.Group == itemGroup && item.Number == SuccubusNumber))
+            var piece = gameConfiguration.Items.FirstOrDefault(item => item.Group == group && item.Number == SuccubusNumber);
+            if (piece is null)
+            {
+                piece = armors.CreateMuExSuccubusPiece(group);
+            }
+            else if (installedVersion != 1 || !IsUnprofiledImport(piece, nameResource))
             {
                 continue;
             }
 
-            armors.CreateMuExSuccubusPiece(itemGroup);
+            piece.StatProfile = gameConfiguration.ItemStatProfiles.Single(profile => profile.Name == BuiltInItemStatProfiles.Armor);
         }
 
         return ValueTask.CompletedTask;
+    }
+
+    private static bool IsUnprofiledImport(ItemDefinition item, string nameResource)
+        => item.StatProfile is null
+           && item.GetId() == GuidHelper.CreateGuid<ItemDefinition>(item.Group, item.Number)
+           && item.Name.SourceKey == $"ItemNames/{nameResource}";
+
+    private static ItemStatProfile GetStaffProfile(IContext context, GameConfiguration gameConfiguration)
+    {
+        if (gameConfiguration.ItemStatProfiles.SingleOrDefault(profile => profile.Name == StaffProfileName) is { } existing)
+        {
+            return existing;
+        }
+
+        var profile = context.CreateNew<ItemStatProfile>();
+        profile.Name = StaffProfileName;
+        // MuMain's weapon profile requires 5 strength per additional option level.
+        profile.StrengthPerOptionLevel = 5;
+        gameConfiguration.ItemStatProfiles.Add(profile);
+        return profile;
     }
 }
