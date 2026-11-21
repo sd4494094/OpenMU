@@ -472,4 +472,10 @@
   <data name="AddMuExDarkangelStaff_Description" xml:space="preserve">
     <value>Adds the Darkangel Staff item and its offhand class restriction to the Season 6 configuration.</value>
   </data>
+  <data name="AddMuExElementalTalismans_Name" xml:space="preserve">
+    <value>MuEx elemental upgrade talismans</value>
+  </data>
+  <data name="AddMuExElementalTalismans_Description" xml:space="preserve">
+    <value>Adds the two elemental upgrade talismans to the inventory catalog. Existing definitions are preserved. Elemental upgrades are configured separately.</value>
+  </data>
 </root>

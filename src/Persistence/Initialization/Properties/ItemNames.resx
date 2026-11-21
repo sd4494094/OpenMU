@@ -2475,4 +2475,10 @@
   <data name="MuExDarkangelStaff" xml:space="preserve">
     <value>Darkangel Staff</value>
   </data>
+  <data name="MuExElementalTalismanOfLuck" xml:space="preserve">
+    <value>Elemental Talisman of Luck</value>
+  </data>
+  <data name="MuExElementalTalismanOfChaosAssembly" xml:space="preserve">
+    <value>Elemental Talisman of Chaos Assembly</value>
+  </data>
 </root>

@@ -489,4 +489,10 @@
   <data name="AddMuExDarkangelStaff_Description" xml:space="preserve">
     <value>为 Season 6 配置添加黑暗天使魔杖及其副手职业限制。</value>
   </data>
+  <data name="AddMuExElementalTalismans_Name" xml:space="preserve">
+    <value>MuEx 元素升级符咒</value>
+  </data>
+  <data name="AddMuExElementalTalismans_Description" xml:space="preserve">
+    <value>在库存目录中添加两种元素升级符咒，保留已有定义。元素升级需要另行配置。</value>
+  </data>
 </root>

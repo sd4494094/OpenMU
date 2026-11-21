@@ -2475,4 +2475,10 @@
   <data name="MuExDarkangelStaff" xml:space="preserve">
     <value>黑暗天使魔杖</value>
   </data>
+  <data name="MuExElementalTalismanOfLuck" xml:space="preserve">
+    <value>属性 幸运符咒</value>
+  </data>
+  <data name="MuExElementalTalismanOfChaosAssembly" xml:space="preserve">
+    <value>属性 混沌合成符咒</value>
+  </data>
 </root>

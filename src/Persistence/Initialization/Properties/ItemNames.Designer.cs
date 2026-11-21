@@ -5596,5 +5596,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("MuExDarkangelStaff", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Elemental Talisman of Chaos Assembly.
+        /// </summary>
+        public static string MuExElementalTalismanOfChaosAssembly {
+            get {
+                return ResourceManager.GetString("MuExElementalTalismanOfChaosAssembly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Elemental Talisman of Luck.
+        /// </summary>
+        public static string MuExElementalTalismanOfLuck {
+            get {
+                return ResourceManager.GetString("MuExElementalTalismanOfLuck", resourceCulture);
+            }
+        }
+
     }
 }

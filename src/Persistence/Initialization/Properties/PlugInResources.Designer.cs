@@ -1166,5 +1166,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddMuExDarkangelStaff_Name", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the two elemental upgrade talismans to the inventory catalog. Existing definitions are preserved. Elemental upgrades are configured separately..
+        /// </summary>
+        public static string AddMuExElementalTalismans_Description {
+            get {
+                return ResourceManager.GetString("AddMuExElementalTalismans_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx elemental upgrade talismans.
+        /// </summary>
+        public static string AddMuExElementalTalismans_Name {
+            get {
+                return ResourceManager.GetString("AddMuExElementalTalismans_Name", resourceCulture);
+            }
+        }
+
     }
 }
