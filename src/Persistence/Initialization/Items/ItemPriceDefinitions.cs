@@ -145,6 +145,12 @@ internal class ItemPriceDefinitions : InitializerBase
         }
     }
 
+    /// <summary>
+    /// Gets the shared price definition which uses the item definition's value as its price.
+    /// </summary>
+    /// <returns>The fixed value price definition.</returns>
+    internal ItemPriceDefinition GetFixedValueDefinition() => this.GetOrCreateDefinition(GetGeneralPrice(FixedValueName));
+
     private static int GetKey(byte group, short number) => (number << 8) + group;
 
     private static bool IsPotion(ItemDefinition item) => item.Group == 14 && item.Number <= 8;

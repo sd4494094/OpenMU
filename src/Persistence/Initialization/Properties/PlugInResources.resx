@@ -484,4 +484,10 @@
   <data name="AddMuExBattlefieldSpoils_Description" xml:space="preserve">
     <value>Adds the Battlefield Spoils item definition. Existing definitions are preserved.</value>
   </data>
+  <data name="SetMuExSeedSpherePrices_Name" xml:space="preserve">
+    <value>MuEx seed sphere prices</value>
+  </data>
+  <data name="SetMuExSeedSpherePrices_Description" xml:space="preserve">
+    <value>Sets fixed prices for seed spheres (12,100–129) to the MuEx client catalog values. Select for a realm using that catalog.</value>
+  </data>
 </root>

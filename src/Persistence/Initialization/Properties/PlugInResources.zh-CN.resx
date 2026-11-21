@@ -501,4 +501,10 @@
   <data name="AddMuExBattlefieldSpoils_Description" xml:space="preserve">
     <value>添加战场战利品的物品定义，并保留已有定义。</value>
   </data>
+  <data name="SetMuExSeedSpherePrices_Name" xml:space="preserve">
+    <value>MuEx 种子球价格</value>
+  </data>
+  <data name="SetMuExSeedSpherePrices_Description" xml:space="preserve">
+    <value>将种子球 (12,100–129) 的固定价格设为 MuEx 客户端目录中的价格。用于采用该目录的服务器。</value>
+  </data>
 </root>

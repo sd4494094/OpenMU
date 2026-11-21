@@ -1202,5 +1202,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
+
+        /// <summary>
+        ///   Looks up a localized string similar to Sets fixed prices for seed spheres (12,100–129) to the MuEx client catalog values. Select for a realm using that catalog..
+        /// </summary>
+        public static string SetMuExSeedSpherePrices_Description {
+            get {
+                return ResourceManager.GetString("SetMuExSeedSpherePrices_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx seed sphere prices.
+        /// </summary>
+        public static string SetMuExSeedSpherePrices_Name {
+            get {
+                return ResourceManager.GetString("SetMuExSeedSpherePrices_Name", resourceCulture);
+            }
+        }
     }
 }
