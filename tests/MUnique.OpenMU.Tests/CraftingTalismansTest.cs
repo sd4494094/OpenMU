@@ -5,17 +5,20 @@
 namespace MUnique.OpenMU.Tests;
 
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.PlugIns;
+using B = MUnique.OpenMU.Persistence.BasicModel;
 
 /// <summary>
 /// Tests the Talisman of Luck and the Talisman of Chaos Assembly in the craftings.
@@ -165,6 +168,133 @@ public class CraftingTalismansTest
         Assert.That(socketRate, Is.EqualTo(expectedSocketRate));
         Assert.That(standardResult, Is.Null);
         Assert.That(standardRate, Is.EqualTo(expectedStandardRate));
+    }
+
+    /// <summary>
+    /// Verifies the same-number monster wing recipes through the NPC preview.
+    /// </summary>
+    /// <param name="wingGroup">The item group of the wing or cape.</param>
+    /// <param name="wingNumber">The item number of the wing or cape.</param>
+    /// <param name="wingLevel">The level of the wing or cape.</param>
+    /// <param name="catalystCount">The number of different monster materials supplied.</param>
+    /// <param name="luck">The durability of the luck talisman, or zero if omitted.</param>
+    /// <param name="expectedRate">The quoted rate, or -1 if there is no matching recipe.</param>
+    [TestCase(12, 3, 0, 1, 0, 9)]
+    [TestCase(12, 4, 0, 1, 0, 9)]
+    [TestCase(12, 5, 0, 1, 0, 9)]
+    [TestCase(12, 6, 15, 1, 10, 70)]
+    [TestCase(12, 42, 0, 1, 3, 12)]
+    [TestCase(12, 49, 0, 1, 0, 0)]
+    [TestCase(12, 49, 0, 1, 5, 5)]
+    [TestCase(13, 30, 0, 1, 0, 0)]
+    [TestCase(13, 30, 0, 1, 10, 10)]
+    [TestCase(12, 3, 0, 0, 0, -1)]
+    [TestCase(12, 3, 0, 2, 0, -1)]
+    [TestCase(12, 3, 0, 1, 11, -1)]
+    [TestCase(12, 0, 0, 1, 0, -1)]
+    public async ValueTask MonsterWingCraftingQuotesMatchingRecipeAsync(
+        byte wingGroup, short wingNumber, byte wingLevel, int catalystCount, byte luck, int expectedRate)
+    {
+        const int pricePerPoint = 100_000;
+        var items = this._gameConfiguration.Items;
+        var wing = items.Single(i => i.Group == wingGroup && i.Number == wingNumber);
+        var creation = items.Single(i => i.Group == 14 && i.Number == 22);
+        var chaos = items.Single(i => i.Group == 12 && i.Number == 15);
+        var catalysts = Enumerable.Range(176, 4).Select(number => new B.ItemDefinition
+        {
+            Id = Guid.NewGuid(),
+            Group = 14,
+            Number = (short)number,
+            Width = 1,
+            Height = 1,
+            Durability = 1,
+            PriceDefinition = new B.ItemPriceDefinition { BasePriceFormula = "900000000" },
+        }).ToArray();
+
+        ItemDefinition[][] wingVariants =
+        [
+            items.Where(i => i.Group == 12 && i.Number is >= 3 and <= 6).ToArray(),
+            [items.Single(i => i.Group == 12 && i.Number == 42)],
+            [items.Single(i => i.Group == 12 && i.Number == 49)],
+            [items.Single(i => i.Group == 13 && i.Number == 30)],
+        ];
+        var npc = new B.MonsterDefinition { Number = 238, NpcWindow = NpcWindow.ChaosMachine };
+        ItemCrafting? expectedCrafting = null;
+        foreach (var allowedWings in wingVariants)
+        {
+            var settings = new B.SimpleCraftingSettings
+            {
+                NpcPriceDivisor = 9_000_000,
+                MaximumSuccessPercent = 60,
+                MoneyPerFinalSuccessPercentage = pricePerPoint,
+            };
+            foreach (var definitions in new IEnumerable<ItemDefinition>[] { allowedWings, catalysts, [creation], [chaos] })
+            {
+                var requirement = new B.ItemCraftingRequiredItem { MinimumAmount = 1, MaximumAmount = 1, MaximumItemLevel = byte.MaxValue };
+                foreach (var definition in definitions)
+                {
+                    requirement.PossibleItems.Add(definition);
+                }
+
+                settings.RequiredItems.Add(requirement);
+            }
+
+            settings.RequiredItems.Add(CreateTalismanRequirement(this.TalismanOfLuck, 10, 1, MixResult.Disappear));
+            var crafting = new B.ItemCrafting
+            {
+                Id = Guid.NewGuid(),
+                Number = 56,
+                ItemCraftingHandlerClassName = typeof(MonsterWingCrafting).FullName!,
+                SimpleCraftingSettings = settings,
+            };
+            npc.ItemCraftings.Add(crafting);
+            if (allowedWings.Contains(wing))
+            {
+                expectedCrafting = crafting;
+            }
+        }
+
+        await using var player = await PlayerTestHelper.CreatePlayerAsync(this._gameContext).ConfigureAwait(false);
+        player.OpenedNpc = new NonPlayerCharacter(null!, npc, null!);
+        player.Inventory!.ItemStorage.Money = 10_000_000;
+        await AddItemAsync(player, wing, wingLevel, wing.Durability).ConfigureAwait(false);
+        await AddItemAsync(player, creation, 0, 1).ConfigureAwait(false);
+        await AddItemAsync(player, chaos, 0, 1).ConfigureAwait(false);
+        foreach (var catalyst in catalysts.Take(catalystCount))
+        {
+            await AddItemAsync(player, catalyst, 0, 1).ConfigureAwait(false);
+        }
+
+        if (luck > 0)
+        {
+            await AddItemAsync(player, this.TalismanOfLuck, 0, luck).ConfigureAwait(false);
+        }
+
+        var storage = player.TemporaryStorage!;
+        var ingredients = storage.Items.ToArray();
+        var action = new ItemCraftAction();
+        var preview = Mock.Get(player.ViewPlugIns.GetPlugIn<IShowItemCraftingPreviewPlugIn>()!);
+        var craftingByItems = action.FindAppropriateCraftingByItems(player);
+        await action.ShowCraftingPreviewAsync(player).ConfigureAwait(false);
+        if (expectedRate < 0)
+        {
+            Assert.That(craftingByItems, Is.Null);
+            preview.Verify(p => p.ShowCraftingPreviewAsync(null, 0, 0), Times.Once);
+        }
+        else
+        {
+            Assert.That(expectedCrafting, Is.Not.Null);
+            Assert.That(craftingByItems, Is.SameAs(expectedCrafting));
+            var cost = expectedRate * pricePerPoint;
+            var (error, _, rate, price) = new MonsterWingCrafting(expectedCrafting!.SimpleCraftingSettings!).GetRequiredItemsAndPrice(player);
+            Assert.That(error, Is.Null);
+            Assert.That(rate, Is.EqualTo(expectedRate));
+            Assert.That(price, Is.EqualTo(cost));
+            preview.Verify(p => p.ShowCraftingPreviewAsync(expectedCrafting, (byte)expectedRate, cost), Times.Once);
+        }
+
+        Assert.That(storage.Items, Is.EquivalentTo(ingredients));
+        Assert.That(player.Money, Is.EqualTo(10_000_000));
     }
 
     /// <summary>
