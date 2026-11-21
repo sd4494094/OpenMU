@@ -146,6 +146,19 @@ public class ItemPriceCalculator
     }
 
     /// <summary>
+    /// Applies additional proportional and fixed increases to the buying price before the cap and rounding.
+    /// </summary>
+    /// <param name="item">The item to price.</param>
+    /// <param name="increase">The increase as a fraction of the unrounded price.</param>
+    /// <param name="fixedIncrease">The additional fixed value.</param>
+    /// <returns>The capped and rounded buying price.</returns>
+    internal static long CalculateAdjustedBuyingPrice(Item item, float increase, long fixedIncrease)
+    {
+        var price = CalculateBuyingPrice(item);
+        return RoundPrice(Limit(price + (long)(price * increase) + fixedIncrease));
+    }
+
+    /// <summary>
     /// Calculates the buying price of the item, before it's rounded.
     /// </summary>
     /// <param name="item">The item.</param>

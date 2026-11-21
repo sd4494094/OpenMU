@@ -1788,4 +1788,13 @@
   <data name="WeaponOffhandRestrictionPlugIn_Description" xml:space="preserve">
     <value>限制指定武器的副手装备职业。</value>
   </data>
+  <data name="SocketWeaponCraftingFeaturePlugIn_Name" xml:space="preserve">
+    <value>镶嵌武器合成</value>
+  </data>
+  <data name="SocketWeaponCraftingFeaturePlugIn_Description" xml:space="preserve">
+    <value>为 400 级镶嵌武器合成提供已镶嵌种子球的估值。</value>
+  </data>
+  <data name="SocketWeaponCraftingConfiguration_MountedSeedSphereValues_Name" xml:space="preserve">
+    <value>已镶嵌种子球的分阶估值（1–5 阶）</value>
+  </data>
 </root>

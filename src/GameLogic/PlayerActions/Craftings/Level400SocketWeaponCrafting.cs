@@ -21,12 +21,50 @@ using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 public class Level400SocketWeaponCrafting : SimpleItemCraftingHandler
 {
     /// <summary>
+    /// The price increase per socket, including empty sockets, used by the MuMain socket weapon preview.
+    /// This compatibility calculation is scoped to this recipe handler.
+    /// </summary>
+    internal const float MuMainSocketPriceIncrease = 0.8f;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="Level400SocketWeaponCrafting"/> class.
     /// </summary>
     /// <param name="settings">The crafting settings.</param>
     public Level400SocketWeaponCrafting(SimpleCraftingSettings settings)
         : base(settings)
     {
+    }
+
+    /// <inheritdoc />
+    protected override long GetPriceBasedMaterialValue(Player player, Item item)
+    {
+        if (item.SocketCount > 0 && item.Definition is { MaximumSockets: > 0 } definition
+            && definition.PriceDefinition?.CraftingReferencePrice is null)
+        {
+            var configuration = player.GameContext.FeaturePlugIns.GetPlugIn<SocketWeaponCraftingFeaturePlugIn>()?.Configuration;
+
+            // Use the first option for each occupied slot, matching the item sent to the client.
+            long mountedValue = 0;
+            for (var slot = 0; slot < item.SocketCount; slot++)
+            {
+                var sphere = item.ItemOptions.FirstOrDefault(link => link.Index == slot && link.ItemOption?.OptionType == ItemOptionTypes.SocketOption);
+                if (sphere is not null)
+                {
+                    mountedValue += SocketWeaponCraftingConfiguration.GetMountedSeedSphereValue(configuration, sphere.Level);
+                }
+            }
+
+            return ItemPriceCalculator.CalculateAdjustedBuyingPrice(item, item.SocketCount * MuMainSocketPriceIncrease, mountedValue);
+        }
+
+        return base.GetPriceBasedMaterialValue(player, item);
+    }
+
+    /// <inheritdoc />
+    protected override int ApplySuccessRateLimit(int baseRate, int fixedMaterialBonus)
+    {
+        // MuMain caps the rate calculated from the mix materials before adding the Talisman of Luck.
+        return base.ApplySuccessRateLimit(baseRate, 0) + fixedMaterialBonus;
     }
 
     /// <inheritdoc />

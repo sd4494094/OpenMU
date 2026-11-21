@@ -1868,4 +1868,13 @@
   <data name="WeaponOffhandRestrictionPlugIn_Description" xml:space="preserve">
     <value>Restricts configured weapon definitions to the listed classes when equipped in the offhand.</value>
   </data>
+  <data name="SocketWeaponCraftingFeaturePlugIn_Name" xml:space="preserve">
+    <value>Socket weapon crafting</value>
+  </data>
+  <data name="SocketWeaponCraftingFeaturePlugIn_Description" xml:space="preserve">
+    <value>Provides the value of mounted seed spheres for the level 400 socket weapon recipes.</value>
+  </data>
+  <data name="SocketWeaponCraftingConfiguration_MountedSeedSphereValues_Name" xml:space="preserve">
+    <value>Mounted seed sphere values by tier (1–5)</value>
+  </data>
 </root>

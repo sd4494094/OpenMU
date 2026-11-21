@@ -10,6 +10,7 @@ using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.PlayerActions.Craftings;
 using MUnique.OpenMU.GameLogic.PlayerActions.Items;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
@@ -114,6 +115,136 @@ public class CraftingTalismansTest
 
         Assert.That(result, Is.Null);
         Assert.That(successRate, Is.EqualTo(expectedRate));
+    }
+
+    /// <summary>
+    /// Verifies that a price-based socket weapon recipe caps the base rate before adding luck.
+    /// </summary>
+    /// <param name="baseRate">The rate derived from the item value before the recipe limit.</param>
+    /// <param name="recipeLimit">The maximum success percent configured for the recipe.</param>
+    /// <param name="talismanDurability">The fixed luck bonus, where zero means no talisman.</param>
+    /// <param name="expectedSocketRate">The expected socket weapon recipe rate.</param>
+    /// <param name="expectedStandardRate">The expected standard recipe rate.</param>
+    [TestCase(16, 40, 5, 21, 21)]
+    [TestCase(60, 40, 0, 40, 40)]
+    [TestCase(60, 40, 10, 50, 40)]
+    [TestCase(100, 98, 10, 100, 98)]
+    [TestCase(95, 0, 10, 100, 100)]
+    public async ValueTask SocketWeaponCraftingCapsBaseRateBeforeLuckAsync(
+        int baseRate, byte recipeLimit, byte talismanDurability, byte expectedSocketRate, byte expectedStandardRate)
+    {
+        const int priceDivisor = 360_000;
+        await using var player = await PlayerTestHelper.CreatePlayerAsync(this._gameContext).ConfigureAwait(false);
+        var equipment = new Persistence.BasicModel.ItemDefinition
+        {
+            Id = Guid.NewGuid(),
+            Width = 1,
+            Height = 1,
+            PriceDefinition = new Persistence.BasicModel.ItemPriceDefinition { CraftingReferencePrice = baseRate * priceDivisor },
+        };
+        await AddItemAsync(player, equipment, 7, 1).ConfigureAwait(false);
+        if (talismanDurability > 0)
+        {
+            await AddItemAsync(player, this.TalismanOfLuck, 0, talismanDurability).ConfigureAwait(false);
+        }
+
+        var settings = new Persistence.BasicModel.SimpleCraftingSettings
+        {
+            NpcPriceDivisor = priceDivisor,
+            MaximumSuccessPercent = recipeLimit,
+        };
+        var requiredItem = new Persistence.BasicModel.ItemCraftingRequiredItem { MinimumAmount = 1, MaximumAmount = 1, MaximumItemLevel = 15 };
+        requiredItem.PossibleItems.Add(equipment);
+        settings.RequiredItems.Add(requiredItem);
+        settings.RequiredItems.Add(CreateTalismanRequirement(this.TalismanOfLuck, 10, 1, MixResult.Disappear));
+
+        var socketResult = new Level400SocketWeaponCrafting(settings).TryGetRequiredItems(player, out _, out var socketRate);
+        var standardResult = new SimpleItemCraftingHandler(settings).TryGetRequiredItems(player, out _, out var standardRate);
+
+        Assert.That(socketResult, Is.Null);
+        Assert.That(socketRate, Is.EqualTo(expectedSocketRate));
+        Assert.That(standardResult, Is.Null);
+        Assert.That(standardRate, Is.EqualTo(expectedStandardRate));
+    }
+
+    /// <summary>
+    /// Verifies socket material pricing for a +7 Sword Breaker with one ordinary additional option level.
+    /// </summary>
+    /// <param name="socketCount">The number of sockets on the weapon.</param>
+    /// <param name="expectedValue">The corresponding value after rounding.</param>
+    /// <param name="tiersByLink">Optional mounted sphere tiers, in slot order. A third link repeats slot zero.</param>
+    [TestCase(0, 1_122_800)]
+    [TestCase(1, 2_021_100)]
+    [TestCase(2, 2_919_300)]
+    [TestCase(3, 3_817_600)]
+    [TestCase(1, 3_071_100, 1)]
+    [TestCase(1, 3_146_100, 2)]
+    [TestCase(1, 3_221_100, 3)]
+    [TestCase(1, 3_296_100, 4)]
+    [TestCase(1, 3_371_100, 5)]
+    [TestCase(1, 3_071_100, 1, 5, 5)]
+    [TestCase(2, 5_319_300, 1, 5)]
+    public async ValueTask SocketWeaponCraftingValuesSocketsBeforeRoundingAsync(int socketCount, int expectedValue, params int[] tiersByLink)
+    {
+        await using var player = await PlayerTestHelper.CreatePlayerAsync(this._gameContext).ConfigureAwait(false);
+        var definition = this._gameConfiguration.Items.Single(item => item.Group == 0 && item.Number == 27);
+        var item = await AddItemAsync(player, definition, 7, definition.Durability).ConfigureAwait(false);
+        var option = player.PersistenceContext.CreateNew<ItemOptionLink>();
+        option.ItemOption = definition.PossibleItemOptions.SelectMany(options => options.PossibleOptions)
+            .First(candidate => candidate.OptionType == ItemOptionTypes.Option);
+        option.Level = 1;
+        item.ItemOptions.Add(option);
+        item.SocketCount = socketCount;
+
+        var sphereOption = definition.PossibleItemOptions.SelectMany(options => options.PossibleOptions)
+            .First(candidate => candidate.OptionType == ItemOptionTypes.SocketOption && candidate.SubOptionType == (int)SocketSubOptionType.Fire);
+        for (var index = 0; index < tiersByLink.Length; index++)
+        {
+            var sphere = player.PersistenceContext.CreateNew<ItemOptionLink>();
+            sphere.ItemOption = sphereOption;
+            sphere.Index = index % 2;
+            sphere.Level = tiersByLink[index];
+            item.ItemOptions.Add(sphere);
+        }
+
+        var settings = new Persistence.BasicModel.SimpleCraftingSettings { NpcPriceDivisor = expectedValue };
+        var requirement = new Persistence.BasicModel.ItemCraftingRequiredItem { MinimumAmount = 1, MaximumAmount = 1, MaximumItemLevel = 15 };
+        requirement.PossibleItems.Add(definition);
+        settings.RequiredItems.Add(requirement);
+
+        var handler = new Level400SocketWeaponCrafting(settings);
+        var result = handler.TryGetRequiredItems(player, out _, out var rate);
+        Assert.That(result, Is.Null);
+        Assert.That(rate, Is.EqualTo(1));
+
+        // Raising the divisor by one tests the exact upper bound without duplicating the price calculation.
+        settings.NpcPriceDivisor++;
+        result = handler.TryGetRequiredItems(player, out _, out rate);
+        Assert.That(result, Is.Null);
+        Assert.That(rate, Is.Zero);
+
+        settings.NpcPriceDivisor = 1_122_800;
+        var standard = new SimpleItemCraftingHandler(settings);
+        Assert.That(standard.TryGetRequiredItems(player, out _, out var standardRate), Is.Null);
+        Assert.That(standardRate, Is.EqualTo(1));
+        settings.NpcPriceDivisor++;
+        Assert.That(standard.TryGetRequiredItems(player, out _, out standardRate), Is.Null);
+        Assert.That(standardRate, Is.Zero);
+    }
+
+    /// <summary>
+    /// Verifies custom sphere prices and defaults for a partially configured list.
+    /// </summary>
+    [Test]
+    public void SocketWeaponCraftingUsesOptionalSphereValues()
+    {
+        var plugIn = new SocketWeaponCraftingFeaturePlugIn();
+        Assert.That(plugIn.CreateDefaultConfig(), Is.TypeOf<SocketWeaponCraftingConfiguration>());
+        Assert.That(PlugInManager.DiscoverPlugInTypes(typeof(Level400SocketWeaponCrafting).Assembly), Does.Contain(plugIn.GetType()));
+        var config = new SocketWeaponCraftingConfiguration { MountedSeedSphereValues = new List<int> { 25_000, 0 } };
+        Assert.That(SocketWeaponCraftingConfiguration.GetMountedSeedSphereValue(config, 1), Is.EqualTo(25_000));
+        Assert.That(SocketWeaponCraftingConfiguration.GetMountedSeedSphereValue(config, 2), Is.Zero);
+        Assert.That(SocketWeaponCraftingConfiguration.GetMountedSeedSphereValue(config, 3), Is.EqualTo(1_200_000));
     }
 
     /// <summary>

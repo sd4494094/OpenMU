@@ -28,36 +28,71 @@ public class Level400SocketWeaponCraftingTest
     /// <summary>
     /// Tests that the equipment and catalysts determine the preview and settlement.
     /// </summary>
+    /// <param name="gearGroup">The item group of the third equipment item.</param>
+    /// <param name="gearNumber">The item number of the third equipment item.</param>
     /// <param name="gearLevel">The level of the third equipment item.</param>
     /// <param name="sockets">The number of sockets in the third equipment item.</param>
     /// <param name="optionLevel">The additional option level of the third equipment item.</param>
     /// <param name="fixedOption">Whether the third equipment item has a fixed option.</param>
     /// <param name="paperNumber">The recipe paper in the mix.</param>
+    /// <param name="firstMaterialNumber">The first recipe material item number.</param>
+    /// <param name="secondMaterialNumber">The second recipe material item number.</param>
     /// <param name="expectSuccess">Whether the input forms a complete recipe.</param>
-    [TestCase(7, 1, 1, false, 191, true)]
-    [TestCase(8, 3, 2, false, 192, true)]
-    [TestCase(6, 1, 1, false, 191, false)]
-    [TestCase(7, 0, 1, false, 191, false)]
-    [TestCase(7, 1, 0, false, 191, false)]
-    [TestCase(7, 1, 1, true, 191, false)]
-    [TestCase(7, 1, 1, false, 193, false)]
+    [TestCase(0, 29, 7, 1, 1, false, 191, 180, 188, true)]
+    [TestCase(0, 36, 7, 1, 1, false, 192, 181, 185, true)]
+    [TestCase(0, 37, 7, 1, 1, false, 193, 182, 188, true)]
+    [TestCase(3, 12, 7, 1, 1, false, 194, 183, 185, true)]
+    [TestCase(2, 20, 7, 1, 1, false, 195, 182, 186, true)]
+    [TestCase(4, 25, 8, 3, 2, false, 196, 180, 185, true)]
+    [TestCase(4, 26, 7, 1, 1, false, 197, 184, 187, true)]
+    [TestCase(5, 35, 7, 1, 1, false, 198, 182, 185, true)]
+    [TestCase(5, 37, 7, 1, 1, false, 199, 184, 186, true)]
+    [TestCase(0, 30, 7, 1, 1, false, 200, 184, 188, true)]
+    [TestCase(2, 19, 7, 1, 1, false, 201, 181, 187, true)]
+    [TestCase(5, 32, 7, 1, 1, false, 202, 184, 185, true)]
+    [TestCase(6, 15, 7, 1, 1, false, 191, 180, 188, true)]
+    [TestCase(0, 27, 6, 1, 1, false, 191, 180, 188, false)]
+    [TestCase(0, 27, 7, 0, 1, false, 191, 180, 188, false)]
+    [TestCase(0, 27, 7, 1, 0, false, 191, 180, 188, false)]
+    [TestCase(0, 27, 7, 1, 1, true, 191, 180, 188, false)]
+    [TestCase(0, 27, 7, 1, 1, false, 193, 180, 188, false)]
     public async ValueTask MatchesEquipmentAndRecipePaperAsync(
-        byte gearLevel, int sockets, int optionLevel, bool fixedOption, short paperNumber, bool expectSuccess)
+        byte gearGroup,
+        short gearNumber,
+        byte gearLevel,
+        int sockets,
+        int optionLevel,
+        bool fixedOption,
+        short paperNumber,
+        short firstMaterialNumber,
+        short secondMaterialNumber,
+        bool expectSuccess)
     {
         const byte mixNumber = 57;
         const int price = 1_000_000;
-        var gear = CreateDefinition(0, 27);
-        (short Paper, B.ItemDefinition Material, B.ItemDefinition Secondary)[] recipes =
+        var gear = CreateDefinition(gearGroup, gearNumber);
+        (short Paper, short Material, short Secondary)[] recipes =
         [
-            (191, CreateDefinition(14, 180), CreateDefinition(14, 188)),
-            (192, CreateDefinition(14, 181), CreateDefinition(14, 185)),
+            (191, 180, 188),
+            (192, 181, 185),
+            (193, 182, 188),
+            (194, 183, 185),
+            (195, 182, 186),
+            (196, 180, 185),
+            (197, 184, 187),
+            (198, 182, 185),
+            (199, 184, 186),
+            (200, 184, 188),
+            (201, 181, 187),
+            (202, 184, 185),
         ];
+        var definitions = Enumerable.Range(180, 23).ToDictionary(number => (short)number, number => CreateDefinition(14, (short)number));
         var optionType = new B.ItemOptionType { Id = ItemOptionTypes.Option.Id };
         var additionalOption = new B.IncreasableItemOption { Id = Guid.NewGuid(), OptionType = optionType };
         additionalOption.LevelDependentOptions.Add(new B.ItemOptionOfLevel { Level = 1 });
         var fixedAdditionalOption = new B.IncreasableItemOption { Id = Guid.NewGuid(), OptionType = optionType };
         var npc = new B.MonsterDefinition { Number = 238, NpcWindow = NpcWindow.ChaosMachine };
-        var paper = CreateDefinition(14, paperNumber);
+        var paper = definitions[paperNumber];
         ItemDefinition? expectedOutput = null;
         ItemCrafting? expectedCrafting = null;
         foreach (var (number, material, secondary) in recipes)
@@ -67,9 +102,9 @@ public class Level400SocketWeaponCraftingTest
             equipment.RequiredItemOptions.Add(optionType);
             var settings = new B.SimpleCraftingSettings { Money = price, SuccessPercent = 100, ResultItemSelect = ResultItemSelection.All };
             settings.RequiredItems.Add(equipment);
-            settings.RequiredItems.Add(Require(number == paperNumber ? paper : CreateDefinition(14, number), 1));
-            settings.RequiredItems.Add(Require(material, 2));
-            settings.RequiredItems.Add(Require(secondary, 1));
+            settings.RequiredItems.Add(Require(definitions[number], 1));
+            settings.RequiredItems.Add(Require(definitions[material], 2));
+            settings.RequiredItems.Add(Require(definitions[secondary], 1));
             var output = CreateDefinition(12, number);
             settings.ResultItems.Add(new B.ItemCraftingResultItem { ItemDefinition = output, Durability = 1 });
             var crafting = new B.ItemCrafting
@@ -87,7 +122,8 @@ public class Level400SocketWeaponCraftingTest
             }
         }
 
-        var (_, firstDrop, secondDrop) = recipes[paperNumber == 192 ? 1 : 0];
+        var firstDrop = definitions[firstMaterialNumber];
+        var secondDrop = definitions[secondMaterialNumber];
         Item[] ingredients =
         [
             CreateEquipment(gear, 7, 1, additionalOption, 1),

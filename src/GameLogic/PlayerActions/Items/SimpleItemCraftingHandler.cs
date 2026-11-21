@@ -61,7 +61,10 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
                 }
                 else
                 {
-                    totalCraftingPrice += foundItems.Sum(this._priceCalculator.CalculateFinalOldBuyingPrice);
+                    foreach (var item in foundItems)
+                    {
+                        totalCraftingPrice += this.GetPriceBasedMaterialValue(player, item);
+                    }
                 }
             }
             else
@@ -123,13 +126,7 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
             rate = (byte)Math.Min(byte.MaxValue, totalCraftingPrice / this._settings.NpcPriceDivisor);
         }
 
-        rate += addedRateByFixedPercentage;
-        if (this._settings.MaximumSuccessPercent > 0)
-        {
-            rate = Math.Min(this._settings.MaximumSuccessPercent, rate);
-        }
-
-        successRate = (byte)Math.Min(100, rate);
+        successRate = (byte)Math.Min(100, this.ApplySuccessRateLimit(rate, addedRateByFixedPercentage));
 
         return default;
     }
@@ -138,6 +135,27 @@ public class SimpleItemCraftingHandler : BaseItemCraftingHandler
     protected override int GetPrice(byte successRate, IList<CraftingRequiredItemLink> requiredItems)
     {
         return this._settings.Money + (this._settings.MoneyPerFinalSuccessPercentage * successRate);
+    }
+
+    /// <summary>
+    /// Gets the value of a material for a recipe whose success rate is based on item prices.
+    /// </summary>
+    /// <param name="player">The player attempting the recipe.</param>
+    /// <param name="item">The material item.</param>
+    /// <returns>The material value used to calculate the success rate.</returns>
+    protected virtual long GetPriceBasedMaterialValue(Player player, Item item) => this._priceCalculator.CalculateFinalOldBuyingPrice(item);
+
+    /// <summary>
+    /// Combines the calculated success rate with the fixed bonuses from the price-based recipe
+    /// and applies the configured success rate limit.
+    /// </summary>
+    /// <param name="baseRate">The success rate before fixed material bonuses in a price-based recipe.</param>
+    /// <param name="fixedMaterialBonus">The total fixed material bonus kept separate from the price-based calculation.</param>
+    /// <returns>The success rate before the overall 100 percent limit.</returns>
+    protected virtual int ApplySuccessRateLimit(int baseRate, int fixedMaterialBonus)
+    {
+        var rate = baseRate + fixedMaterialBonus;
+        return this._settings.MaximumSuccessPercent > 0 ? Math.Min(this._settings.MaximumSuccessPercent, rate) : rate;
     }
 
     /// <summary>

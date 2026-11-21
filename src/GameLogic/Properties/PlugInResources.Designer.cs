@@ -5161,5 +5161,32 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("WeaponOffhandRestrictionPlugIn_Name", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Mounted seed sphere values by tier (1–5).
+        /// </summary>
+        public static string SocketWeaponCraftingConfiguration_MountedSeedSphereValues_Name {
+            get {
+                return ResourceManager.GetString("SocketWeaponCraftingConfiguration_MountedSeedSphereValues_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Provides the value of mounted seed spheres for the level 400 socket weapon recipes..
+        /// </summary>
+        public static string SocketWeaponCraftingFeaturePlugIn_Description {
+            get {
+                return ResourceManager.GetString("SocketWeaponCraftingFeaturePlugIn_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Socket weapon crafting.
+        /// </summary>
+        public static string SocketWeaponCraftingFeaturePlugIn_Name {
+            get {
+                return ResourceManager.GetString("SocketWeaponCraftingFeaturePlugIn_Name", resourceCulture);
+            }
+        }
     }
 }
