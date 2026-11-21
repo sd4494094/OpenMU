@@ -495,4 +495,10 @@
   <data name="AddMuExElementalTalismans_Description" xml:space="preserve">
     <value>在库存目录中添加两种元素升级符咒，保留已有定义。元素升级需要另行配置。</value>
   </data>
+  <data name="AddMuExBattlefieldSpoils_Name" xml:space="preserve">
+    <value>MuEx 战场战利品</value>
+  </data>
+  <data name="AddMuExBattlefieldSpoils_Description" xml:space="preserve">
+    <value>添加战场战利品的物品定义，并保留已有定义。</value>
+  </data>
 </root>

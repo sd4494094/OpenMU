@@ -2481,4 +2481,7 @@
   <data name="MuExElementalTalismanOfChaosAssembly" xml:space="preserve">
     <value>属性 混沌合成符咒</value>
   </data>
+  <data name="MuExBattlefieldSpoils" xml:space="preserve">
+    <value>战场战利品</value>
+  </data>
 </root>

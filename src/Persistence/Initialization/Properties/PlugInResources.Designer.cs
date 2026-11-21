@@ -1184,5 +1184,23 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Adds the Battlefield Spoils item definition. Existing definitions are preserved..
+        /// </summary>
+        public static string AddMuExBattlefieldSpoils_Description {
+            get {
+                return ResourceManager.GetString("AddMuExBattlefieldSpoils_Description", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to MuEx Battlefield Spoils.
+        /// </summary>
+        public static string AddMuExBattlefieldSpoils_Name {
+            get {
+                return ResourceManager.GetString("AddMuExBattlefieldSpoils_Name", resourceCulture);
+            }
+        }
+
     }
 }

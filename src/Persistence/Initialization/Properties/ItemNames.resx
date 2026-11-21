@@ -2481,4 +2481,7 @@
   <data name="MuExElementalTalismanOfChaosAssembly" xml:space="preserve">
     <value>Elemental Talisman of Chaos Assembly</value>
   </data>
+  <data name="MuExBattlefieldSpoils" xml:space="preserve">
+    <value>Battlefield Spoils</value>
+  </data>
 </root>

@@ -77,6 +77,7 @@ internal class ItemNameResourcesTests
             await new AddMuExDarkLightningPendantUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
             await new AddMuExDarkangelStaffUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
             await new AddMuExElementalTalismansUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+            await new AddMuExBattlefieldSpoilsUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
         }
 
         var culture = CultureInfo.GetCultureInfo("zh-CN");

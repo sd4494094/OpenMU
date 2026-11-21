@@ -5614,5 +5614,14 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Battlefield Spoils.
+        /// </summary>
+        public static string MuExBattlefieldSpoils {
+            get {
+                return ResourceManager.GetString("MuExBattlefieldSpoils", resourceCulture);
+            }
+        }
+
     }
 }

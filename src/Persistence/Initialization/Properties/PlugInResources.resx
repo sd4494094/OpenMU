@@ -478,4 +478,10 @@
   <data name="AddMuExElementalTalismans_Description" xml:space="preserve">
     <value>Adds the two elemental upgrade talismans to the inventory catalog. Existing definitions are preserved. Elemental upgrades are configured separately.</value>
   </data>
+  <data name="AddMuExBattlefieldSpoils_Name" xml:space="preserve">
+    <value>MuEx Battlefield Spoils</value>
+  </data>
+  <data name="AddMuExBattlefieldSpoils_Description" xml:space="preserve">
+    <value>Adds the Battlefield Spoils item definition. Existing definitions are preserved.</value>
+  </data>
 </root>
