@@ -453,12 +453,39 @@
     }
   },
   {
+    "Name": "equipment_get_details",
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "description": "Chinese or English equipment name, partial alias, or group/number.",
+          "type": "string"
+        },
+        "itemLevel": {
+          "description": "Enhancement level; defaults to ordinary unenhanced equipment.",
+          "type": "integer",
+          "default": 0
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "Annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
     "Name": "events_entry_requirements",
     "InputSchema": {
       "type": "object",
       "properties": {
         "text": {
-          "description": "Event type or translated name, for example BloodCastle or \u8840\u8272\u57ce\u5821.",
+          "description": "Event type or translated name, for example BloodCastle or 血色城堡.",
           "type": "string"
         },
         "characterLevel": {

@@ -193,7 +193,7 @@ public sealed class McpIntegrationTests : System.IDisposable
     {
         await using var client = await this.ConnectAsync().ConfigureAwait(false);
         var tools = await client.ListToolsAsync().ConfigureAwait(false);
-        Assert.That(tools.Count, Is.EqualTo(28));
+        Assert.That(tools.Count, Is.EqualTo(29));
         var servers = new List<IManageableServer>();
         foreach (var id in new[] { 0, 4 })
         {
@@ -216,6 +216,7 @@ public sealed class McpIntegrationTests : System.IDisposable
             ["drops_find_sources"] = new() { ["text"] = "Test Sword" },
             ["events_entry_requirements"] = new() { ["text"] = "BloodCastle" },
             ["crafting_find_recipes"] = new() { ["text"] = "神鹰之羽" },
+            ["equipment_get_details"] = new() { ["text"] = "Test Sword" },
             ["spawns_list"] = new() { ["mapNumber"] = 0 },
             ["accounts_get"] = new() { ["loginName"] = "tester" },
             ["characters_get"] = new() { ["characterName"] = "Hero" },
@@ -348,6 +349,44 @@ public sealed class McpIntegrationTests : System.IDisposable
         }
 
         var denied = await client.CallToolAsync("config_types", new Dictionary<string, object?>()).ConfigureAwait(false);
+        Assert.That(denied.IsError, Is.True);
+    }
+
+
+    /// <summary>The equipment capability works over authenticated MCP without broad configuration access.</summary>
+    [Test]
+    public async Task RestrictedEquipmentQueryRemainsReadOnlyAsync()
+    {
+        var key = (await this._keys.GetAllAsync().ConfigureAwait(false)).Single(k => k.Name == "test-viewer");
+        key.AllowedToolGroups = "equipment_get_details";
+        await this._keys.UpdateAsync(key).ConfigureAwait(false);
+        var config = await this._app.Services.GetRequiredService<IDataSource<GameConfiguration>>().GetOwnerAsync().ConfigureAwait(false);
+        using var context = this._app.Services.GetRequiredService<IPersistenceContextProvider>().CreateNewContext();
+        var item = config.Items.Single();
+        item.MaximumItemLevel = 15;
+        item.ItemSlot = context.CreateNew<ItemSlotType>();
+        item.ItemSlot.ItemSlots.Add(0);
+        var profile = context.CreateNew<ItemStatProfile>();
+        profile.Name = ItemStatProfile.DefaultName;
+        config.ItemStatProfiles.Add(profile);
+        var powerUp = context.CreateNew<ItemBasePowerUpDefinition>();
+        powerUp.TargetAttribute = MUnique.OpenMU.GameLogic.Attributes.Stats.MinimumPhysBaseDmgByWeapon;
+        powerUp.BaseValue = 107;
+        item.BasePowerUpAttributes.Add(powerUp);
+        var maximum = context.CreateNew<ItemBasePowerUpDefinition>();
+        maximum.TargetAttribute = MUnique.OpenMU.GameLogic.Attributes.Stats.MaximumPhysBaseDmgByWeapon;
+        maximum.BaseValue = 115;
+        item.BasePowerUpAttributes.Add(maximum);
+        await using var client = await this.ConnectAsync().ConfigureAwait(false);
+        var tools = await client.ListToolsAsync().ConfigureAwait(false);
+        Assert.That(tools.Select(tool => tool.Name), Is.EqualTo(new[] { "equipment_get_details" }));
+        Assert.That(tools.Single().ProtocolTool.Annotations!.ReadOnlyHint, Is.True);
+        var result = await client.CallToolAsync("equipment_get_details", new Dictionary<string, object?> { ["text"] = "Test Sword" }).ConfigureAwait(false);
+        Assert.That(result.IsError, Is.Not.True);
+        var data = JsonSerializer.SerializeToNode(result.StructuredContent)!;
+        Assert.That(data["status"]!.GetValue<string>(), Is.EqualTo("calculated"));
+        Assert.That(data["details"]!["physicalAttack"]!["minimum"]!.GetValue<float>(), Is.EqualTo(107));
+        var denied = await client.CallToolAsync("config_get", new Dictionary<string, object?>()).ConfigureAwait(false);
         Assert.That(denied.IsError, Is.True);
     }
 

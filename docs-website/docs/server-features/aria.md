@@ -95,6 +95,12 @@ a guarantee of tickets, fees, opening time or other runtime eligibility.
 Aria can look up crafting materials and results by recipe or output name. For example, \`三代翅膀\` finds both third-wing stages and \`神鹰之羽\` finds the recipe that produces it.
 
 The Aria API key allowlist must include \`crafting_find_recipes\` and \`events_entry_requirements\` alongside the
-six existing gameplay tools. Old conversation answers are not admission facts. Explicit third-wing crafting and Feather of Condor acquisition questions load the corresponding recipe before answer generation.
+six existing gameplay tools, plus `equipment_get_details` for equipment values. Old conversation answers are not admission facts. Explicit third-wing crafting and Feather of Condor acquisition questions load the corresponding recipe before answer generation.
 
 General Season 6 equipment comparisons and weapon progression advice can be answered directly. Current server drops, rates, recipes and event requirements are queried before reporting server-specific rules.
+
+### 装备数值查询
+
+Aria 可用只读的 `equipment_get_details` 按中英文装备名或物品编号查询攻击区间、计算后的穿戴属性要求、独立等级要求和适用职业。默认普通 +0，也可指定强化等级；需求系数不是最终穿戴要求。等级要求为 0 表示没有独立等级限制。
+
+查询使用已保存配置和游戏现有计算逻辑，按满耐久计算，不含追加、卓越、套装、镶嵌、和谐及人物属性；不读取玩家背包。歧义、非装备、停用物品或缺少公式会明确返回状态。Aria 专用 Viewer 密钥需在工具白名单中加入此工具，无需授予通用配置读取权限。

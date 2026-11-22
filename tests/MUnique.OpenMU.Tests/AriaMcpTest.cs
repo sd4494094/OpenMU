@@ -19,17 +19,23 @@ using MUnique.OpenMU.Startup.Aria;
 [TestFixture]
 public class AriaMcpTest
 {
-    /// <summary>Checks all seven schemas and rejects every other capability.</summary>
+    /// <summary>Checks all nine schemas and rejects every other capability.</summary>
     [Test]
     public void CatalogContainsExactlyTheApprovedTools()
     {
         var names = AriaGameplayTools.Definitions.EnumerateArray().Select(tool => tool.GetProperty("name").GetString()).ToArray();
-        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements", "crafting_find_recipes" }));
+        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements", "crafting_find_recipes", "equipment_get_details" }));
     }
 
     /// <summary>Rejects malformed, oversized and privileged arguments before any remote request.</summary>
     /// <param name="name">The requested tool.</param>
     /// <param name="json">Its arguments.</param>
+    [TestCase("equipment_get_details", "{}")]
+    [TestCase("equipment_get_details", "{\"text\":\" \"}")]
+    [TestCase("equipment_get_details", "{\"text\":\"断月之光\",\"itemLevel\":-1}")]
+    [TestCase("equipment_get_details", "{\"text\":\"断月之光\",\"itemLevel\":256}")]
+    [TestCase("equipment_get_details", "{\"text\":\"断月之光\",\"itemLevel\":null}")]
+    [TestCase("equipment_get_details", "{\"text\":\"断月之光\",\"excellent\":true}")]
     [TestCase("config_get", "{}")]
     [TestCase("accounts_search", "{}")]
     [TestCase("rates_get", "{\"sql\":\"select 1\"}")]
@@ -59,6 +65,27 @@ public class AriaMcpTest
         var client = new AriaMcpClient(http, Options());
         Assert.ThrowsAsync<InvalidDataException>(async () => await client.CallAsync(name, arguments.RootElement, CancellationToken.None).ConfigureAwait(false));
         Assert.That(handler.Bodies, Is.Empty);
+    }
+
+
+    /// <summary>Two equipment queries can answer a comparison through the bounded MCP loop.</summary>
+    [Test]
+    public async Task EquipmentComparisonUsesVerifiedResultsAsync()
+    {
+        var tools = new ToolClient((name, _) =>
+        {
+            Assert.That(name, Is.EqualTo("equipment_get_details"));
+            return JsonSerializer.SerializeToElement(new { status = "calculated", details = new { physicalAttack = new { minimum = 107, maximum = 115 } } });
+        });
+        using var handler = new Handler((index, _) => Task.FromResult(index == 1
+            ? Output(Call("equipment_get_details", "eq_1", "{\"text\":\"断月之光\",\"itemLevel\":0}"), Call("equipment_get_details", "eq_2", "{\"text\":\"龙骨巨晶剑\",\"itemLevel\":0}"))
+            : Answer("普通+0装备，断月之光攻击107至115。")));
+        using var http = new HttpClient(handler);
+        var result = await new AriaModelClient(http, Options(), tools: tools).CompleteAsync("role",
+            [new AriaMessage("user", "断月之光和龙骨巨晶剑，普通未强化攻击是多少？")], CancellationToken.None).ConfigureAwait(false);
+        Assert.That(tools.Names, Is.EqualTo(new[] { "equipment_get_details", "equipment_get_details" }));
+        Assert.That(result, Does.Contain("107"));
+        Assert.That(handler.Bodies.Last(), Does.Contain("calculated"));
     }
 
     /// <summary>Preserves reasoning, call identifiers and tool results across two query rounds.</summary>
