@@ -96,3 +96,5 @@ Aria can look up crafting materials and results by recipe or output name. For ex
 
 The Aria API key allowlist must include \`crafting_find_recipes\` and \`events_entry_requirements\` alongside the
 six existing gameplay tools. Old conversation answers are not admission facts. Explicit third-wing crafting and Feather of Condor acquisition questions load the corresponding recipe before answer generation.
+
+General Season 6 equipment comparisons and weapon progression advice can be answered directly. Current server drops, rates, recipes and event requirements are queried before reporting server-specific rules.

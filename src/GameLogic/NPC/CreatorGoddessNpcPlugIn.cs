@@ -25,6 +25,12 @@ public class CreatorGoddessNpcPlugIn : NpcTalkPlugInBase
 
     private readonly IAriaChatService? _chatService;
 
+    /// <summary>Initializes the NPC for configuration creation without a running chat service.</summary>
+    public CreatorGoddessNpcPlugIn()
+        : this(null)
+    {
+    }
+
     /// <summary>Initializes a new instance of the <see cref="CreatorGoddessNpcPlugIn"/> class.</summary>
     /// <param name="chatService">The optional, separately enabled AI conversation integration.</param>
     public CreatorGoddessNpcPlugIn(IAriaChatService? chatService = null)
