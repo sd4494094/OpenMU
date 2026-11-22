@@ -41,7 +41,7 @@ public class NormalizeMainlandSetNamesPlugIn : UpdatePlugInBase
     {
         ConfigurationNameSources.Register();
         var changes = ConfigurationCaptions.DetermineChanges(gameConfiguration)
-            .Where(change => Sources.Contains(change.SourceKey) && change.CultureName == "zh-CN" && change.IsRecommended);
+            .Where(change => Sources.Contains(change.SourceKey) && change.CultureName == "zh-CN" && change.IsRecommended && change.SourceText is { Length: > 0 });
         ConfigurationCaptions.ApplyChanges(gameConfiguration, changes.Select(change => change.Id));
         return ValueTask.CompletedTask;
     }
