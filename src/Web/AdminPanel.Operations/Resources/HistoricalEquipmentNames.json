@@ -1,0 +1,174 @@
+{
+  "ItemNames/Katache": [
+    "武士刀"
+  ],
+  "ItemNames/Flamberge": [
+    "弗拉姆伯格",
+    "费拉姆伯格"
+  ],
+  "ItemNames/ImperialSword": [
+    "符文巨剑"
+  ],
+  "ItemNames/StormHardGlove": [
+    "神圣风暴爪"
+  ],
+  "ItemNames/NikkeaAxe": [
+    "妮基娅斧头"
+  ],
+  "ItemNames/SoleilScepter": [
+    "太阳权杖"
+  ],
+  "ItemNames/ShiningScepter": [
+    "闪耀权杖"
+  ],
+  "ItemNames/StrykerScepter": [
+    "前锋权杖"
+  ],
+  "ItemNames/Beuroba": [
+    "布罗瓦"
+  ],
+  "ItemNames/StingerBow": [
+    "黑暗毒刺"
+  ],
+  "ItemNames/AirLynBow": [
+    "艾琳之弓"
+  ],
+  "ItemNames/MisteryStick": [
+    "神秘棒"
+  ],
+  "ItemNames/BookOfSahamutt": [
+    "撒姆特之书"
+  ],
+  "ItemNames/DivineStickOfArchangel": [
+    "大天使的神杖"
+  ],
+  "ItemNames/BigRoundShield": [
+    "大圆盾"
+  ],
+  "ItemNames/BlackRoseHelm": [
+    "恶魔头盔"
+  ],
+  "ItemNames/AuraHelm": [
+    "风暴闪电头盔"
+  ],
+  "ItemNames/LiliumHelm": [
+    "永恒之翼头盔"
+  ],
+  "ItemNames/FaithHelm": [
+    "信仰头盔"
+  ],
+  "ItemNames/PaewangMask": [
+    "皇家面具"
+  ],
+  "ItemNames/SacredHelm": [
+    "圣火头盔"
+  ],
+  "ItemNames/PiercingHelm": [
+    "刺骨之盔"
+  ],
+  "ItemNames/BlackRoseArmor": [
+    "恶魔铠甲"
+  ],
+  "ItemNames/AuraArmor": [
+    "风暴闪电战甲"
+  ],
+  "ItemNames/LiliumArmor": [
+    "永恒之翼铠甲"
+  ],
+  "ItemNames/PhantomArmor": [
+    "毁灭之铠"
+  ],
+  "ItemNames/FaithArmor": [
+    "信仰铠甲"
+  ],
+  "ItemNames/PaewangArmor": [
+    "皇家盔甲"
+  ],
+  "ItemNames/SacredArmor": [
+    "圣火铠甲"
+  ],
+  "ItemNames/PiercingArmor": [
+    "刺骨之铠"
+  ],
+  "ItemNames/BlackRosePants": [
+    "恶魔裤"
+  ],
+  "ItemNames/AuraPants": [
+    "风暴闪电战裤"
+  ],
+  "ItemNames/LiliumPants": [
+    "永恒之翼裤"
+  ],
+  "ItemNames/PhantomPants": [
+    "毁灭护腿"
+  ],
+  "ItemNames/FaithPants": [
+    "信仰护腿"
+  ],
+  "ItemNames/PaewangPants": [
+    "皇家裤"
+  ],
+  "ItemNames/SacredPants": [
+    "圣火裤"
+  ],
+  "ItemNames/PiercingPants": [
+    "刺骨护腿"
+  ],
+  "ItemNames/BlackRoseGloves": [
+    "恶魔手套"
+  ],
+  "ItemNames/AuraGloves": [
+    "风暴闪电手套"
+  ],
+  "ItemNames/LiliumGloves": [
+    "永恒之翼手套"
+  ],
+  "ItemNames/PhantomGloves": [
+    "毁灭护手"
+  ],
+  "ItemNames/FaithGloves": [
+    "信仰护手"
+  ],
+  "ItemNames/PaewangGloves": [
+    "皇家手套"
+  ],
+  "ItemNames/BlackRoseBoots": [
+    "恶魔靴子"
+  ],
+  "ItemNames/AuraBoots": [
+    "风暴闪电战靴"
+  ],
+  "ItemNames/LiliumBoots": [
+    "永恒之翼靴子"
+  ],
+  "ItemNames/PhantomBoots": [
+    "毁灭之靴"
+  ],
+  "ItemNames/FaithBoots": [
+    "信仰之靴"
+  ],
+  "ItemNames/PhaewangBoots": [
+    "皇家靴子"
+  ],
+  "ItemNames/SacredBoots": [
+    "神圣火靴"
+  ],
+  "ItemNames/PiercingBoots": [
+    "刺骨之靴"
+  ],
+  "ItemNames/WingsOfCurse": [
+    "诅咒之翼"
+  ],
+  "ItemNames/WingsOfDespair": [
+    "绝望之风"
+  ],
+  "ItemNames/WizardSRing": [
+    "巫师戒指"
+  ],
+  "ItemNames/PandaTransformationRing": [
+    "熊猫戒指"
+  ],
+  "ItemNames/PetSkeleton": [
+    "小骷髅宠物"
+  ]
+}

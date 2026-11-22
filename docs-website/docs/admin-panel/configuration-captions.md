@@ -148,6 +148,18 @@ rather than the replacements in the later
 Technical option and armor-bonus labels describe the server configuration;
 they are not presented as verbatim client UI text.
 
+The mainland equipment name audit matches game group/number and class, rather
+than using the website dictionary row number as an item identifier. The current
+client uses mainland names such as 虚伪之剑, 双子之剑, 巨石 and 破灭. Ancient
+set prefixes use the corresponding pre-Season-X terminology. In particular,
+the older set announcements spell the wizard family 帕西; some dictionary
+pages spell it 帕希. The optional **Normalize mainland Chinese ancient set
+names** update corrects the two remaining 帕希 set captions and their option
+captions in existing Season 6 configurations. It only applies recommended
+Chinese caption changes and preserves customized names and other languages.
+New configurations already use these names. It does not alter set membership,
+item requirements, damage or option values.
+
 Item option combination bonus descriptions (Fenrir movement bonuses and socket
 package bonuses) also use built-in resources. For an existing configuration, link
 the names and review the translations on this page before applying them. Custom

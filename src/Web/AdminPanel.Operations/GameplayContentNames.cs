@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Web.AdminPanel.Operations;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Globalization;
+using System.Text.Json;
 using MUnique.OpenMU.Interfaces;
 
 /// <summary>Searches stored translations and exact built-in resource aliases without changing persisted names.</summary>
@@ -14,6 +15,8 @@ internal static class GameplayContentNames
 {
     private static readonly CultureInfo Chinese = CultureInfo.GetCultureInfo("zh-CN");
     private static readonly ConcurrentDictionary<(string Source, string Neutral), LocalizedString> SourceAliases = new();
+
+    private static readonly IReadOnlyDictionary<string, string[]> HistoricalEquipmentNames = LoadHistoricalEquipmentNames();
 
     /// <summary>Resolves registered resource translations while preserving stored overrides.</summary>
     /// <param name="source">The registered resource family.</param>
@@ -44,7 +47,7 @@ internal static class GameplayContentNames
 
             return default;
         });
-        return Merge(name, aliases);
+        return Merge(name, aliases).WithSourceKey(name.SourceKey ?? aliases.SourceKey);
     }
 
     /// <summary>Gets the Chinese name, falling back to the neutral text.</summary>
@@ -58,6 +61,7 @@ internal static class GameplayContentNames
     /// <returns>The searchable aliases.</returns>
     internal static string[] Aliases(LocalizedString name)
         => name.GetTranslations().Select(pair => pair.Value).Prepend(name.ValueInNeutralLanguage)
+            .Concat(HistoricalEquipmentNames.TryGetValue(name.SourceKey ?? string.Empty, out var historical) ? historical : [])
             .SelectMany(value => value.Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
             .Where(value => value.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
@@ -71,6 +75,15 @@ internal static class GameplayContentNames
         var query = Normalize(text);
         return query.Length > 0 && (Normalize(key).Equals(query, StringComparison.OrdinalIgnoreCase)
             || Aliases(name).Any(alias => Normalize(alias).Contains(query, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private static IReadOnlyDictionary<string, string[]> LoadHistoricalEquipmentNames()
+    {
+        using var stream = typeof(GameplayContentNames).Assembly.GetManifestResourceStream(
+            "MUnique.OpenMU.Web.AdminPanel.Operations.Resources.HistoricalEquipmentNames.json")
+            ?? throw new InvalidOperationException("Historical equipment name resource is missing.");
+        return JsonSerializer.Deserialize<Dictionary<string, string[]>>(stream)
+            ?? throw new InvalidOperationException("Historical equipment name resource is empty.");
     }
 
     private static string Normalize(string value)

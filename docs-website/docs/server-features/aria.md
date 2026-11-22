@@ -112,3 +112,10 @@ Aria 可用只读的 `equipment_get_details` 按中英文装备名或物品编�
 结果按最大物理攻击、最小物理攻击降序排列，不是综合战力排名。镶嵌上限不保证实际孔数，也不包含镶嵌效果；启用不保证能通过当前掉落获得。职业符合不代表人物属性已足够。具体装备推荐先查名称与职业；通用配装思路仍直接回答。比较“更强”必须区分同条件基础攻击与强化、卓越、镶嵌后的综合效果，不能编造固定升级链。名称无匹配时纠正后检索真实候选，再继续回答来源与属性。
 
 回归需覆盖“更高单手武器→还有哪些候选→候选掉落及普通+0属性”，另验证编造名称后的纠错、跨职业武器排除、单/双手区分、分页与无结果，以及通用配装问题不强制查询。
+
+Equipment queries also accept reviewed old client translations, such as
+弗拉姆伯格 / 费拉姆伯格 for 虚伪之剑 and 信仰头盔 for 灵光之盔.
+Results display the configured mainland name. Old names which collide with
+another item's canonical name are excluded: 破灭之铠 refers to the Phantom
+armor, and 暴风扎哈德之盔 refers to the lucky set, rather than the ordinary
+暴风毁灭 armor. Invented equipment names do not become aliases.

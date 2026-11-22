@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms</value></resheader>
+  <data name="Name" xml:space="preserve"><value>统一大陆官网套装名称</value></data>
+  <data name="Description" xml:space="preserve"><value>将内置套装及套装属性名称中的帕希统一为对应旧版官方公告的帕西。保留管理员自定义名称和装备属性。</value></data>
+</root>

@@ -10,4 +10,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../GameLogic/MUnique.OpenMU.GameLogic.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/HistoricalEquipmentNames.json" />
+  </ItemGroup>
 </Project>
