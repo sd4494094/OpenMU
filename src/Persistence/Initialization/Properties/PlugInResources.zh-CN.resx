@@ -459,4 +459,10 @@
   </data>
   <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>添加创世神·艾莉雅</value></data>
   <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>在勇者大陆（147,133）诺亚附近添加创世神，保留已有位置和设置。</value></data>
+  <data name="AddBulkPotionOffersPlugIn_Name" xml:space="preserve">
+    <value>添加100个装药水</value>
+  </data>
+  <data name="AddBulkPotionOffersPlugIn_Description" xml:space="preserve">
+    <value>将普通红蓝药、苹果和解毒剂的叠加上限提高到100，并在少女安娜商店添加100个装。需要配套客户端。</value>
+  </data>
 </root>

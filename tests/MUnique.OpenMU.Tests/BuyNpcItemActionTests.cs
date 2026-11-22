@@ -213,6 +213,38 @@ public class BuyNpcItemActionTests
         Mock.Get(player.ViewPlugIns.GetPlugIn<IBuyNpcItemFailedPlugIn>()!).Verify(p => p.BuyNpcItemFailedAsync(), Times.Once);
     }
 
+    /// <summary>Old and bulk packs charge for their exact quantity and respect the 100-piece capacity.</summary>
+    /// <param name="purchaseCount">The selected pack size.</param>
+    /// <param name="existingCount">The initial inventory count.</param>
+    /// <param name="expectedStacks">The resulting number of stacks.</param>
+    [TestCase(3, 97, 1)]
+    [TestCase(100, 3, 2)]
+    [TestCase(1, 99, 1)]
+    public async Task PotionPackPurchasesKeepExactQuantityAndPriceAsync(int purchaseCount, int existingCount, int expectedStacks)
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        player.Money = 1_000_000;
+        var definition = CreateStackableDefinition();
+        definition.Group = 14;
+        definition.Number = 3;
+        definition.Durability = 100;
+        definition.PriceDefinition!.BasePriceFormula = "1500";
+        definition.PriceDefinition.QuantityScaling = ItemPriceQuantityScaling.PerPiece;
+        var target = CreateItem(definition, existingCount);
+        await player.Inventory!.AddItemAsync(InventorySlot, target).ConfigureAwait(false);
+        var offer = CreateItem(definition, purchaseCount);
+        offer.ItemSlot = StoreSlot;
+        player.OpenedNpc = CreateMerchant(offer);
+
+        await new BuyNpcItemAction().BuyItemAsync(player, StoreSlot).ConfigureAwait(false);
+
+        var stacks = player.Inventory.Items.Where(item => item.Definition == definition).ToArray();
+        Assert.That(stacks, Has.Length.EqualTo(expectedStacks));
+        Assert.That(stacks.Sum(item => item.Durability), Is.EqualTo(existingCount + purchaseCount));
+        Assert.That(stacks.All(item => item.Durability <= 100), Is.True);
+        Assert.That(player.Money, Is.EqualTo(1_000_000 - (1500 * purchaseCount)));
+    }
+
     private static void VerifyNotBought(Mock<INpcItemPurchasePlugIn> plugIn)
     {
         plugIn.Verify(p => p.AfterPurchaseAsync(It.IsAny<Player>(), It.IsAny<NonPlayerCharacter>(), It.IsAny<NpcItemPurchaseArgs>(), It.IsAny<Item>()), Times.Never);

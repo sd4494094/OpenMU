@@ -68,6 +68,7 @@ public class Potions : InitializerBase
         this.GameConfiguration.Items.Add(this.CreateCherryBlossomFlowerPetal());
 
         this.CreateElitePotions();
+        BulkPotions.ConfigureCapacity(this.GameConfiguration);
     }
 
     /// <summary>

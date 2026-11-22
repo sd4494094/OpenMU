@@ -1076,5 +1076,22 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddCreatorGoddessNpc_Description", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Add 100-piece potion packs.
+        /// </summary>
+        public static string AddBulkPotionOffersPlugIn_Name {
+            get {
+                return ResourceManager.GetString("AddBulkPotionOffersPlugIn_Name", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Raises normal potion, apple and antidote stack capacity to 100 and adds 100-piece packs at Amy. Requires a matching client..
+        /// </summary>
+        public static string AddBulkPotionOffersPlugIn_Description {
+            get {
+                return ResourceManager.GetString("AddBulkPotionOffersPlugIn_Description", resourceCulture);
+            }
+        }
     }
 }

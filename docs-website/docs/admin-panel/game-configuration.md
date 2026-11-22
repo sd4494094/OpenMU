@@ -386,3 +386,11 @@ alone does not remove the client's ASCII-only validation.
 Supporting longer Chinese names requires coordinated extended packets for
 creation, visibility, chat, parties, guilds and friends, plus matching client
 buffers. Increasing only this regular expression or the creation field is unsafe.
+
+### Normal potion packs
+
+Season 6 normal red and blue potions, apples and antidotes can stack up to 100.
+Amy sells additional 100-piece packs for the types and levels already in her shop,
+alongside the one- and three-piece offers. Existing installations can apply the
+optional **Add 100-piece potion packs** configuration update with the matching
+MuMain client. Prices scale with the selected quantity.

@@ -442,4 +442,10 @@
   </data>
   <data name="AddCreatorGoddessNpc_Name" xml:space="preserve"><value>Add Creator Goddess Aria</value></data>
   <data name="AddCreatorGoddessNpc_Description" xml:space="preserve"><value>Adds the decorative creator goddess at Lorencia (147,133) beside Noah, preserving existing placements and settings.</value></data>
+  <data name="AddBulkPotionOffersPlugIn_Name" xml:space="preserve">
+    <value>Add 100-piece potion packs</value>
+  </data>
+  <data name="AddBulkPotionOffersPlugIn_Description" xml:space="preserve">
+    <value>Raises normal potion, apple and antidote stack capacity to 100 and adds 100-piece packs at Amy. Requires a matching client.</value>
+  </data>
 </root>

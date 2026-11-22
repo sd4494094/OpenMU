@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.Persistence.Initialization.Items;
+using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix.Items;
 
 /// <summary>
 /// The initialization of all NPCs, which are no monsters.
@@ -64,6 +65,7 @@ internal partial class NpcInitialization
         };
 
         var storage = this.CreateMerchantStore(itemList);
+        BulkPotions.AddOffers(this.Context, storage);
         storage.SetGuid(number);
         return storage;
     }
