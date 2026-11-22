@@ -193,7 +193,7 @@ public sealed class McpIntegrationTests : System.IDisposable
     {
         await using var client = await this.ConnectAsync().ConfigureAwait(false);
         var tools = await client.ListToolsAsync().ConfigureAwait(false);
-        Assert.That(tools.Count, Is.EqualTo(29));
+        Assert.That(tools.Count, Is.EqualTo(30));
         var servers = new List<IManageableServer>();
         foreach (var id in new[] { 0, 4 })
         {
@@ -388,6 +388,30 @@ public sealed class McpIntegrationTests : System.IDisposable
         Assert.That(data["details"]!["physicalAttack"]!["minimum"]!.GetValue<float>(), Is.EqualTo(107));
         var denied = await client.CallToolAsync("config_get", new Dictionary<string, object?>()).ConfigureAwait(false);
         Assert.That(denied.IsError, Is.True);
+    }
+
+    /// <summary>A dedicated search key discovers only weapon search and cannot call broader configuration tools.</summary>
+    [Test]
+    public async Task RestrictedEquipmentSearchIsAvailableToViewerAsync()
+    {
+        var key = (await this._keys.GetAllAsync().ConfigureAwait(false)).Single(k => k.Name == "test-viewer");
+        key.AllowedToolGroups = "equipment_search";
+        await this._keys.UpdateAsync(key).ConfigureAwait(false);
+        var config = await this._app.Services.GetRequiredService<IDataSource<GameConfiguration>>().GetOwnerAsync().ConfigureAwait(false);
+        using var context = this._app.Services.GetRequiredService<IPersistenceContextProvider>().CreateNewContext();
+        var profile = context.CreateNew<ItemStatProfile>();
+        profile.Name = ItemStatProfile.DefaultName;
+        config.ItemStatProfiles.Add(profile);
+        await using var client = await this.ConnectAsync().ConfigureAwait(false);
+        var tools = await client.ListToolsAsync().ConfigureAwait(false);
+        Assert.That(tools.Select(tool => tool.Name), Is.EqualTo(new[] { "equipment_search" }));
+        Assert.That(tools.Single().ProtocolTool.Annotations!.ReadOnlyHint, Is.True);
+        var result = await client.CallToolAsync("equipment_search", new Dictionary<string, object?> { ["weaponType"] = "Sword", ["handedness"] = "OneHanded" }).ConfigureAwait(false);
+        Assert.That(result.IsError, Is.Not.True);
+        var data = JsonSerializer.SerializeToNode(result.StructuredContent)!;
+        Assert.That(data["status"]!.GetValue<string>(), Is.EqualTo("no_matching_equipment"));
+        Assert.That((await client.CallToolAsync("config_get", new Dictionary<string, object?>()).ConfigureAwait(false)).IsError, Is.True);
+        Assert.That((await client.CallToolAsync("equipment_get_details", new Dictionary<string, object?> { ["text"] = "Test Sword" }).ConfigureAwait(false)).IsError, Is.True);
     }
 
     /// <summary>The real tools/list schema is held stable for clients.</summary>

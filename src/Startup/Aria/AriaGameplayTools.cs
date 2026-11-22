@@ -75,6 +75,9 @@ public static class AriaGameplayTools
                 case "limit":
                     RequireInteger(value, 1, 20);
                     break;
+                case "itemLevel" when name == "equipment_search":
+                    RequireInteger(value, 0, 15);
+                    break;
                 case "itemLevel" when name == "equipment_get_details":
                     RequireInteger(value, 0, byte.MaxValue);
                     break;
@@ -85,6 +88,21 @@ public static class AriaGameplayTools
                     }
 
                     break;
+                case "weaponType":
+                    if (value.ValueKind != JsonValueKind.String || value.GetString() is not ("All" or "Sword" or "Axe" or "Mace" or "Spear" or "Bow" or "Crossbow" or "Staff" or "Stick" or "Book" or "Scepter" or "Glove" or "Other"))
+                    {
+                        throw new InvalidDataException("Unsupported weapon kind.");
+                    }
+
+                    break;
+                case "handedness":
+                    if (value.ValueKind != JsonValueKind.String || value.GetString() is not ("All" or "OneHanded" or "TwoHanded" or "Ranged"))
+                    {
+                        throw new InvalidDataException("Unsupported hand usage.");
+                    }
+
+                    break;
+                case "characterClass":
                 case "map":
                 case "text":
                     if (value.ValueKind != JsonValueKind.String || value.GetString()!.Length > 64
@@ -114,7 +132,7 @@ public static class AriaGameplayTools
 
         var required = name switch
         {
-            "rates_get" or "events_schedule" => Array.Empty<string>(),
+            "rates_get" or "events_schedule" or "equipment_search" => Array.Empty<string>(),
             "spawns_list" => new[] { "mapNumber" },
             "drops_explain" => new[] { "mapNumber", "monsterNumber" },
             "drops_find_sources" or "events_entry_requirements" or "crafting_find_recipes" or "equipment_get_details" => new[] { "text" },
@@ -176,6 +194,7 @@ public static class AriaGameplayTools
             "events_entry_requirements" => field is "text" or "characterLevel" or "characterClassNumber",
             "crafting_find_recipes" => field is "text" or "offset" or "limit",
             "equipment_get_details" => field is "text" or "itemLevel",
+            "equipment_search" => field is "characterClass" or "weaponType" or "handedness" or "text" or "itemLevel" or "offset" or "limit",
             "spawns_list" => field is "mapNumber" or "offset" or "limit",
             "drops_explain" => field is "mapNumber" or "monsterNumber" or "offset" or "limit",
             "drops_find_sources" => field is "text" or "map" or "itemLevel" or "offset" or "limit",
@@ -220,6 +239,7 @@ public static class AriaGameplayTools
             Tool("events_entry_requirements", "查询本服活动层数、普通和特殊职业入场等级、门票等级、大师职业要求。问多少级进几层必须先查，不用模型记忆。text填活动名或类型。characterLevel是普通等级，不是大师等级；characterClassNumber用上下文职业编号。matchesLevelAndClass只校验等级职业，不能保证有票或正在开放。", new { text = new { type = "string", minLength = 1, maxLength = 64 }, characterLevel = new { type = new[] { "integer", "null" }, minimum = 1, maximum = (int)ushort.MaxValue }, characterClassNumber = new { type = new[] { "integer", "null" }, minimum = 0, maximum = (int)byte.MaxValue } }, ["text"]),
             Tool("crafting_find_recipes", "按配方名或产物查询本服合成材料、费用、成功率和产物池。问三代翅膀怎么合成用三代翅膀，问神鹰之羽怎么获得或掉落无结果用神鹰之羽。text 填名称。", new { text = new { type = "string", minLength = 1, maxLength = 64 }, offset, limit }, ["text"]),
             Tool("equipment_get_details", "查询本服装备计算后的攻击区间、属性要求、等级要求及适用职业。text直接填中英文装备名；itemLevel默认0，可指定强化等级。仅普通满耐久、无追加无卓越无套装无镶嵌无和谐装备；不是人物面板攻击。不支持的选项不得假装查询过。歧义需澄清。", new { text = new { type = "string", minLength = 1, maxLength = 64 }, itemLevel = new { type = "integer", minimum = 0, maximum = 255, @default = 0 } }, ["text"]),
+            Tool("equipment_search", "推荐具体武器前先用它核实候选名称和职业。支持按职业、武器类型、单双手筛选，返回正式名称、普通装备计算攻击、攻速、镶嵌上限及要求。characterClass填玩家上下文职业名或编号字符串，不猜编号；Sword是剑，Glove是拳刃，Staff是法杖，Stick是召唤杖。OneHanded单手，TwoHanded双手，Ranged弓弩。按最大物理攻击排序，不是综合战力或固定升级链；镶嵌上限不是当前孔数。启用不代表能掉落，要另查来源。", new { characterClass = new { type = "string", maxLength = 64 }, weaponType = new { type = "string", @enum = new[] { "All", "Sword", "Axe", "Mace", "Spear", "Bow", "Crossbow", "Staff", "Stick", "Book", "Scepter", "Glove", "Other" }, @default = "All" }, handedness = new { type = "string", @enum = new[] { "All", "OneHanded", "TwoHanded", "Ranged" }, @default = "All" }, text = new { type = "string", maxLength = 64 }, itemLevel = new { type = "integer", minimum = 0, maximum = 15, @default = 0 }, offset, limit = new { type = "integer", minimum = 1, maximum = 20, @default = 8 } }, []),
             Tool("events_schedule", "查询指定游戏服的活动时间和启用状态，未指定时用后台默认游戏服。", new { serverId = number }, []),
         });
     }

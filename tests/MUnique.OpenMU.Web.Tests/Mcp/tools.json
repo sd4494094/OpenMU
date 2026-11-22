@@ -480,6 +480,56 @@
     }
   },
   {
+    "Name": "equipment_search",
+    "InputSchema": {
+      "type": "object",
+      "properties": {
+        "characterClass": {
+          "description": "Optional Chinese or English class name or exact class number.",
+          "type": "string",
+          "default": ""
+        },
+        "weaponType": {
+          "description": "All, Sword, Axe, Mace, Spear, Bow, Crossbow, Staff, Stick, Book, Scepter, Glove, or Other.",
+          "type": "string",
+          "default": "All"
+        },
+        "handedness": {
+          "description": "All, OneHanded, TwoHanded, or Ranged.",
+          "type": "string",
+          "default": "All"
+        },
+        "text": {
+          "description": "Optional equipment name or group/number.",
+          "type": "string",
+          "default": ""
+        },
+        "itemLevel": {
+          "description": "Ordinary enhancement level, 0-15.",
+          "type": "integer",
+          "default": 0
+        },
+        "offset": {
+          "description": "Number of matches to skip.",
+          "type": "integer",
+          "default": 0
+        },
+        "limit": {
+          "description": "Maximum weapons, 1-20.",
+          "type": "integer",
+          "default": 8
+        }
+      }
+    },
+    "Annotations": {
+      "title": null,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false,
+      "readOnlyHint": true
+    }
+  },
+  {
     "Name": "events_entry_requirements",
     "InputSchema": {
       "type": "object",

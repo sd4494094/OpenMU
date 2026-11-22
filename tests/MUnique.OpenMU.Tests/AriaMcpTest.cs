@@ -19,17 +19,24 @@ using MUnique.OpenMU.Startup.Aria;
 [TestFixture]
 public class AriaMcpTest
 {
-    /// <summary>Checks all nine schemas and rejects every other capability.</summary>
+    /// <summary>Checks all ten schemas and rejects every other capability.</summary>
     [Test]
     public void CatalogContainsExactlyTheApprovedTools()
     {
         var names = AriaGameplayTools.Definitions.EnumerateArray().Select(tool => tool.GetProperty("name").GetString()).ToArray();
-        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements", "crafting_find_recipes", "equipment_get_details" }));
+        Assert.That(names, Is.EquivalentTo(new[] { "rates_get", "drops_explain", "drops_find_sources", "spawns_list", "content_list", "events_schedule", "events_entry_requirements", "crafting_find_recipes", "equipment_get_details", "equipment_search" }));
     }
 
     /// <summary>Rejects malformed, oversized and privileged arguments before any remote request.</summary>
     /// <param name="name">The requested tool.</param>
     /// <param name="json">Its arguments.</param>
+    [TestCase("equipment_search", "{\"characterClass\":null}")]
+    [TestCase("equipment_search", "{\"weaponType\":\"Gun\"}")]
+    [TestCase("equipment_search", "{\"handedness\":\"One\"}")]
+    [TestCase("equipment_search", "{\"itemLevel\":16}")]
+    [TestCase("equipment_search", "{\"itemLevel\":null}")]
+    [TestCase("equipment_search", "{\"limit\":21}")]
+    [TestCase("equipment_search", "{\"account\":\"other\"}")]
     [TestCase("equipment_get_details", "{}")]
     [TestCase("equipment_get_details", "{\"text\":\" \"}")]
     [TestCase("equipment_get_details", "{\"text\":\"断月之光\",\"itemLevel\":-1}")]
@@ -86,6 +93,59 @@ public class AriaMcpTest
         Assert.That(tools.Names, Is.EqualTo(new[] { "equipment_get_details", "equipment_get_details" }));
         Assert.That(result, Does.Contain("107"));
         Assert.That(handler.Bodies.Last(), Does.Contain("calculated"));
+    }
+
+    /// <summary>The screenshot conversation can carry verified candidates into a combined source/detail follow-up.</summary>
+    [Test]
+    public async Task EquipmentRecommendationFollowUpsKeepToolResultsAsync()
+    {
+        var tools = new ToolClient((name, _) => name switch
+        {
+            "equipment_search" => JsonSerializer.SerializeToElement(new { status = "candidates", items = new[] { new { key = "0/26", name = "虚伪之剑", physicalAttack = new { minimum = 115, maximum = 126 }, maximumSockets = 3 } } }),
+            "equipment_get_details" => JsonSerializer.SerializeToElement(new { status = "calculated", item = new { name = "虚伪之剑" }, details = new { physicalAttack = new { minimum = 115, maximum = 126 } } }),
+            "drops_find_sources" => JsonSerializer.SerializeToElement(new { status = "candidates", items = new[] { new { monster = "测试怪物", map = "测试地图" } } }),
+            _ => throw new AssertionException("Unexpected tool: " + name),
+        });
+        using var handler = new Handler((index, _) => Task.FromResult(index switch
+        {
+            1 or 3 => Output(Call("equipment_search", "search_" + index, "{\"characterClass\":\"神骑士\",\"weaponType\":\"Sword\",\"handedness\":\"OneHanded\"}")),
+            2 => Answer("可比较虚伪之剑的镶嵌路线，普通基础攻击不一定更高。"),
+            4 => Answer("还有虚伪之剑可选，是否提升要比较强化与镶嵌。"),
+            5 => Output(Call("drops_find_sources", "source", "{\"text\":\"虚伪之剑\"}"), Call("equipment_get_details", "detail", "{\"text\":\"虚伪之剑\",\"itemLevel\":0}")),
+            _ => Answer("普通+0攻击115至126；测试地图的测试怪物是候选掉落来源。"),
+        }));
+        using var http = new HttpClient(handler);
+        var client = new AriaModelClient(http, Options(), tools: tools);
+        var messages = new List<AriaMessage> { new("user", "对艾莉雅：还有比断月之光和龙骨巨剑更高的单手武器吗？") };
+        foreach (var question in new[] { "", "还有哪些单手剑可选？", "虚伪之剑什么怪物掉落，+0普通属性是怎样的？" })
+        {
+            if (question.Length > 0)
+            {
+                messages.Add(new("user", question));
+            }
+
+            var answer = await client.CompleteAsync("role", messages, default).ConfigureAwait(false);
+            Assert.That(answer, Does.Not.Contain("神圣风暴之剑"));
+            messages.Add(new("assistant", answer));
+        }
+
+        Assert.That(tools.Names, Is.EqualTo(new[] { "equipment_search", "equipment_search", "drops_find_sources", "equipment_get_details" }));
+        Assert.That(tools.Arguments.Take(2).All(arguments => arguments.GetProperty("characterClass").GetString() == "神骑士"
+            && arguments.GetProperty("handedness").GetString() == "OneHanded"), Is.True);
+        Assert.That(handler.Bodies.Last(), Does.Contain("calculated").And.Contain("candidates"));
+    }
+
+    /// <summary>General gearing principles still need no configuration query.</summary>
+    [Test]
+    public async Task GeneralEquipmentPrinciplesDoNotRequireQueriesAsync()
+    {
+        var tools = new ToolClient((_, _) => throw new AssertionException("A general gearing question was pre-queried."));
+        using var handler = new Handler((_, _) => Task.FromResult(Answer("比较基础攻击时保持相同强化，卓越和镶嵌则看具体效果。")));
+        using var http = new HttpClient(handler);
+        var answer = await new AriaModelClient(http, Options(), tools: tools).CompleteAsync("role",
+            [new AriaMessage("user", "比较武器强弱时，强化、卓越和镶嵌该怎么看？")], default).ConfigureAwait(false);
+        Assert.That(tools.Names, Is.Empty);
+        Assert.That(answer, Does.Contain("强化"));
     }
 
     /// <summary>Preserves reasoning, call identifiers and tool results across two query rounds.</summary>
