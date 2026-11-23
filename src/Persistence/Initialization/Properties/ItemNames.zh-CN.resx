@@ -2502,4 +2502,25 @@
   <data name="MuExSuccubusBoots" xml:space="preserve">
     <value>女妖之靴</value>
   </data>
+  <data name="MuExHawkFigurine" xml:space="preserve">
+    <value>神鹰雕像</value>
+  </data>
+  <data name="MuExGoatFigurine" xml:space="preserve">
+    <value>山羊雕像</value>
+  </data>
+  <data name="MuExOakCharm" xml:space="preserve">
+    <value>兽人符文</value>
+  </data>
+  <data name="MuExMapleCharm" xml:space="preserve">
+    <value>枫叶符文</value>
+  </data>
+  <data name="MuExGoldenOakCharm" xml:space="preserve">
+    <value>黄金兽人符文</value>
+  </data>
+  <data name="MuExGoldenMapleCharm" xml:space="preserve">
+    <value>黄金枫叶符文</value>
+  </data>
+  <data name="MuExWornHorseshoe" xml:space="preserve">
+    <value>破旧铁蹄</value>
+  </data>
 </root>

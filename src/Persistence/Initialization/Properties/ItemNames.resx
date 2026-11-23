@@ -2502,4 +2502,25 @@
   <data name="MuExSuccubusBoots" xml:space="preserve">
     <value>Succubus Boots</value>
   </data>
+  <data name="MuExHawkFigurine" xml:space="preserve">
+    <value>Hawk Figurine</value>
+  </data>
+  <data name="MuExGoatFigurine" xml:space="preserve">
+    <value>Goat Figurine</value>
+  </data>
+  <data name="MuExOakCharm" xml:space="preserve">
+    <value>Oak Charm</value>
+  </data>
+  <data name="MuExMapleCharm" xml:space="preserve">
+    <value>Maple Charm</value>
+  </data>
+  <data name="MuExGoldenOakCharm" xml:space="preserve">
+    <value>Golden Oak Charm</value>
+  </data>
+  <data name="MuExGoldenMapleCharm" xml:space="preserve">
+    <value>Golden Maple Charm</value>
+  </data>
+  <data name="MuExWornHorseshoe" xml:space="preserve">
+    <value>Worn Horseshoe</value>
+  </data>
 </root>

@@ -519,4 +519,10 @@
   <data name="SetMuExWarpRequirements_Description" xml:space="preserve">
     <value>调整狼魂要塞和罗兰市场的传送门槛，并调整竞技场、死亡沙漠和死亡沙漠 2 的菜单传送落点。适用于采用对应 MuEx 传送菜单数据的服务器。</value>
   </data>
+  <data name="AddMuExInventoryEffectItems_Name" xml:space="preserve">
+    <value>添加 MuEx 背包状态道具定义</value>
+  </data>
+  <data name="AddMuExInventoryEffectItems_Description" xml:space="preserve">
+    <value>添加七件 MuEx 雕像、符文和破旧铁蹄的背包定义。商城上架和背包状态插件由管理员配置。</value>
+  </data>
 </root>

@@ -502,4 +502,10 @@
   <data name="SetMuExWarpRequirements_Description" xml:space="preserve">
     <value>Sets MuEx travel requirements for Crywolf Fortress and Loren Market and adjusts the menu landing areas for Arena, Tarkan and Tarkan 2. Select for a realm with matching MuEx client menu data.</value>
   </data>
+  <data name="AddMuExInventoryEffectItems_Name" xml:space="preserve">
+    <value>Add MuEx inventory effect item definitions</value>
+  </data>
+  <data name="AddMuExInventoryEffectItems_Description" xml:space="preserve">
+    <value>Adds seven inventory item definitions for MuEx figurines, charms, and the worn horseshoe. Leaves sale settings and inventory state feature configuration to the operator.</value>
+  </data>
 </root>

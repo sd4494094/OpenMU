@@ -5677,5 +5677,62 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
             }
         }
 
+
+        /// <summary>
+        ///   Looks up a localized string similar to Goat Figurine.
+        /// </summary>
+        public static string MuExGoatFigurine {
+            get {
+                return ResourceManager.GetString("MuExGoatFigurine", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Golden Maple Charm.
+        /// </summary>
+        public static string MuExGoldenMapleCharm {
+            get {
+                return ResourceManager.GetString("MuExGoldenMapleCharm", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Golden Oak Charm.
+        /// </summary>
+        public static string MuExGoldenOakCharm {
+            get {
+                return ResourceManager.GetString("MuExGoldenOakCharm", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Hawk Figurine.
+        /// </summary>
+        public static string MuExHawkFigurine {
+            get {
+                return ResourceManager.GetString("MuExHawkFigurine", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Maple Charm.
+        /// </summary>
+        public static string MuExMapleCharm {
+            get {
+                return ResourceManager.GetString("MuExMapleCharm", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Oak Charm.
+        /// </summary>
+        public static string MuExOakCharm {
+            get {
+                return ResourceManager.GetString("MuExOakCharm", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Worn Horseshoe.
+        /// </summary>
+        public static string MuExWornHorseshoe {
+            get {
+                return ResourceManager.GetString("MuExWornHorseshoe", resourceCulture);
+            }
+        }
     }
 }

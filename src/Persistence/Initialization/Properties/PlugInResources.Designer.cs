@@ -1256,5 +1256,22 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("SetMuExWarpRequirements_Name", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Adds seven inventory item definitions for MuEx figurines, charms, and the worn horseshoe. Leaves sale settings and inventory state feature configuration to the operator..
+        /// </summary>
+        public static string AddMuExInventoryEffectItems_Description {
+            get {
+                return ResourceManager.GetString("AddMuExInventoryEffectItems_Description", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Add MuEx inventory effect item definitions.
+        /// </summary>
+        public static string AddMuExInventoryEffectItems_Name {
+            get {
+                return ResourceManager.GetString("AddMuExInventoryEffectItems_Name", resourceCulture);
+            }
+        }
     }
 }

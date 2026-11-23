@@ -95,6 +95,11 @@ The same goes for the updates which would be applied and depend on it. Their
 dependencies are checked when you apply them, so an optional plugin update with a
 missing dependency doesn't stop the creation of a new database.
 
+The optional *Add MuEx inventory effect item definitions* update adds the seven
+figurine, charm and horseshoe definitions for Season Six. The backpack toggle
+uses the separate *MuMain inventory item states* feature and its configured
+item groups and numbers.
+
 ## Preconditions
 
 If the database is not installed yet, or a schema update is pending, this page
