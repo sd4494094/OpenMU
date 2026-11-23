@@ -5188,5 +5188,11 @@ namespace MUnique.OpenMU.GameLogic.Properties {
                 return ResourceManager.GetString("SocketWeaponCraftingFeaturePlugIn_Name", resourceCulture);
             }
         }
+        /// <summary>Gets the localized InventoryItemEquipFeature_Name resource.</summary>
+        public static string InventoryItemEquipFeature_Name => ResourceManager.GetString("InventoryItemEquipFeature_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized InventoryItemEquipFeature_Description resource.</summary>
+        public static string InventoryItemEquipFeature_Description => ResourceManager.GetString("InventoryItemEquipFeature_Description", resourceCulture)!;
+
     }
 }

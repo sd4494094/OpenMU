@@ -1797,4 +1797,10 @@
   <data name="SocketWeaponCraftingConfiguration_MountedSeedSphereValues_Name" xml:space="preserve">
     <value>已镶嵌种子球的分阶估值（1–5 阶）</value>
   </data>
+  <data name="InventoryItemEquipFeature_Name" xml:space="preserve">
+    <value>MuMain 背包物品状态</value>
+  </data>
+  <data name="InventoryItemEquipFeature_Description" xml:space="preserve">
+    <value>按物品类别和编号设置可保存背包状态标记的物品。</value>
+  </data>
 </root>

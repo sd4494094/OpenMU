@@ -8091,5 +8091,17 @@ namespace MUnique.OpenMU.GameServer.Properties {
         /// <summary>Gets the localized CharacterInventoryRequestPacketHandlerPlugIn_Name resource.</summary>
         public static string CharacterInventoryRequestPacketHandlerPlugIn_Name => ResourceManager.GetString("CharacterInventoryRequestPacketHandlerPlugIn_Name", resourceCulture)!;
 
+        /// <summary>Gets the localized InventoryItemEquipRequest_Name resource.</summary>
+        public static string InventoryItemEquipRequest_Name => ResourceManager.GetString("InventoryItemEquipRequest_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized InventoryItemEquipRequest_Description resource.</summary>
+        public static string InventoryItemEquipRequest_Description => ResourceManager.GetString("InventoryItemEquipRequest_Description", resourceCulture)!;
+
+        /// <summary>Gets the localized InventoryItemEquipResult_Name resource.</summary>
+        public static string InventoryItemEquipResult_Name => ResourceManager.GetString("InventoryItemEquipResult_Name", resourceCulture)!;
+
+        /// <summary>Gets the localized InventoryItemEquipResult_Description resource.</summary>
+        public static string InventoryItemEquipResult_Description => ResourceManager.GetString("InventoryItemEquipResult_Description", resourceCulture)!;
+
     }
 }

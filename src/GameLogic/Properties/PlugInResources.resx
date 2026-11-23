@@ -1877,4 +1877,10 @@
   <data name="SocketWeaponCraftingConfiguration_MountedSeedSphereValues_Name" xml:space="preserve">
     <value>Mounted seed sphere values by tier (1–5)</value>
   </data>
+  <data name="InventoryItemEquipFeature_Name" xml:space="preserve">
+    <value>MuMain inventory item states</value>
+  </data>
+  <data name="InventoryItemEquipFeature_Description" xml:space="preserve">
+    <value>Saves state markers for the configured item numbers in each item group.</value>
+  </data>
 </root>

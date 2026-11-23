@@ -2546,4 +2546,16 @@
   <data name="CharacterInventoryRequestPacketHandlerPlugIn_Description" xml:space="preserve">
     <value>处理加密的角色背包刷新请求（0xF3, 0x10）。</value>
   </data>
+  <data name="InventoryItemEquipRequest_Name" xml:space="preserve">
+    <value>背包物品状态请求（MuMain）</value>
+  </data>
+  <data name="InventoryItemEquipRequest_Description" xml:space="preserve">
+    <value>保存 MuMain 指定背包物品的状态标记。</value>
+  </data>
+  <data name="InventoryItemEquipResult_Name" xml:space="preserve">
+    <value>背包物品状态确认（MuMain）</value>
+  </data>
+  <data name="InventoryItemEquipResult_Description" xml:space="preserve">
+    <value>向 MuMain 发送已确认的背包物品状态。</value>
+  </data>
 </root>
