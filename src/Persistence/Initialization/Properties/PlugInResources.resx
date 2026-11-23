@@ -448,4 +448,6 @@
   <data name="AddBulkPotionOffersPlugIn_Description" xml:space="preserve">
     <value>Raises normal potion, apple and antidote stack capacity to 100 and adds 100-piece packs at Amy. Requires a matching client.</value>
   </data>
+  <data name="FixMasterResistanceRanksPlugIn_Name" xml:space="preserve"><value>Correct master resistance skill ranks</value></data>
+  <data name="FixMasterResistanceRanksPlugIn_Description" xml:space="preserve"><value>Moves shared lightning and ice resistance from rank 2 to ranks 3 and 4 so learned resistance counts toward unlocking the next rank.</value></data>
 </root>

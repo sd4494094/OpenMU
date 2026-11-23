@@ -6,8 +6,10 @@ namespace MUnique.OpenMU.Tests;
 
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.PlayerActions.Character;
+using MUnique.OpenMU.Persistence.InMemory;
 
 /// <summary>
 /// Tests the master level system.
@@ -244,6 +246,34 @@ public class MasterSystemTest
         }
 
         return root;
+    }
+
+    /// <summary>Spends a point in Defense Increase using only lightning resistance to qualify at rank three.</summary>
+    [Test]
+    public async Task BladeMasterResistanceUnlocksDefenseAsync()
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        var initializer = new Persistence.Initialization.VersionSeasonSix.DataInitialization(provider, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
+        await initializer.CreateInitialDataAsync(1, true).ConfigureAwait(false);
+        using var context = provider.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var defense = configuration.Skills.Single(s => s.Number == 309);
+        var character = this._player.SelectedCharacter!;
+        character.CharacterClass = defense.QualifiedCharacters.Single(c => c.Number == 7);
+        character.MasterLevelUpPoints = 47;
+        this._player.GameContext.Configuration.Skills.Add(defense);
+        var lightning = new SkillEntry { Skill = configuration.Skills.Single(s => s.Number == 308), Level = 9 };
+        character.LearnedSkills.Add(lightning);
+        character.LearnedSkills.Add(new SkillEntry { Skill = configuration.Skills.Single(s => s.Number == 311), Level = 10 });
+
+        await this._addAction.AddMasterPointAsync(this._player, 309).ConfigureAwait(false);
+        Assert.That(character.MasterLevelUpPoints, Is.EqualTo(47));
+        Assert.That(character.LearnedSkills.Any(s => s.Skill == defense), Is.False);
+
+        lightning.Level = 10;
+        await this._addAction.AddMasterPointAsync(this._player, 309).ConfigureAwait(false);
+        Assert.That(character.LearnedSkills.Single(s => s.Skill == defense).Level, Is.EqualTo(1));
+        Assert.That(character.MasterLevelUpPoints, Is.EqualTo(46));
     }
 
     private Skill CreateSkill(short id, byte rank, byte rootId, Skill? requiredSkill, CharacterClass charClass)

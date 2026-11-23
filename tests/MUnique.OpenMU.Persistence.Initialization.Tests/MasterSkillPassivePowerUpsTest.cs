@@ -68,6 +68,33 @@ internal class MasterSkillPassivePowerUpsTest
         Assert.That(update.UpdatedAt, Is.GreaterThan(update.CreatedAt));
     }
 
+    /// <summary>Checks the resistance path to Defense Increase on new and upgraded Season 6 configurations.</summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task ResistanceRanksUnlockDefenseAsync(bool existingDatabase)
+    {
+        var (context, configuration) = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        using var _ = context;
+        var lightning = GetMasterDefinition(configuration, 308);
+        var defense = GetMasterDefinition(configuration, 309);
+        var ice = GetMasterDefinition(configuration, 311);
+        if (existingDatabase)
+        {
+            lightning.Rank = 2;
+            ice.Rank = 2;
+            var update = new FixMasterResistanceRanksPlugIn();
+            await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+            await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        }
+
+        Assert.That(lightning.Rank, Is.EqualTo(3));
+        Assert.That(ice.Rank, Is.EqualTo(4));
+        Assert.That(defense.Rank, Is.EqualTo(lightning.Rank + 1));
+        Assert.That(defense.Root, Is.SameAs(lightning.Root));
+        Assert.That(defense.RequiredMasterSkills, Is.Empty);
+        Assert.That(defense.MinimumLevel, Is.EqualTo(1));
+    }
+
     private static void AssertPassivePowerUps(GameConfiguration gameConfiguration)
     {
         Assert.That(gameConfiguration.Attributes.Count(a => a.Id == Stats.MasterSkillValue.Id), Is.EqualTo(1));
