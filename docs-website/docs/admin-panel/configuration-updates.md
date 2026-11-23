@@ -74,6 +74,11 @@ A new database already contains the changes of OpenMU's own updates, because the
 initialization creates the current configuration. It therefore marks them as
 applied, and this page starts empty.
 
+Version 3 of *Add passive power-ups of master skills* corrects the default
+Season Six skills which restore shield, health or mana after a monster kill.
+They restore the maximum resource divided by the displayed value. The update
+keeps the displayed values and preserves customized formulas.
+
 Plugins can bring configuration updates too, for example one which adds the
 plugin's own item. Their changes are not part of OpenMU's initialization, so such
 an update declares `RunsOnNewDatabase`, and a new database applies it right away,

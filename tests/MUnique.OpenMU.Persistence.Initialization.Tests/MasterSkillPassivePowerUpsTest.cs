@@ -20,6 +20,7 @@ internal class MasterSkillPassivePowerUpsTest
     private const short TripleShotMasteryNumber = 418;
     private const short DurabilityReduction1Number = 300;
     private const short DurabilityReduction1FistMasterNumber = 578;
+    private static readonly short[] KillRecoverySkills = [358, 359, 362, 605, 606, 608];
 
     /// <summary>
     /// Tests that a new season 6 database has the passive power-ups of the master skills.
@@ -66,6 +67,35 @@ internal class MasterSkillPassivePowerUpsTest
         Assert.That(update.DependsOn.Select(d => d.Key), Does.Contain(typeof(FinishElfMasterTreePlugIn).GUID));
         Assert.That(update.Version, Is.GreaterThan(1));
         Assert.That(update.UpdatedAt, Is.GreaterThan(update.CreatedAt));
+    }
+
+    /// <summary>
+    /// Tests that the update corrects legacy default recovery formulas and preserves customized ones.
+    /// </summary>
+    [Test]
+    public async Task UpgradeRepairsOnlyDefaultKillRecoveryMultipliersAsync()
+    {
+        var (context, gameConfiguration) = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        using var _ = context;
+        var defaults = KillRecoverySkills.Select(number => GetMasterDefinition(gameConfiguration, number)).ToArray();
+        var corrected = defaults.Select(definition => definition.ValueFormula).ToArray();
+        var displayed = defaults.Select(definition => definition.DisplayValueFormula).ToArray();
+        foreach (var definition in defaults)
+        {
+            definition.ValueFormula = definition.DisplayValueFormula;
+        }
+
+        var update = new AddMasterSkillPassivePowerUpsPlugIn();
+        await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
+        Assert.That(defaults.Select(definition => definition.ValueFormula), Is.EqualTo(corrected));
+        Assert.That(defaults.Select(definition => definition.DisplayValueFormula), Is.EqualTo(displayed));
+
+        defaults[0].ValueFormula = "0.15";
+        corrected[0] = "0.15";
+        await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
+        Assert.That(defaults.Select(definition => definition.ValueFormula), Is.EqualTo(corrected));
+        Assert.That(defaults.Select(definition => definition.DisplayValueFormula), Is.EqualTo(displayed));
+        AssertPassivePowerUps(gameConfiguration);
     }
 
     private static void AssertPassivePowerUps(GameConfiguration gameConfiguration)

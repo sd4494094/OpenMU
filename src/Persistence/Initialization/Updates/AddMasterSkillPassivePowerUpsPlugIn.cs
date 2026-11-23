@@ -49,14 +49,15 @@ public class AddMasterSkillPassivePowerUpsPlugIn : UpdatePlugInBase
     /// </summary>
     /// <remarks>
     /// Version 2: castable master skills were missing their passive power-ups.
+    /// Version 3: uses the reciprocal of the displayed divisor for the default kill recovery multipliers.
     /// </remarks>
-    public override int Version => 2;
+    public override int Version => 3;
 
     /// <inheritdoc />
     /// <remarks>
     /// Needs the target attribute which <see cref="FinishElfMasterTreePlugIn"/> sets.
     /// </remarks>
-    public override DateTime UpdatedAt => new(2026, 10, 17, 12, 0, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 23, 0, 0, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     public override IEnumerable<UpdateDependency> DependsOn => [typeof(FinishElfMasterTreePlugIn).GUID];
@@ -71,6 +72,29 @@ public class AddMasterSkillPassivePowerUpsPlugIn : UpdatePlugInBase
         }
 
         MasterSkillPassivePowerUps.AddMissing(context, gameConfiguration);
+        CorrectKillRecoveryMultipliers(gameConfiguration);
         return ValueTask.CompletedTask;
+    }
+
+    private static void CorrectKillRecoveryMultipliers(GameConfiguration gameConfiguration)
+    {
+        foreach (var skill in gameConfiguration.Skills)
+        {
+            if (skill.MasterDefinition is not { TargetAttribute: { } target, Aggregation: AggregateType.AddFinal } definition
+                || definition.ValueFormula != definition.DisplayValueFormula)
+            {
+                continue;
+            }
+
+            if (target.Id == Stats.ShieldAfterMonsterKillMultiplier.Id && definition.ValueFormula == SkillsInitializer.Formula914)
+            {
+                definition.ValueFormula = SkillsInitializer.KillRecoveryShieldMultiplier;
+            }
+            else if ((target.Id == Stats.HealthAfterMonsterKillMultiplier.Id || target.Id == Stats.ManaAfterMonsterKillMultiplier.Id)
+                && definition.ValueFormula == SkillsInitializer.Formula4319)
+            {
+                definition.ValueFormula = SkillsInitializer.KillRecoveryHealthOrManaMultiplier;
+            }
+        }
     }
 }

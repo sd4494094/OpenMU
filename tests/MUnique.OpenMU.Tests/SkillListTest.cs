@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.DataModel.Attributes;
@@ -12,6 +13,8 @@ using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.Persistence.InMemory;
+using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 
 /// <summary>
 /// Tests the skill list.
@@ -213,6 +216,63 @@ public class SkillListTest
 
         Assert.That(player.Attributes[Stats.TripleShotExtraProjectiles], Is.EqualTo(1));
         Assert.That(player.Attributes[Stats.ExtraProjectiles], Is.EqualTo(0), "The mastery must not feed the generic pool.");
+    }
+
+    /// <summary>
+    /// Tests that the configured master skills recover the maximum resource divided by the displayed value.
+    /// </summary>
+    /// <param name="shieldSkill">The shield recovery skill.</param>
+    /// <param name="healthSkill">The health recovery skill.</param>
+    /// <param name="manaSkill">The mana recovery skill.</param>
+    [TestCase(358, 359, 362)]
+    [TestCase(605, 606, 608)]
+    public async Task MasterSkillsRecoverAContractedFractionAfterKillingAMonsterAsync(int shieldSkill, int healthSkill, int manaSkill)
+    {
+        var persistence = new InMemoryPersistenceContextProvider();
+        var initializer = new DataInitialization(persistence, NullLoggerFactory.Instance);
+        await initializer.CreateInitialDataAsync(1, true).ConfigureAwait(false);
+        using var context = persistence.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var entries = new[] { shieldSkill, healthSkill, manaSkill }.Select(number => new Persistence.BasicModel.SkillEntry
+        {
+            Skill = configuration.Skills.Single(skill => skill.Number == number),
+            Level = 1,
+        }).ToArray();
+        foreach (var entry in entries)
+        {
+            player.SelectedCharacter!.LearnedSkills.Add(entry);
+        }
+
+        using var skillList = new SkillList(player);
+        var attributes = player.Attributes!;
+        var resources = new[]
+        {
+            (Maximum: Stats.MaximumShield, Current: Stats.CurrentShield),
+            (Maximum: Stats.MaximumHealth, Current: Stats.CurrentHealth),
+            (Maximum: Stats.MaximumMana, Current: Stats.CurrentMana),
+        };
+        const uint maximum = 1000;
+        foreach (var level in new[] { 1, 10, 20 })
+        {
+            foreach (var (entry, resource) in entries.Zip(resources))
+            {
+                entry.Level = level;
+                attributes[resource.Maximum] = maximum;
+                attributes[resource.Current] = 0;
+                Assert.That(entry.CalculateDisplayValue(), Is.GreaterThan(1));
+            }
+
+            await player.AfterKilledMonsterAsync().ConfigureAwait(false);
+            foreach (var (entry, resource) in entries.Zip(resources))
+            {
+                var displayedDivisor = entry.CalculateDisplayValue();
+                Assert.That(entry.CalculateValue() * displayedDivisor, Is.EqualTo(1).Within(0.00001));
+                var effectiveMaximum = attributes[resource.Maximum];
+                Assert.That(effectiveMaximum, Is.Positive);
+                Assert.That(attributes[resource.Current], Is.EqualTo((uint)(effectiveMaximum / displayedDivisor)), $"skill {entry.Skill!.Number} at level {level}");
+            }
+        }
     }
 
     private static SkillEntry CreatePassiveSkillEntry(string valueFormula, AggregateType aggregateType, AttributeDefinition targetAttribute, AttributeDefinition inputAttribute, float inputOperand)
