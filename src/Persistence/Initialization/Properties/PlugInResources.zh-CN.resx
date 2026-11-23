@@ -525,4 +525,10 @@
   <data name="AddMuExInventoryEffectItems_Description" xml:space="preserve">
     <value>添加七件 MuEx 雕像、符文和破旧铁蹄的背包定义。商城上架和背包状态插件由管理员配置。</value>
   </data>
+  <data name="AddMuExLesnarDialogue_Name" xml:space="preserve">
+    <value>添加 MuEx 莱斯纳城镇对话</value>
+  </data>
+  <data name="AddMuExLesnarDialogue_Description" xml:space="preserve">
+    <value>在原版 MuEx 小地图标记的三座城镇放置莱斯纳并打开对话。阿尔卡战争业务动作需另行支持。</value>
+  </data>
 </root>

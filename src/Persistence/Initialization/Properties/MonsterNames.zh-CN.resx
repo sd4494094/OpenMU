@@ -858,4 +858,7 @@
     <value>传送使者·诺亚</value>
   </data>
   <data name="CreatorGoddessAria" xml:space="preserve"><value>创世神·艾莉雅</value></data>
+  <data name="MuExLesnar" xml:space="preserve">
+    <value>莱斯纳</value>
+  </data>
 </root>

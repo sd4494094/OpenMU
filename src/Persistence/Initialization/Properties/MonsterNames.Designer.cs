@@ -3341,5 +3341,13 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("CreatorGoddessAria", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Lesnar.
+        /// </summary>
+        public static string MuExLesnar {
+            get {
+                return ResourceManager.GetString("MuExLesnar", resourceCulture);
+            }
+        }
     }
 }

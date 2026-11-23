@@ -1273,5 +1273,21 @@ namespace MUnique.OpenMU.Persistence.Initialization.Properties {
                 return ResourceManager.GetString("AddMuExInventoryEffectItems_Name", resourceCulture);
             }
         }
+        /// <summary>
+        ///   Looks up a localized string similar to Add MuEx Lesnar town dialogue.
+        /// </summary>
+        public static string AddMuExLesnarDialogue_Name {
+            get {
+                return ResourceManager.GetString("AddMuExLesnarDialogue_Name", resourceCulture);
+            }
+        }
+        /// <summary>
+        ///   Looks up a localized string similar to Adds Lesnar at the three MuEx minimap markers and opens his local dialogue. Arka War actions require separate support..
+        /// </summary>
+        public static string AddMuExLesnarDialogue_Description {
+            get {
+                return ResourceManager.GetString("AddMuExLesnarDialogue_Description", resourceCulture);
+            }
+        }
     }
 }

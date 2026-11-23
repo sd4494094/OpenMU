@@ -858,4 +858,7 @@
     <value>Teleport Guide Noah</value>
   </data>
   <data name="CreatorGoddessAria" xml:space="preserve"><value>Creator Goddess Aria</value></data>
+  <data name="MuExLesnar" xml:space="preserve">
+    <value>Lesnar</value>
+  </data>
 </root>

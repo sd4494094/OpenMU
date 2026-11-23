@@ -508,4 +508,10 @@
   <data name="AddMuExInventoryEffectItems_Description" xml:space="preserve">
     <value>Adds seven inventory item definitions for MuEx figurines, charms, and the worn horseshoe. Leaves sale settings and inventory state feature configuration to the operator.</value>
   </data>
+  <data name="AddMuExLesnarDialogue_Name" xml:space="preserve">
+    <value>Add MuEx Lesnar town dialogue</value>
+  </data>
+  <data name="AddMuExLesnarDialogue_Description" xml:space="preserve">
+    <value>Adds Lesnar at the three MuEx minimap markers and opens his local dialogue. Arka War actions require separate support.</value>
+  </data>
 </root>

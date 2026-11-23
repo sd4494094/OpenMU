@@ -100,6 +100,14 @@ figurine, charm and horseshoe definitions for Season Six. The backpack toggle
 uses the separate *MuMain inventory item states* feature and its configured
 item groups and numbers.
 
+The optional *Add MuEx Lesnar town dialogue* update adds Lesnar (584) at
+the minimap markers in Lorencia, Devias and Noria. It uses the existing NPC
+dialogue window in the MuMain client and preserves existing placements of 584.
+The update fills missing placements when an existing 584 already uses the
+passive dialogue window. Keep the MuEx dialogue and word tables
+in the client installation. The Arka War application, registration, exchange,
+admission and status actions require separate compatibility work.
+
 ## Preconditions
 
 If the database is not installed yet, or a schema update is pending, this page
