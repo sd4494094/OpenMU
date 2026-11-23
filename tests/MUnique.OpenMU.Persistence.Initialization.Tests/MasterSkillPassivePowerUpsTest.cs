@@ -95,6 +95,40 @@ internal class MasterSkillPassivePowerUpsTest
         Assert.That(defense.MinimumLevel, Is.EqualTo(1));
     }
 
+    /// <summary>Checks new and upgraded skill trees against the client prerequisite and cap fields.</summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task SeasonSixClassSkillRulesAsync(bool upgrade)
+    {
+        var (context, configuration) = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        using var _ = context;
+        var skills = configuration.Skills.ToDictionary(s => s.Number);
+        var parents = new (short Skill, short Parent)[] { (419, 415), (533, 529), (551, 260), (552, 261) };
+        var mastery = skills[571].MasterDefinition!;
+        if (upgrade)
+        {
+            foreach (var (skill, parent) in parents)
+            {
+                skills[skill].MasterDefinition!.RequiredMasterSkills.Remove(skills[parent]);
+            }
+
+            skills[415].MasterDefinition!.RequiredMasterSkills.Add(skills[30]);
+            skills[419].MasterDefinition!.RequiredMasterSkills.Add(skills[30]);
+            mastery.MaximumLevel = 20;
+            var update = new FixMasterResistanceRanksPlugIn();
+            await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+            await update.ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+        }
+
+        Assert.That(skills[415].MasterDefinition!.RequiredMasterSkills, Is.Empty);
+        foreach (var (skill, parent) in parents)
+        {
+            Assert.That(skills[skill].MasterDefinition!.RequiredMasterSkills, Is.EquivalentTo(new[] { skills[parent] }));
+        }
+
+        Assert.That(mastery.MaximumLevel, Is.EqualTo(10));
+    }
+
     private static void AssertPassivePowerUps(GameConfiguration gameConfiguration)
     {
         Assert.That(gameConfiguration.Attributes.Count(a => a.Id == Stats.MasterSkillValue.Id), Is.EqualTo(1));

@@ -465,6 +465,6 @@
   <data name="AddBulkPotionOffersPlugIn_Description" xml:space="preserve">
     <value>将普通红蓝药、苹果和解毒剂的叠加上限提高到100，并在少女安娜商店添加100个装。需要配套客户端。</value>
   </data>
-  <data name="FixMasterResistanceRanksPlugIn_Name" xml:space="preserve"><value>修正大师技能雷抗与冰抗的阶数</value></data>
-  <data name="FixMasterResistanceRanksPlugIn_Description" xml:space="preserve"><value>将共用大师技能树中原设为第 2 阶的雷抗和冰抗分别调整到第 3 阶和第 4 阶，使已学抗性技能可以解锁下一阶。</value></data>
+  <data name="FixMasterResistanceRanksPlugIn_Name" xml:space="preserve"><value>修正第六季大师技能树加点条件</value></data>
+  <data name="FixMasterResistanceRanksPlugIn_Description" xml:space="preserve"><value>修正雷抗、冰抗阶数以及召唤兽、权杖和拳术的前置条件，将装备武器精通上限修正为 10 级。</value></data>
 </root>

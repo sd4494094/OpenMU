@@ -237,6 +237,57 @@ public class MasterSystemTest
         Assert.That(this._player.SelectedCharacter.MasterLevelUpPoints, Is.EqualTo(1));
     }
 
+    /// <summary>Tests a class-specific prerequisite with another skill already qualifying in the previous rank.</summary>
+    [TestCase(419, 415, 413, 11)]
+    [TestCase(533, 529, 526, 17)]
+    [TestCase(551, 260, 599, 25)]
+    [TestCase(552, 261, 599, 25)]
+    public async Task RequiresMatchingSkillAsync(short number, short parentNumber, short otherNumber, byte classNumber)
+    {
+        var provider = new InMemoryPersistenceContextProvider();
+        var initializer = new Persistence.Initialization.VersionSeasonSix.DataInitialization(provider, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance);
+        await initializer.CreateInitialDataAsync(1, true).ConfigureAwait(false);
+        using var context = provider.CreateNewContext();
+        var configuration = (await context.GetAsync<GameConfiguration>().ConfigureAwait(false)).Single();
+        var skills = configuration.Skills.ToDictionary(s => s.Number);
+        var skill = skills[number];
+        var parent = skills[parentNumber];
+        var character = this._player.SelectedCharacter!;
+        character.CharacterClass = skill.QualifiedCharacters.Single(c => c.Number == classNumber);
+        character.MasterLevelUpPoints = 1;
+        this._player.GameContext.Configuration.Skills.Add(skill);
+        character.LearnedSkills.Add(new SkillEntry { Skill = skills[otherNumber], Level = 10 });
+        Assert.That(skills[otherNumber].MasterDefinition!.Root, Is.SameAs(skill.MasterDefinition!.Root));
+        Assert.That(skills[otherNumber].MasterDefinition!.Rank, Is.EqualTo(skill.MasterDefinition.Rank - 1));
+
+        await this._addAction.AddMasterPointAsync(this._player, (ushort)number).ConfigureAwait(false);
+        Assert.That(character.MasterLevelUpPoints, Is.EqualTo(1));
+        Assert.That(character.LearnedSkills.Any(s => s.Skill == skill), Is.False);
+
+        await this._player.SkillList!.AddLearnedSkillAsync(parent).ConfigureAwait(false);
+        if (parent.MasterDefinition is not null)
+        {
+            this._player.SkillList.GetSkill((ushort)parentNumber)!.Level = 10;
+        }
+
+        await this._addAction.AddMasterPointAsync(this._player, (ushort)number).ConfigureAwait(false);
+        Assert.That(character.LearnedSkills.Single(s => s.Skill == skill).Level, Is.EqualTo(1));
+        Assert.That(character.MasterLevelUpPoints, Is.Zero);
+    }
+
+    /// <summary>Skills sharing a formula may have different level caps.</summary>
+    [Test]
+    public void SharedFormulaHonorsBothCaps()
+    {
+        const string formula = "level * 0.54321";
+        var definition = new MasterSkillDefinition { MaximumLevel = 10, DisplayValueFormula = formula };
+        var entry = new SkillEntry { Level = 10, Skill = new Skill { MasterDefinition = definition } };
+        Assert.That(entry.CalculateDisplayValue(), Is.EqualTo(5.4321f).Within(0.0001f));
+        definition.MaximumLevel = 20;
+        entry.Level = 20;
+        Assert.That(entry.CalculateDisplayValue(), Is.EqualTo(10.8642f).Within(0.0001f));
+    }
+
     private MasterSkillRoot GetRoot(byte rootId)
     {
         if (!this._roots.TryGetValue(rootId, out var root))
