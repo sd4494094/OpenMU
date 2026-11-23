@@ -79,6 +79,10 @@ Season Six skills which restore shield, health or mana after a monster kill.
 They restore the maximum resource divided by the displayed value. The update
 keeps the displayed values and preserves customized formulas.
 
+Version 4 corrects the displayed percentages for eight Season Six master
+skills. It keeps the existing combat formulas and any customized display
+formulas.
+
 Plugins can bring configuration updates too, for example one which adds the
 plugin's own item. Their changes are not part of OpenMU's initialization, so such
 an update declares `RunsOnNewDatabase`, and a new database applies it right away,

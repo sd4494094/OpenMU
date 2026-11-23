@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.Updates;
 using System.Runtime.InteropServices;
 using MUnique.OpenMU.AttributeSystem;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.Persistence.Initialization.Skills;
 using MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 using MUnique.OpenMU.PlugIns;
 
@@ -50,14 +51,15 @@ public class AddMasterSkillPassivePowerUpsPlugIn : UpdatePlugInBase
     /// <remarks>
     /// Version 2: castable master skills were missing their passive power-ups.
     /// Version 3: uses the reciprocal of the displayed divisor for the default kill recovery multipliers.
+    /// Version 4: sends percentages for the default fractional and multiplier master skills.
     /// </remarks>
-    public override int Version => 3;
+    public override int Version => 4;
 
     /// <inheritdoc />
     /// <remarks>
     /// Needs the target attribute which <see cref="FinishElfMasterTreePlugIn"/> sets.
     /// </remarks>
-    public override DateTime UpdatedAt => new(2026, 11, 23, 0, 0, 0, DateTimeKind.Utc);
+    public override DateTime UpdatedAt => new(2026, 11, 23, 6, 56, 0, DateTimeKind.Utc);
 
     /// <inheritdoc />
     public override IEnumerable<UpdateDependency> DependsOn => [typeof(FinishElfMasterTreePlugIn).GUID];
@@ -73,6 +75,7 @@ public class AddMasterSkillPassivePowerUpsPlugIn : UpdatePlugInBase
 
         MasterSkillPassivePowerUps.AddMissing(context, gameConfiguration);
         CorrectKillRecoveryMultipliers(gameConfiguration);
+        CorrectPercentageDisplay(gameConfiguration);
         return ValueTask.CompletedTask;
     }
 
@@ -94,6 +97,34 @@ public class AddMasterSkillPassivePowerUpsPlugIn : UpdatePlugInBase
                 && definition.ValueFormula == SkillsInitializer.Formula4319)
             {
                 definition.ValueFormula = SkillsInitializer.KillRecoveryHealthOrManaMultiplier;
+            }
+        }
+    }
+
+    private static void CorrectPercentageDisplay(GameConfiguration gameConfiguration)
+    {
+        foreach (var skill in gameConfiguration.Skills)
+        {
+            if (skill.MasterDefinition is not { } definition || definition.DisplayValueFormula != definition.ValueFormula)
+            {
+                continue;
+            }
+
+            var (legacy, display) = (SkillNumber)skill.Number switch
+            {
+                SkillNumber.DefenseSuccessRateInc => ($"1 + {SkillsInitializer.Formula120} / 100", SkillsInitializer.Formula120),
+                SkillNumber.MaceMastery or SkillNumber.SpearMastery or SkillNumber.WindTomeMastery
+                    => ($"{SkillsInitializer.Formula120} / 100", SkillsInitializer.Formula120),
+                SkillNumber.SummonedMonsterStr1 or SkillNumber.SummonedMonsterStr2
+                    => (SkillsInitializer.Formula6020Value, SkillsInitializer.Formula6020),
+                SkillNumber.FireTomeMastery or SkillNumber.LightningTomeMastery
+                    => ($"{SkillsInitializer.Formula181} / 100", SkillsInitializer.Formula181),
+                _ => (null, null),
+            };
+
+            if (display is not null && definition.ValueFormula == legacy)
+            {
+                definition.DisplayValueFormula = display;
             }
         }
     }

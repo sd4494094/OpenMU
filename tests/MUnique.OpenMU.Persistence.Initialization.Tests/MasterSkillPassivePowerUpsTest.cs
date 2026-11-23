@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.Initialization.Tests;
 
 using Microsoft.Extensions.Logging.Abstractions;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.Persistence.InMemory;
@@ -21,6 +22,7 @@ internal class MasterSkillPassivePowerUpsTest
     private const short DurabilityReduction1Number = 300;
     private const short DurabilityReduction1FistMasterNumber = 578;
     private static readonly short[] KillRecoverySkills = [358, 359, 362, 605, 606, 608];
+    private static readonly short[] PercentageDisplaySkills = [313, 354, 355, 415, 419, 451, 452, 453];
 
     /// <summary>
     /// Tests that a new season 6 database has the passive power-ups of the master skills.
@@ -96,6 +98,50 @@ internal class MasterSkillPassivePowerUpsTest
         Assert.That(defaults.Select(definition => definition.ValueFormula), Is.EqualTo(corrected));
         Assert.That(defaults.Select(definition => definition.DisplayValueFormula), Is.EqualTo(displayed));
         AssertPassivePowerUps(gameConfiguration);
+    }
+
+    /// <summary>
+    /// Tests that both initial data and updates display the percentage represented by each effect.
+    /// </summary>
+    [Test]
+    public async Task PercentageDisplayMatchesTheEffectAfterInitializationAndUpgradeAsync()
+    {
+        var (context, gameConfiguration) = await CreateSeason6ConfigurationAsync().ConfigureAwait(false);
+        using var _ = context;
+        var skills = PercentageDisplaySkills.Select(number => gameConfiguration.Skills.Single(skill => skill.Number == number)).ToArray();
+        var definitions = skills.Select(skill => skill.MasterDefinition!).ToArray();
+        var values = definitions.Select(definition => definition.ValueFormula).ToArray();
+        var display = definitions.Select(definition => definition.DisplayValueFormula).ToArray();
+
+        foreach (var skill in skills)
+        {
+            var multiplierBase = skill.Number == 313 ? 1.0f : 0.0f;
+            for (int level = 1; level <= skill.MasterDefinition!.MaximumLevel; level++)
+            {
+                var entry = new BasicModel.SkillEntry { Skill = skill, Level = level };
+                Assert.That(entry.CalculateDisplayValue(), Is.EqualTo(100 * (entry.CalculateValue() - multiplierBase)).Within(0.0001f),
+                    $"skill {skill.Number} at level {level}");
+            }
+        }
+
+        foreach (var definition in definitions)
+        {
+            definition.DisplayValueFormula = definition.ValueFormula;
+        }
+
+        var update = new AddMasterSkillPassivePowerUpsPlugIn();
+        await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
+        Assert.That(update.Version, Is.EqualTo(4));
+        Assert.That(definitions.Select(definition => definition.DisplayValueFormula), Is.EqualTo(display));
+        Assert.That(definitions.Select(definition => definition.ValueFormula), Is.EqualTo(values));
+
+        definitions[0].DisplayValueFormula = "3.14";
+        display[0] = "3.14";
+        definitions[1].ValueFormula = definitions[1].DisplayValueFormula = "0.15";
+        values[1] = display[1] = "0.15";
+        await update.ApplyUpdateAsync(context, gameConfiguration).ConfigureAwait(false);
+        Assert.That(definitions.Select(definition => definition.DisplayValueFormula), Is.EqualTo(display));
+        Assert.That(definitions.Select(definition => definition.ValueFormula), Is.EqualTo(values));
     }
 
     private static void AssertPassivePowerUps(GameConfiguration gameConfiguration)
