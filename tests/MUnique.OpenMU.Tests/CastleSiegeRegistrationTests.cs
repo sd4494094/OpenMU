@@ -154,26 +154,38 @@ public class CastleSiegeRegistrationTests
     /// <summary>
     /// Verifies that unregistration removes both runtime and persistent registration state.
     /// </summary>
-    [Test]
-    public async ValueTask UnregistrationRemovesPersistentRegistrationAsync()
+    /// <param name="state">The current siege phase.</param>
+    /// <param name="expected">The expected withdrawal result.</param>
+    [TestCase(CastleSiegeState.Idle1, CastleSiegeUnregistrationResult.WrongState)]
+    [TestCase(CastleSiegeState.RegisterGuild, CastleSiegeUnregistrationResult.Success)]
+    [TestCase(CastleSiegeState.Idle2, CastleSiegeUnregistrationResult.Success)]
+    [TestCase(CastleSiegeState.RegisterMark, CastleSiegeUnregistrationResult.Success)]
+    [TestCase(CastleSiegeState.Notify, CastleSiegeUnregistrationResult.WrongState)]
+    public async ValueTask UnregistrationFollowsGuardsmanWindowAsync(CastleSiegeState state, CastleSiegeUnregistrationResult expected)
     {
         var fixture = await CreateRegisteredFixtureAsync().ConfigureAwait(false);
         var view = fixture.Player.ViewPlugIns.GetPlugIn<ICastleSiegeRegistrationResultPlugIn>()!;
+        fixture.Context.SetPeriod(fixture.Context.Schedule.CreatePeriod(state, new DateTime(2026, 8, 3, 12, 0, 0, DateTimeKind.Utc)));
 
         await new CastleSiegeUnregisterGuildAction().UnregisterAsync(fixture.Player, fixture.Context, true).ConfigureAwait(false);
 
+        var withdrawn = expected == CastleSiegeUnregistrationResult.Success;
         Mock.Get(view).Verify(
             plugIn => plugIn.ShowUnregistrationResultAsync(
-                CastleSiegeUnregistrationResult.Success,
+                expected,
                 true,
-                GuildName),
+                withdrawn ? GuildName : string.Empty),
             Times.Once);
-        Assert.That(fixture.Context.RegisteredGuilds, Is.Empty);
         using var persistenceContext = fixture.PersistenceContextProvider.CreateNewTypedContext(
             typeof(CastleSiegeGuildRegistration),
             false,
             fixture.GameConfiguration);
-        Assert.That(await persistenceContext.GetAsync<CastleSiegeGuildRegistration>().ConfigureAwait(false), Is.Empty);
+        var persisted = await persistenceContext.GetAsync<CastleSiegeGuildRegistration>().ConfigureAwait(false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(fixture.Context.RegisteredGuilds.ContainsKey(fixture.PersistentGuildId), Is.EqualTo(!withdrawn));
+            Assert.That(persisted.Any(registration => registration.GuildId == fixture.PersistentGuildId), Is.EqualTo(!withdrawn));
+        });
     }
 
     /// <summary>
@@ -460,13 +472,29 @@ public class CastleSiegeRegistrationTests
             castleSiegeConfiguration.SignOfLordItemLevel = 3;
             castleSiegeConfiguration.StateSchedule.Add(new BasicModel.CastleSiegeStateScheduleEntry
             {
+                State = CastleSiegeState.Idle1,
+                DayOfWeek = DayOfWeek.Sunday,
+            });
+            castleSiegeConfiguration.StateSchedule.Add(new BasicModel.CastleSiegeStateScheduleEntry
+            {
                 State = CastleSiegeState.RegisterGuild,
                 DayOfWeek = DayOfWeek.Monday,
             });
             castleSiegeConfiguration.StateSchedule.Add(new BasicModel.CastleSiegeStateScheduleEntry
             {
+                State = CastleSiegeState.Idle2,
+                DayOfWeek = DayOfWeek.Monday,
+                Hour = 18,
+            });
+            castleSiegeConfiguration.StateSchedule.Add(new BasicModel.CastleSiegeStateScheduleEntry
+            {
                 State = CastleSiegeState.RegisterMark,
                 DayOfWeek = DayOfWeek.Tuesday,
+            });
+            castleSiegeConfiguration.StateSchedule.Add(new BasicModel.CastleSiegeStateScheduleEntry
+            {
+                State = CastleSiegeState.Notify,
+                DayOfWeek = DayOfWeek.Wednesday,
             });
             gameConfiguration.CastleSiegeConfiguration = castleSiegeConfiguration;
             persistenceContext.CreateNew<CastleSiegeData>();

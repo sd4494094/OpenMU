@@ -41,7 +41,8 @@ public class CastleSiegeUnregisterGuildAction
         await context.ExecutionLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            if (context.CurrentState != CastleSiegeState.RegisterGuild)
+            // The guardsman offers withdrawal from guild registration through mark registration.
+            if (context.CurrentState is not (CastleSiegeState.RegisterGuild or CastleSiegeState.Idle2 or CastleSiegeState.RegisterMark))
             {
                 return (CastleSiegeUnregistrationResult.WrongState, string.Empty);
             }

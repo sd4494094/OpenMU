@@ -50,6 +50,12 @@ During the battle, players of the same siege side can't damage each other,
 including with area skills and pets. This applies only on the Castle Siege map
 and only to players with a siege side.
 
+## Withdrawing a guild registration
+
+Authorized guild masters can withdraw at the Guardsman from the opening of
+guild registration through the end of Sign of Lord submission. Withdrawal
+removes the guild from the registration list and discards its submitted marks.
+
 ## Restarting after a missed cycle end
 
 When the server wasn't running at the end of a cycle (`EndCycle`), it notices
