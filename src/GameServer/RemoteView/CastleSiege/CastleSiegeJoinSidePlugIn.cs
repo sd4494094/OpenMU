@@ -11,13 +11,12 @@ using MUnique.OpenMU.PlugIns;
 using JoinSide = MUnique.OpenMU.DataModel.Configuration.CastleSiegeJoinSide;
 
 /// <summary>
-/// The default implementation of the <see cref="ICastleSiegeJoinSidePlugIn"/>
-/// which forwards the assigned side to the game client.
+/// Forwards the assigned side and battle state to the game client.
 /// </summary>
 [PlugIn]
 [Display(Name = nameof(PlugInResources.CastleSiegeJoinSidePlugIn_Name), Description = nameof(PlugInResources.CastleSiegeJoinSidePlugIn_Description), ResourceType = typeof(PlugInResources))]
 [Guid("175ECFB8-476A-4371-A416-A1B1C5E19402")]
-public class CastleSiegeJoinSidePlugIn : ICastleSiegeJoinSidePlugIn
+public class CastleSiegeJoinSidePlugIn : ICastleSiegeJoinSidePlugIn, ICastleSiegeBattleStatePlugIn
 {
     private readonly RemotePlayer _player;
 
@@ -30,4 +29,8 @@ public class CastleSiegeJoinSidePlugIn : ICastleSiegeJoinSidePlugIn
     /// <inheritdoc />
     public ValueTask ShowJoinSideAsync(JoinSide side)
         => this._player.Connection?.SendCastleSiegeJoinSideNotificationAsync((CastleSiegeJoinSide)side) ?? default;
+
+    /// <inheritdoc />
+    public ValueTask ShowCastleSiegeBattleStateAsync(bool isStarted)
+        => this._player.Connection?.SendCastleSiegeBattleStartEndAsync(isStarted) ?? default;
 }

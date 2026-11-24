@@ -100,6 +100,7 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             this._timeProvider.GetUtcNow().UtcDateTime);
         // See PlayerStateChangedAsync for why this doesn't take the ExecutionLock.
         context.NpcController.ClearMachineOperator(player);
+        await context.SynchronizeBattleStateAsync(player, false).ConfigureAwait(false);
         await context.ClearPlayerJoinSideAsync(player).ConfigureAwait(false);
     }
 
@@ -298,8 +299,8 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
     /// Broadcasts a state update to players on the Castle Siege map.
     /// </summary>
     /// <param name="context">The Castle Siege context.</param>
-    /// <remarks>The packet-backed implementation is added with the Castle Siege network view phase.</remarks>
-    protected virtual ValueTask BroadcastStateUpdateAsync(CastleSiegeContext context) => ValueTask.CompletedTask;
+    protected virtual ValueTask BroadcastStateUpdateAsync(CastleSiegeContext context)
+        => context.ForEachSiegePlayerAsync(player => context.SynchronizeBattleStateAsync(player, true).AsTask());
 
     /// <summary>
     /// Clears the registrations and the selected guilds of the previous cycle, if the server
@@ -387,8 +388,13 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
         CastleSiegeContext context)
     {
         await CastleSiegeEconomyNotifier.SynchronizePlayerAsync(context, player).ConfigureAwait(false);
-        if (context.CurrentState is not (CastleSiegeState.Ready or CastleSiegeState.Start)
-            || context.Configuration.CastleSiegeMapDefinition?.Number != map.Definition.Number)
+        if (context.Configuration.CastleSiegeMapDefinition?.Number != map.Definition.Number)
+        {
+            return;
+        }
+
+        await context.SynchronizeBattleStateAsync(player, true).ConfigureAwait(false);
+        if (context.CurrentState is not (CastleSiegeState.Ready or CastleSiegeState.Start))
         {
             return;
         }

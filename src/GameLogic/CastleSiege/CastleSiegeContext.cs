@@ -25,6 +25,7 @@ public class CastleSiegeContext : IEventStateProvider
     private readonly IGameContext _gameContext;
     private readonly TimeProvider _timeProvider;
     private readonly System.Collections.Concurrent.ConcurrentDictionary<Player, CastleSiegeJoinSide> _notifiedPlayerJoinSides = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Player, byte> _activeBattleClients = new();
     private readonly System.Collections.Concurrent.ConcurrentDictionary<Player, byte> _siegeMapPlayers = new();
     private readonly System.Collections.Concurrent.ConcurrentDictionary<uint, CastleSiegeLifeStone> _lifeStones = new();
     private int _requestedState = -1;
@@ -750,6 +751,23 @@ public class CastleSiegeContext : IEventStateProvider
     {
         var actions = this.GetSiegePlayers().Select(action);
         await Task.WhenAll(actions).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Synchronizes the client's battle flag when the phase or battlefield presence changes.
+    /// </summary>
+    /// <param name="player">The player to synchronize.</param>
+    /// <param name="onBattlefield">Whether the player is on the siege map.</param>
+    /// <returns>A task which represents the notification, when the flag changed.</returns>
+    internal ValueTask SynchronizeBattleStateAsync(Player player, bool onBattlefield)
+    {
+        var active = onBattlefield && this.IsEventRunning;
+        var changed = active
+            ? this._activeBattleClients.TryAdd(player, 0)
+            : this._activeBattleClients.TryRemove(player, out _);
+        return changed
+            ? player.InvokeViewPlugInAsync<ICastleSiegeBattleStatePlugIn>(view => view.ShowCastleSiegeBattleStateAsync(active))
+            : ValueTask.CompletedTask;
     }
 
     /// <summary>

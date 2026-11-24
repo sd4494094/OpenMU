@@ -64,6 +64,11 @@ use its battlefield and siege state, including when their configuration also
 lists that map. Stopping the host makes the battlefield unavailable until it
 starts again. Players entering it keep their original game-server connection.
 
+Clients on the battlefield receive the active battle flag when the battle
+starts or when they enter an ongoing battle. The flag is cleared when they
+leave the battlefield or when the battle ends, so the client can disable the
+siege skill controls.
+
 ## Restarting after a missed cycle end
 
 When the server wasn't running at the end of a cycle (`EndCycle`), it notices
