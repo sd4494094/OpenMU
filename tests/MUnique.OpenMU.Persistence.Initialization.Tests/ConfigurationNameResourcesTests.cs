@@ -94,7 +94,7 @@ internal class ConfigurationNameResourcesTests
 
     /// <summary>
     /// The built-in names of all initializations are taken from the resources, including their source keys,
-    /// and every resource key is used by an initialization or the optional Acheron map update.
+    /// and every resource key is used by an initialization or an optional configuration update.
     /// </summary>
     /// <returns>The task.</returns>
     [Test]
@@ -116,6 +116,7 @@ internal class ConfigurationNameResourcesTests
             if (initializer is VersionSeasonSix.DataInitialization)
             {
                 await new AddAcheronMapUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
+                await new AddMuExLesnarDialogueUpdatePlugIn().ApplyUpdateAsync(context, configuration).ConfigureAwait(false);
             }
 
             var names = LocalizedCaption.FindAll(configuration).Select(caption => caption.Value)
