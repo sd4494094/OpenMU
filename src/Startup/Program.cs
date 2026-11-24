@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.Startup;
 
 using System;
+using System.Collections.Concurrent;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
@@ -58,7 +59,7 @@ internal sealed class Program : IAsyncDisposable
     private static bool _confirmExit;
     private static SystemConfiguration? _systemConfiguration;
 
-    private readonly IDictionary<int, IGameServer> _gameServers = new Dictionary<int, IGameServer>();
+    private readonly IDictionary<int, IGameServer> _gameServers = new ConcurrentDictionary<int, IGameServer>();
     private readonly IList<IManageableServer> _servers = new List<IManageableServer>();
     private readonly Serilog.ILogger _logger;
     private readonly LoggerProviderCollection _loggerProviders = new();

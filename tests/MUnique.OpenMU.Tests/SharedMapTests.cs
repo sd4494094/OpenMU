@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.CastleSiege;
 using MUnique.OpenMU.GameServer;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence;
@@ -108,6 +109,52 @@ public class SharedMapTests
         Assert.That(guest.CurrentMap, Is.SameAs(host.CurrentMap));
         Assert.That(guest.CurrentMap!.GetPlayers(), Is.EquivalentTo(new[] { guest, host }));
         Assert.That(guest.Id, Is.Not.EqualTo(host.Id));
+    }
+
+    /// <summary>
+    /// Verifies that duplicated battlefield assignments still produce one event and one map.
+    /// </summary>
+    [Test]
+    public async ValueTask CastleSiegeUsesOneContextAndBattlefieldAsync()
+    {
+        var owner = this._nonHostingServer.Context;
+        var guest = this._hostingServer.Context;
+        owner.ServerConfiguration.Maps.Add(this._sharedMap);
+        using var persistence = owner.PersistenceContextProvider.CreateNewContext();
+        var configuration = persistence.CreateNew<CastleSiegeConfiguration>();
+        configuration.Enabled = true;
+        configuration.CastleSiegeMapDefinition = this._sharedMap;
+        foreach (var (state, hour) in new[] { (CastleSiegeState.Idle2, (byte)0), (CastleSiegeState.Idle3, (byte)1) })
+        {
+            var schedule = persistence.CreateNew<CastleSiegeStateScheduleEntry>();
+            schedule.State = state;
+            schedule.DayOfWeek = DayOfWeek.Sunday;
+            schedule.Hour = hour;
+            configuration.StateSchedule.Add(schedule);
+        }
+
+        owner.Configuration.CastleSiegeConfiguration = configuration;
+        var plugIn = new CastleSiegePlugIn();
+
+        await plugIn.ExecuteTaskAsync(guest).ConfigureAwait(false);
+        Assert.That(plugIn.GetContext(guest), Is.Null);
+        await plugIn.ExecuteTaskAsync(owner).ConfigureAwait(false);
+        Assert.That(plugIn.GetContext(owner), Is.Not.Null);
+        Assert.That(plugIn.GetContext(guest), Is.SameAs(plugIn.GetContext(owner)));
+
+        var player = await this.CreatePlayerAsync(this._hostingServer).ConfigureAwait(false);
+        await this.WarpAsync(player, this._sharedMap).ConfigureAwait(false);
+        Assert.That(player.CurrentMap, Is.SameAs(await owner.GetMapAsync((ushort)SharedMapNumber).ConfigureAwait(false)));
+        Assert.That(await guest.GetMapAsync((ushort)SharedMapNumber, false).ConfigureAwait(false), Is.Null);
+
+        await this._nonHostingServer.ShutdownAsync().ConfigureAwait(false);
+        await player.ClientReadyAfterMapChangeAsync().ConfigureAwait(false);
+        Assert.That(player.CurrentMap?.Definition, Is.SameAs(this._homeMap));
+        var host = guest.MapHostLocator!.GetConfiguredHost(guest, (ushort)SharedMapNumber);
+        Assert.That(host?.Context, Is.SameAs(owner));
+        Assert.That(host?.IsStarted, Is.False);
+        await plugIn.ExecuteTaskAsync(guest).ConfigureAwait(false);
+        Assert.That(plugIn.GetContext(guest), Is.SameAs(plugIn.GetContext(owner)));
     }
 
     /// <summary>

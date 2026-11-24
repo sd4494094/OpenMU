@@ -38,7 +38,7 @@ internal static class CastleSiegeEconomyNotifier
             return;
         }
 
-        foreach (var player in await context.GameContext.GetPlayersAsync().ConfigureAwait(false))
+        foreach (var player in await context.GetLocalPlayersAsync().ConfigureAwait(false))
         {
             if (player.PlayerState.CurrentState == PlayerState.EnteredWorld)
             {
@@ -53,7 +53,7 @@ internal static class CastleSiegeEconomyNotifier
     /// <param name="context">The Castle Siege context.</param>
     internal static async ValueTask BroadcastTaxRatesAsync(CastleSiegeContext context)
     {
-        foreach (var player in await context.GameContext.GetPlayersAsync().ConfigureAwait(false))
+        foreach (var player in await context.GetLocalPlayersAsync().ConfigureAwait(false))
         {
             if (player.PlayerState.CurrentState == PlayerState.EnteredWorld)
             {

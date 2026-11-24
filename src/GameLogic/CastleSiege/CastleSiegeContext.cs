@@ -12,7 +12,7 @@ using MUnique.OpenMU.GameLogic.CastleSiege.NPC;
 using MUnique.OpenMU.GameLogic.Views.CastleSiege;
 
 /// <summary>
-/// Holds the runtime state of Castle Siege for one game context.
+/// Holds the runtime state of Castle Siege on the game context hosting the battlefield.
 /// </summary>
 /// <remarks>
 /// Runtime registrations and <see cref="ExecutionLock"/> are scoped to this game context. Deployments which run
@@ -175,6 +175,31 @@ public class CastleSiegeContext : IEventStateProvider
     /// Gets the game context.
     /// </summary>
     internal IGameContext GameContext => this._gameContext;
+
+    /// <summary>
+    /// Gets the local game contexts whose players participate in this siege.
+    /// </summary>
+    /// <returns>The local contexts which share the siege state.</returns>
+    internal IEnumerable<IGameContext> GetLocalGameContexts()
+        => CastleSiegeContextResolver.GetConfiguredHost(this._gameContext) is not null
+            && this._gameContext is IGameServerContext { MapHostLocator: { } locator } server
+                ? locator.GetLocalContexts(server)
+                : [this._gameContext];
+
+    /// <summary>
+    /// Gets the online players of the local game contexts which share this siege.
+    /// </summary>
+    /// <returns>A snapshot of the online players.</returns>
+    internal async ValueTask<IReadOnlyList<Player>> GetLocalPlayersAsync()
+    {
+        var players = new List<Player>();
+        foreach (var context in this.GetLocalGameContexts())
+        {
+            players.AddRange(await context.GetPlayersAsync().ConfigureAwait(false));
+        }
+
+        return players;
+    }
 
     /// <summary>
     /// Gets the clock used by Castle Siege runtime operations.
@@ -975,7 +1000,7 @@ public class CastleSiegeContext : IEventStateProvider
             return;
         }
 
-        foreach (var player in await this._gameContext.GetPlayersAsync().ConfigureAwait(false))
+        foreach (var player in await this.GetLocalPlayersAsync().ConfigureAwait(false))
         {
             if (player.CurrentMap?.Definition.Number == siegeMapDefinition.Number)
             {

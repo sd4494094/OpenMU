@@ -30,6 +30,23 @@ public sealed class InProcessMapHostLocator : IMapHostLocator
     }
 
     /// <inheritdoc />
+    public (IGameServerContext Context, bool IsStarted)? GetConfiguredHost(IGameServerContext requester, ushort mapNumber)
+    {
+        var host = this._gameServers.Values.OfType<IGameServerContextProvider>()
+            .Where(provider => SharesPersistence(requester, provider.Context)
+                && provider.Context.ServerConfiguration.Maps.Any(map => map.Number == mapNumber && map.IsActive))
+            .MinBy(provider => provider.Context.Id);
+        return host is null ? null : (host.Context, this._gameServers.TryGetValue(host.Context.Id, out var server)
+            && server.ServerState == ServerState.Started);
+    }
+
+    /// <inheritdoc />
+    public IEnumerable<IGameServerContext> GetLocalContexts(IGameServerContext requester) => this._gameServers.Values
+        .OfType<IGameServerContextProvider>()
+        .Select(provider => provider.Context)
+        .Where(context => SharesPersistence(requester, context));
+
+    /// <inheritdoc />
     public async ValueTask<MapHost?> LocateAsync(IGameServerContext requester, ushort mapNumber)
     {
         // The game server with the lowest id wins, so that all game servers agree on the same
@@ -52,4 +69,7 @@ public sealed class InProcessMapHostLocator : IMapHostLocator
 
         return null;
     }
+
+    private static bool SharesPersistence(IGameServerContext requester, IGameServerContext candidate)
+        => ReferenceEquals(requester.PersistenceContextProvider, candidate.PersistenceContextProvider);
 }

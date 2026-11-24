@@ -16,6 +16,22 @@ namespace MUnique.OpenMU.GameLogic;
 public interface IMapHostLocator
 {
     /// <summary>
+    /// Gets the configured owner of a map that needs a single instance. The owner remains
+    /// designated while stopped, so other game servers cannot start a second copy of its event.
+    /// </summary>
+    /// <param name="requester">The requesting game server.</param>
+    /// <param name="mapNumber">The map number.</param>
+    /// <returns>The owner and its availability, or <c>null</c> if no owner is known.</returns>
+    (IGameServerContext Context, bool IsStarted)? GetConfiguredHost(IGameServerContext requester, ushort mapNumber) => null;
+
+    /// <summary>
+    /// Gets the game contexts in the requester's process that share its persistence provider.
+    /// </summary>
+    /// <param name="requester">The requesting game server.</param>
+    /// <returns>The game contexts, including the requester.</returns>
+    IEnumerable<IGameServerContext> GetLocalContexts(IGameServerContext requester) => [requester];
+
+    /// <summary>
     /// Locates another game server which hosts the map with the specified number.
     /// </summary>
     /// <param name="requester">The context of the game server which doesn't host the map itself.</param>

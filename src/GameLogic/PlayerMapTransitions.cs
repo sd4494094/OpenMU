@@ -4,6 +4,7 @@
 
 namespace MUnique.OpenMU.GameLogic;
 
+using MUnique.OpenMU.GameLogic.CastleSiege;
 using MUnique.OpenMU.GameLogic.PlayerActions;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views;
@@ -382,6 +383,20 @@ internal sealed class PlayerMapTransitions
         if (player.CurrentMiniGame?.Map is { } miniGameMap && miniGameMap.Definition.Number == mapDefinition.Number)
         {
             return miniGameMap;
+        }
+
+        if (player.GameContext.Configuration.CastleSiegeConfiguration?.CastleSiegeMapDefinition?.Number == mapDefinition.Number
+            && CastleSiegeContextResolver.GetConfiguredHost(player.GameContext) is { } siegeHost)
+        {
+            if (siegeHost.IsStarted
+                && await siegeHost.Context.GetMapAsync(mapNumber).ConfigureAwait(false) is { IsTornDown: false } siegeMap
+                && CastleSiegeContextResolver.GetConfiguredHost(player.GameContext) is { IsStarted: true } activeHost
+                && ReferenceEquals(siegeHost.Context, activeHost.Context))
+            {
+                return siegeMap;
+            }
+
+            return null;
         }
 
         if (await player.GameContext.GetMapAsync(mapNumber).ConfigureAwait(false) is { } hostedMap)

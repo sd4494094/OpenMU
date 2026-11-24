@@ -191,7 +191,8 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
     /// <returns>The Castle Siege context, or <see langword="null"/>.</returns>
     public CastleSiegeContext? GetContext(IGameContext gameContext)
     {
-        return this._contexts.TryGetValue(gameContext, out var context) ? context : null;
+        var owner = CastleSiegeContextResolver.GetConfiguredHost(gameContext)?.Context ?? gameContext;
+        return this._contexts.TryGetValue(owner, out var context) ? context : null;
     }
 
     /// <summary>
@@ -218,6 +219,12 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
     {
         var configuration = gameContext.Configuration.CastleSiegeConfiguration;
         if (configuration is not { Enabled: true })
+        {
+            return;
+        }
+
+        if (CastleSiegeContextResolver.GetConfiguredHost(gameContext) is { } host
+            && (!host.IsStarted || !ReferenceEquals(host.Context, gameContext)))
         {
             return;
         }
@@ -641,11 +648,14 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
 
         if (context.SentReadyCountdownMinutes.Add(remainingMinutes))
         {
-            await context.GameContext.SendGlobalNotificationAsync(LocalizedString.FromResource(() => PlayerMessage.CastleSiegeStartsInMinutes), remainingMinutes).ConfigureAwait(false);
+            foreach (var gameContext in context.GetLocalGameContexts())
+            {
+                await gameContext.SendGlobalNotificationAsync(LocalizedString.FromResource(() => PlayerMessage.CastleSiegeStartsInMinutes), remainingMinutes).ConfigureAwait(false);
+            }
         }
     }
 
-    private ValueTask SendStateNotificationAsync(CastleSiegeContext context)
+    private async ValueTask SendStateNotificationAsync(CastleSiegeContext context)
     {
         var message = context.CurrentState switch
         {
@@ -656,8 +666,12 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             _ => (LocalizedString?)null,
         };
 
-        return message is null
-            ? ValueTask.CompletedTask
-            : context.GameContext.SendGlobalNotificationAsync(message.Value);
+        if (message is { } notification)
+        {
+            foreach (var gameContext in context.GetLocalGameContexts())
+            {
+                await gameContext.SendGlobalNotificationAsync(notification).ConfigureAwait(false);
+            }
+        }
     }
 }

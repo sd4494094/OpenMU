@@ -56,6 +56,14 @@ Authorized guild masters can withdraw at the Guardsman from the opening of
 guild registration through the end of Sign of Lord submission. Withdrawal
 removes the guild from the registration list and discards its submitted marks.
 
+## Hosting the battlefield
+
+In an all-in-one deployment, the lowest-numbered game server configured to
+host the battlefield runs the siege. The other game servers in that process
+use its battlefield and siege state, including when their configuration also
+lists that map. Stopping the host makes the battlefield unavailable until it
+starts again. Players entering it keep their original game-server connection.
+
 ## Restarting after a missed cycle end
 
 When the server wasn't running at the end of a cycle (`EndCycle`), it notices

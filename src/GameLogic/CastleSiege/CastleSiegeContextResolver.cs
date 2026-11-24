@@ -12,6 +12,17 @@ using MUnique.OpenMU.GameLogic.PlugIns;
 internal static class CastleSiegeContextResolver
 {
     /// <summary>
+    /// Resolves the designated game server for the shared siege battlefield.
+    /// </summary>
+    /// <param name="gameContext">A game context in the same deployment.</param>
+    /// <returns>The configured host, or <c>null</c> when shared hosting is unavailable.</returns>
+    internal static (IGameServerContext Context, bool IsStarted)? GetConfiguredHost(IGameContext gameContext)
+        => gameContext is IGameServerContext { MapHostLocator: { } locator } server
+            && server.Configuration.CastleSiegeConfiguration is { Enabled: true, CastleSiegeMapDefinition: { } map }
+                ? locator.GetConfiguredHost(server, checked((ushort)map.Number))
+                : null;
+
+    /// <summary>
     /// Gets the initialized Castle Siege context of a player.
     /// </summary>
     /// <param name="player">The player.</param>
