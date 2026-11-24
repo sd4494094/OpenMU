@@ -161,6 +161,18 @@ internal sealed class PlayerMapTransitions
             return;
         }
 
+        if (player.PlayerState.CurrentState == PlayerState.NpcDialogOpened
+            && player.OpenedNpc is { Definition.NpcWindow: NpcWindow.NpcDialog })
+        {
+            // The client closes its window after loading the map. Close the server dialog
+            // while the player can still transition from NpcDialogOpened to EnteredWorld.
+            await new CloseNpcDialogAction().CloseNpcDialogAsync(player).ConfigureAwait(false);
+            if (player.PlayerState.CurrentState == PlayerState.NpcDialogOpened)
+            {
+                return;
+            }
+        }
+
         if (!await this.TryRemoveFromCurrentMapAsync(isRespawnOnSameMap).ConfigureAwait(false))
         {
             return;

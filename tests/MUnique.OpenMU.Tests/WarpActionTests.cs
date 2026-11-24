@@ -7,7 +7,9 @@ namespace MUnique.OpenMU.Tests;
 using System.Globalization;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Configuration.ItemCrafting;
 using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.PlayerActions;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.Interfaces;
@@ -53,5 +55,41 @@ public class WarpActionTests
         Assert.That(player.Money, Is.EqualTo(1_999));
         var messages = Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMessagePlugIn>()!);
         messages.Verify(view => view.ShowMessageAsync(expected, MessageType.BlueNormal), Times.Once);
+    }
+
+    /// <summary>
+    /// Verifies that a valid warp closes the generic NPC dialog before the map changes.
+    /// </summary>
+    /// <param name="destinationActive">Whether the destination accepts the warp.</param>
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task WarpClosesGenericNpcDialogOnlyWhenDestinationIsActiveAsync(bool destinationActive)
+    {
+        var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
+        var source = player.CurrentMap!;
+        var definition = new Mock<MonsterDefinition>();
+        definition.SetupGet(npc => npc.ItemCraftings).Returns(new List<ItemCrafting>());
+        definition.Object.NpcWindow = NpcWindow.NpcDialog;
+        var npc = new NonPlayerCharacter(new MonsterSpawnArea(), definition.Object, source);
+        await new TalkNpcAction().TalkToNpcAsync(player, npc).ConfigureAwait(false);
+        Assert.That(player.OpenedNpc, Is.SameAs(npc));
+        Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.NpcDialogOpened));
+
+        var destination = new GameMapDefinition { Number = 2, IsActive = destinationActive };
+
+        await player.WarpToAsync(new ExitGate { Map = destination }).ConfigureAwait(false);
+
+        if (destinationActive)
+        {
+            Assert.That(player.OpenedNpc, Is.Null);
+            Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.ChangingMap));
+            Assert.That(player.SelectedCharacter!.CurrentMap, Is.SameAs(destination));
+        }
+        else
+        {
+            Assert.That(player.OpenedNpc, Is.SameAs(npc));
+            Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.NpcDialogOpened));
+            Assert.That(player.CurrentMap, Is.SameAs(source));
+        }
     }
 }
