@@ -69,12 +69,17 @@ public sealed class ManagableServerStatePublisher : IHostedLifecycleService, IDi
     public Task StartedAsync(CancellationToken cancellationToken)
     {
         this._heartbeatCancellationTokenSource = new CancellationTokenSource();
+        var heartbeatToken = this._heartbeatCancellationTokenSource.Token;
 
         async Task RunHeartbeatTaskAsync()
         {
             try
             {
-                await this.HeartbeatLoopAsync(this._heartbeatCancellationTokenSource.Token).ConfigureAwait(false);
+                await this.HeartbeatLoopAsync(heartbeatToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (heartbeatToken.IsCancellationRequested)
+            {
+                // The host is stopping.
             }
             catch (Exception ex)
             {
@@ -92,12 +97,24 @@ public sealed class ManagableServerStatePublisher : IHostedLifecycleService, IDi
     /// <inheritdoc />
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        await (this._heartbeatCancellationTokenSource?.CancelAsync() ?? Task.CompletedTask).ConfigureAwait(false);
-        this._heartbeatCancellationTokenSource?.Dispose();
+        // The host stops the service before disposing it. Only the first caller owns the
+        // cancellation source and must wait for the loop before disposing it.
+        using var heartbeatSource = Interlocked.Exchange(ref this._heartbeatCancellationTokenSource, null);
+        if (heartbeatSource is null)
+        {
+            return;
+        }
+
+        await heartbeatSource.CancelAsync().ConfigureAwait(false);
         if (this._heartbeatTask is { } heartbeatTask)
         {
             this._heartbeatTask = null;
             await heartbeatTask.ConfigureAwait(false);
+        }
+
+        foreach (var (server, _) in this._servers ?? [])
+        {
+            server.PropertyChanged -= this.OnPropertyChanged;
         }
     }
 
