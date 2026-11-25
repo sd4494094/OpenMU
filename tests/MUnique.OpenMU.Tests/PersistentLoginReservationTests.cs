@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.Tests;
 
 using System.Threading;
+using System.Text.Json;
 using global::Dapr.Client;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -22,8 +23,8 @@ public sealed class PersistentLoginReservationTests
         var etag = "version";
         var writes = new List<(int Value, string Ttl)>();
         var client = new Mock<DaprClient>();
-        client.Setup(c => c.GetStateAndETagAsync<int?>("login-state", "account", ConsistencyMode.Strong, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() => (current, etag));
+        client.Setup(c => c.GetStateAndETagAsync<JsonElement>("login-state", "account", ConsistencyMode.Strong, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => (JsonSerializer.SerializeToElement(current), etag));
         client.Setup(c => c.TrySaveStateAsync("login-state", "account", It.IsAny<int>(), It.IsAny<string>(), null, It.IsAny<IReadOnlyDictionary<string, string>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((string _, string _, int value, string _, StateOptions? _, IReadOnlyDictionary<string, string> metadata, CancellationToken _) =>
             {
