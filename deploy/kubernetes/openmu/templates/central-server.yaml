@@ -33,6 +33,11 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             {{- include "openmu.commonEnv" . | nindent 12 }}
+            - name: OPENMU_MAP_TRANSFER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openmu.gameServerAppTokenSecret" . }}
+                  key: token
           ports:
             - name: http
               containerPort: 8080

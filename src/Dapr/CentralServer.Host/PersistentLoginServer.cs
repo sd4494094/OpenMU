@@ -13,7 +13,7 @@ using Nito.AsyncEx;
 /// <summary>
 /// An implementation of a <see cref="ILoginServer"/> which persists the login state in a dapr state store.
 /// </summary>
-public sealed class PersistentLoginServer : ILoginServer
+public sealed class PersistentLoginServer : ILoginServer, IMapTransferLoginServer
 {
     private const string StoreName = "login-state";
 

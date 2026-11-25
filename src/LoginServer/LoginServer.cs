@@ -10,7 +10,7 @@ using Nito.AsyncEx;
 /// <summary>
 /// The login server which keeps track of connected accounts in-memory.
 /// </summary>
-public class LoginServer : ILoginServer
+public class LoginServer : ILoginServer, IMapTransferLoginServer
 {
     private static readonly TimeSpan MapTransferLifetime = TimeSpan.FromSeconds(30);
 

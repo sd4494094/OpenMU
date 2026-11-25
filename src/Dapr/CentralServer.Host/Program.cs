@@ -31,6 +31,8 @@ services.AddPeristenceProvider()
 
 // Login server
 services.AddSingleton<PersistentLoginServer>()
+    .AddSingleton<IMapTransferLoginServer>(provider => provider.GetRequiredService<PersistentLoginServer>())
+    .AddSingleton<MapTransferAuthorizationFilter>()
     .AddHostedService<LoginStateCleanup>();
 
 // Guild server

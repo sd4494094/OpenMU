@@ -141,6 +141,7 @@ services:
       - "44406:44406" # connect server of the second client version, e.g. of season 6
       - "45980:45980" # chat server
     environment:
+      OPENMU_MAP_TRANSFER_TOKEN: ${OPENMU_GAME_SERVER_APP_TOKEN:?Set OPENMU_GAME_SERVER_APP_TOKEN to a strong random token}
       DAPR_HTTP_ENDPOINT: http://centralServer-dapr:3500
       DAPR_GRPC_ENDPOINT: http://centralServer-dapr:50001
       ASPNETCORE_URLS: http://+:8080
@@ -275,6 +276,7 @@ services:
       - "45902:45902"
     environment:
       APP_API_TOKEN: ${OPENMU_GAME_SERVER_APP_TOKEN:?Set OPENMU_GAME_SERVER_APP_TOKEN to a strong random token}
+      OPENMU_MAP_TRANSFER_TOKEN: ${OPENMU_GAME_SERVER_APP_TOKEN:?Set OPENMU_GAME_SERVER_APP_TOKEN to a strong random token}
       GS_ID: 0
       DAPR_HTTP_ENDPOINT: http://gameServer0-dapr:3500
       DAPR_GRPC_ENDPOINT: http://gameServer0-dapr:50001
@@ -323,6 +325,7 @@ services:
       - "45904:45904"
     environment:
       APP_API_TOKEN: ${OPENMU_GAME_SERVER_APP_TOKEN:?Set OPENMU_GAME_SERVER_APP_TOKEN to a strong random token}
+      OPENMU_MAP_TRANSFER_TOKEN: ${OPENMU_GAME_SERVER_APP_TOKEN:?Set OPENMU_GAME_SERVER_APP_TOKEN to a strong random token}
       GS_ID: 1
       DAPR_HTTP_ENDPOINT: http://gameServer1-dapr:3500
       DAPR_GRPC_ENDPOINT: http://gameServer1-dapr:50001

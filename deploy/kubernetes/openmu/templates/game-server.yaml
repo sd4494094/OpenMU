@@ -67,6 +67,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "openmu.gameServerAppTokenSecret" $root }}
                   key: token
+            - name: OPENMU_MAP_TRANSFER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "openmu.gameServerAppTokenSecret" $root }}
+                  key: token
             - name: GS_ID
               value: {{ $id | quote }}
             - name: GS_LISTENER_PORT
