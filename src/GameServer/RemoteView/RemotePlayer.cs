@@ -111,7 +111,7 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
     }
 
     /// <inheritdoc />
-    protected override async ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate)
+    protected override async ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate, int chargedZen)
     {
         if (this.GameServerContext is not GameServerContext { MapTransferDirectory: { } directory }
             || gate.Map is not { } map
@@ -123,12 +123,13 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
         }
 
         if (await directory.FindDestinationAsync(this.GameServerContext, (ushort)map.Number, this.ClientVersion).ConfigureAwait(false) is { } destination
-            && await this.TransferToServerAsync(gate, destination.ServerId,
+            && await this.TransferToServerAsync(gate, destination.ServerId, chargedZen,
                 credential => this.SendMapTransferAsync(destination.ServerId, destination.EndPoint, credential)).ConfigureAwait(false))
         {
             return true;
         }
 
+        this.Money += chargedZen;
         await this.InvokeViewPlugInAsync<IMapChangePlugIn>(view => view.MapChangeFailedAsync()).ConfigureAwait(false);
         return true;
     }

@@ -11,6 +11,7 @@ using Moq;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameLogic.PlayerActions;
 using MUnique.OpenMU.GameServer;
 using MUnique.OpenMU.GameServer.RemoteView;
 using MUnique.OpenMU.Network.Packets.ServerToClient;
@@ -18,6 +19,7 @@ using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.Persistence;
 using ExitGate = MUnique.OpenMU.Persistence.BasicModel.ExitGate;
 using GameMapDefinition = MUnique.OpenMU.Persistence.BasicModel.GameMapDefinition;
+using WarpInfo = MUnique.OpenMU.Persistence.BasicModel.WarpInfo;
 
 /// <summary>Exercises the source warp with the game server's actual transfer packet writer.</summary>
 [TestFixture]
@@ -26,20 +28,24 @@ public sealed class MapTransferSourceTests
     private const string AccountName = "transfer";
     private const byte DestinationServer = 2;
     private const ushort DestinationMap = 91;
+    private const int InitialMoney = 9000;
+    private const int WarpCost = 2000;
     private static readonly ClientVersion Version = new(106, 3, ClientLanguage.English);
     private static readonly IPEndPoint Destination = new(IPAddress.Parse("192.0.2.111"), 45906);
 
     /// <summary>A transfer saves while detached and exposes the credential only after success.</summary>
     /// <param name="saveSucceeded">Whether the first save is accepted.</param>
-    [TestCase(true)]
-    [TestCase(false)]
-    public async Task SourceSavesBeforeSendingTransferAsync(bool saveSucceeded)
+    /// <param name="targetAvailable">Whether a destination host is available.</param>
+    [TestCase(true, true)]
+    [TestCase(false, true)]
+    [TestCase(false, false)]
+    public async Task SourceSavesBeforeSendingTransferAsync(bool saveSucceeded, bool targetAvailable)
     {
         var login = new LoginServer.LoginServer();
         var persistence = new Mock<IPlayerContext>();
         var directory = new Mock<IMapTransferDirectory>();
         directory.Setup(d => d.FindDestinationAsync(It.IsAny<IGameServerContext>(), DestinationMap, Version))
-            .ReturnsAsync((DestinationServer, Destination));
+            .ReturnsAsync(targetAvailable ? (DestinationServer, Destination) : ((byte, IPEndPoint)?)null);
         await using var game = LoginTestSetup.CreateGameServerContext(LoginTestSetup.CreatePersistence(persistence.Object), login,
             mapTransferDirectory: directory.Object);
         game.StopPeriodicTasks();
@@ -52,6 +58,8 @@ public sealed class MapTransferSourceTests
             {
                 var character = PlayerTestHelper.CreateCharacter(game, Guid.NewGuid());
                 character.Name = "Transfer01";
+                var inventory = character.Inventory!;
+                inventory.Money = InitialMoney;
                 character.Attributes.Single(a => a.Definition == Stats.Level).Value = 1;
                 Mock.Get(character).SetupGet(c => c.QuestStates).Returns(new List<CharacterQuestState>());
                 persistence.Setup(p => p.GetPendingCastleSiegeRewardsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -69,32 +77,41 @@ public sealed class MapTransferSourceTests
                 var originalPosition = player.Position;
                 var targetMap = new GameMapDefinition { Id = Guid.NewGuid(), Number = (short)DestinationMap, IsActive = true };
                 var gate = new ExitGate { Map = targetMap, X1 = 30, X2 = 30, Y1 = 40, Y2 = 40 };
-                var saves = new List<(MUnique.OpenMU.DataModel.Configuration.GameMapDefinition? Map, int X, int Y, bool Detached, long Bytes)>();
+                var saves = new List<(MUnique.OpenMU.DataModel.Configuration.GameMapDefinition? Map, int X, int Y, bool Detached, int Money, long Bytes)>();
                 output.SetLength(0);
                 persistence.Setup(p => p.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(() =>
                 {
                     saves.Add((character.CurrentMap, character.PositionX, character.PositionY,
-                        player.CurrentMap is null && player.SelectedCharacter is null, output.Length));
+                        player.CurrentMap is null && player.SelectedCharacter is null, inventory.Money, output.Length));
                     return saveSucceeded || saves.Count > 1;
                 });
 
-                await player.WarpToAsync(gate).ConfigureAwait(false);
+                await new WarpAction().WarpToAsync(player, new WarpInfo { Gate = gate, Costs = WarpCost }).ConfigureAwait(false);
+
+                if (!targetAvailable)
+                {
+                    Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.EnteredWorld));
+                    Assert.That(player.CurrentMap?.Definition, Is.EqualTo(originalMap));
+                    Assert.That(inventory.Money, Is.EqualTo(InitialMoney));
+                    Assert.That(saves, Is.Empty);
+                    return;
+                }
 
                 Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.Finished));
-                Assert.That(saves.First(), Is.EqualTo((targetMap, 30, 40, true, 0L)));
+                var bytesBeforeHandoff = saves[0].Bytes;
+                Assert.That(saves[0], Is.EqualTo((targetMap, 30, 40, true, InitialMoney - WarpCost, bytesBeforeHandoff)));
                 if (!saveSucceeded)
                 {
                     Assert.That(saves, Has.Count.EqualTo(2));
-                    Assert.That(saves[1], Is.EqualTo((originalMap, (int)originalPosition.X, (int)originalPosition.Y, true, 0L)));
-                    Assert.That(output.Length, Is.Zero);
+                    Assert.That(saves[1], Is.EqualTo((originalMap, (int)originalPosition.X, (int)originalPosition.Y, true, InitialMoney, bytesBeforeHandoff)));
+                    Assert.That(output.Length, Is.EqualTo(bytesBeforeHandoff));
                     Assert.That(await login.TryLoginAsync(AccountName, game.Id).ConfigureAwait(false), Is.True);
                     return;
                 }
 
                 Assert.That(saves, Has.Count.EqualTo(1));
-                var bytes = output.ToArray();
-                Assert.That(bytes, Has.Length.EqualTo(MapServerChangeInfo.Length));
-                var packet = new MapServerChangeInfo(bytes);
+                Assert.That(output.Length, Is.EqualTo(bytesBeforeHandoff + MapServerChangeInfo.Length));
+                var packet = new MapServerChangeInfo(output.ToArray().AsMemory((int)bytesBeforeHandoff));
                 Assert.That(packet.Header.SubCode, Is.EqualTo(MapServerChangeInfo.SubCode));
                 Assert.That(packet.IpAddress, Is.EqualTo(Destination.Address.ToString()));
                 Assert.That(packet.Port, Is.EqualTo(Destination.Port));

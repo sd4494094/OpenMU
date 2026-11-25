@@ -947,6 +947,11 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// <param name="gate">The gate to which the player should be moved.</param>
     public ValueTask WarpToAsync(ExitGate gate) => this._mapTransitions.WarpToAsync(gate);
 
+    /// <summary>Warps after the menu fee has been paid.</summary>
+    /// <param name="gate">The destination gate.</param>
+    /// <param name="chargedZen">The fee to restore if a cross-server switch cannot proceed.</param>
+    internal ValueTask WarpToAsync(ExitGate gate, int chargedZen) => this._mapTransitions.WarpToAsync(gate, chargedZen);
+
     /// <summary>
     /// Moves the player to the safe zone.
     /// </summary>
@@ -1374,18 +1379,20 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
 
     /// <summary>Attempts a warp that requires connecting the client to another server.</summary>
     /// <param name="gate">The destination gate.</param>
+    /// <param name="chargedZen">The fee already deducted for this warp.</param>
     /// <returns>Whether the warp was handled by the cross-server path.</returns>
-    protected internal virtual ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate) => ValueTask.FromResult(false);
+    protected internal virtual ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate, int chargedZen) => ValueTask.FromResult(false);
 
     /// <summary>Detaches and saves the character before announcing a server switch.</summary>
     /// <param name="gate">The destination gate.</param>
     /// <param name="targetServerId">The destination game server.</param>
+    /// <param name="chargedZen">The fee already deducted for this warp.</param>
     /// <param name="notify">Sends a single-use credential to the client.</param>
     /// <returns>Whether the transfer attempt took ownership of the source session.</returns>
-    protected async ValueTask<bool> TransferToServerAsync(ExitGate gate, byte targetServerId, Func<Guid, ValueTask> notify)
+    protected async ValueTask<bool> TransferToServerAsync(ExitGate gate, byte targetServerId, int chargedZen, Func<Guid, ValueTask> notify)
     {
         var handled = await this.RunPersistenceExclusiveAsync(
-            () => this.PrepareMapTransferAsync(gate, targetServerId, notify)).ConfigureAwait(false);
+            () => this.PrepareMapTransferAsync(gate, targetServerId, chargedZen, notify)).ConfigureAwait(false);
         if (handled)
         {
             await this.DisconnectAsync().ConfigureAwait(false);
@@ -1394,7 +1401,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         return handled;
     }
 
-    private async ValueTask<bool> PrepareMapTransferAsync(ExitGate gate, byte targetServerId, Func<Guid, ValueTask> notify)
+    private async ValueTask<bool> PrepareMapTransferAsync(ExitGate gate, byte targetServerId, int chargedZen, Func<Guid, ValueTask> notify)
     {
         if (this.GameContext is not IGameServerContext { LoginServer: IMapTransferLoginServer transfers } context
             || context.Id == targetServerId || this.PlayerState.CurrentState != GameLogic.PlayerState.EnteredWorld
@@ -1406,7 +1413,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         }
 
         var previous = (character.CurrentMap, character.PositionX, character.PositionY);
-        var restorePosition = true;
+        var restoreSource = false;
         this._preparingMapTransfer = true;
         try
         {
@@ -1415,6 +1422,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
                 return false;
             }
 
+            restoreSource = true;
             await this._movement.StopWalkingAsync().ConfigureAwait(false);
             this.IsAlive = false;
             await this.DetachFromGameAsync().ConfigureAwait(false);
@@ -1436,7 +1444,7 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
 
             // After the credential can reach the client, only its destination may save this session.
             this._persistence.WritesSuppressed = true;
-            restorePosition = false;
+            restoreSource = false;
             try
             {
                 await notify(credential).ConfigureAwait(false);
@@ -1455,10 +1463,14 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         }
         finally
         {
-            // A regular disconnect will save the original location when handoff was refused.
-            if (restorePosition)
+            // Disconnect saves the restored location and fee before releasing the account.
+            if (restoreSource)
             {
                 (character.CurrentMap, character.PositionX, character.PositionY) = previous;
+                if (character.Inventory is { } inventory)
+                {
+                    inventory.Money += chargedZen;
+                }
             }
 
             this._preparingMapTransfer = false;

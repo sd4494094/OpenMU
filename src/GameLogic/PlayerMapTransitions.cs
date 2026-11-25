@@ -143,7 +143,8 @@ internal sealed class PlayerMapTransitions
     /// Moves the player to the specified gate.
     /// </summary>
     /// <param name="gate">The gate to which the player should be moved.</param>
-    public async ValueTask WarpToAsync(ExitGate gate)
+    /// <param name="chargedZen">The fee already deducted for this warp.</param>
+    public async ValueTask WarpToAsync(ExitGate gate, int chargedZen = 0)
     {
         var player = this._player;
         if (player.PlayerState.CurrentState.IsDisconnectedOrFinished() || player.SelectedCharacter is null)
@@ -173,7 +174,7 @@ internal sealed class PlayerMapTransitions
             }
         }
 
-        if (!isRespawnOnSameMap && await player.TrySwitchGameServerAsync(gate).ConfigureAwait(false))
+        if (!isRespawnOnSameMap && await player.TrySwitchGameServerAsync(gate, chargedZen).ConfigureAwait(false))
         {
             return;
         }

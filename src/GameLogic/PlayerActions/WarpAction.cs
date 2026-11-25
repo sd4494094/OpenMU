@@ -38,7 +38,7 @@ public class WarpAction
 
         if (this.CheckRequirements(player, warpInfo, out var errorMessage))
         {
-            await player.WarpToAsync(warpInfo.Gate!).ConfigureAwait(false);
+            await player.WarpToAsync(warpInfo.Gate!, warpInfo.Costs).ConfigureAwait(false);
         }
         else
         {
