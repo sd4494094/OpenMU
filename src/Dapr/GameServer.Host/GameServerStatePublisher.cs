@@ -55,6 +55,27 @@ public sealed class GameServerStatePublisher : IDisposable
     /// <returns>The observer for the listener of the specified endpoint.</returns>
     public IGameServerStateObserver ForEndpoint(GameServerEndpoint endpoint) => new EndpointObserver(this, endpoint);
 
+    /// <summary>
+    /// Finds an active client listener with the exact version needed by a map transfer.
+    /// </summary>
+    /// <param name="season">The requested client season.</param>
+    /// <param name="episode">The requested client episode.</param>
+    /// <param name="language">The requested client language.</param>
+    /// <returns>The public listener address, or null if no compatible listener is registered.</returns>
+    public IPEndPoint? GetPublicEndPoint(byte season, byte episode, byte language)
+    {
+        lock (this._syncRoot)
+        {
+            // The existing map-change packet has room for an IPv4 address.
+            return this._endPoints.Values
+                .Where(endpoint => endpoint.Season == season && endpoint.Episode == episode && endpoint.Language == language)
+                .Select(endpoint => IPEndPoint.Parse(endpoint.PublicEndPoint))
+                .Where(endpoint => endpoint.Port > 0 && endpoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+                    && !endpoint.Address.Equals(IPAddress.Any))
+                .MinBy(endpoint => endpoint.Port);
+        }
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {

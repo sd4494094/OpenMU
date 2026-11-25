@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
-namespace MUnique.OpenMU.CentralServer.Host;
+namespace MUnique.OpenMU.Dapr.Common;
 
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +16,7 @@ public sealed class MapTransferAuthorizationFilter : IAuthorizationFilter
     private readonly byte[]? _tokenHash;
 
     /// <summary>Initializes a new instance of the <see cref="MapTransferAuthorizationFilter"/> class.</summary>
-    /// <param name="configuration">The central host configuration.</param>
+    /// <param name="configuration">The game or central host configuration.</param>
     public MapTransferAuthorizationFilter(IConfiguration configuration)
     {
         var token = configuration[MapTransferApi.TokenSetting];

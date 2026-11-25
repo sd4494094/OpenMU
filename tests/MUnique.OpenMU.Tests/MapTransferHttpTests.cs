@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.CentralServer.Host;
+using MUnique.OpenMU.Dapr.Common;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.ServerClients;
 

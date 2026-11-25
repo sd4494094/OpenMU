@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.CentralServer.Host;
 
 using Microsoft.AspNetCore.Mvc;
+using MUnique.OpenMU.Dapr.Common;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.ServerClients;
 

@@ -31,6 +31,7 @@ var plugInConfigurations = new List<PlugInConfiguration>();
 var services = builder.Services;
 services.AddSingleton<GameServer>()
     .AddSingleton<DaprAppTokenAuthorizationFilter>()
+    .AddSingleton<MapTransferAuthorizationFilter>()
     .AddSingleton<AdministrationDeliveries>()
     .AddSingleton<IGameServer>(s => s.GetService<GameServer>()!)
     .AddSingleton<IList<IManageableServer>>(s => new List<IManageableServer> { s.GetService<GameServer>()! })
