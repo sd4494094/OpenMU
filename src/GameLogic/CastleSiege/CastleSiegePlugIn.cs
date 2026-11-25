@@ -508,6 +508,9 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
                 await context.NpcController.PrepareAsync().ConfigureAwait(false);
                 await context.NpcController.CloseGatesAsync().ConfigureAwait(false);
                 await context.SetPlayerJoinSideAsync().ConfigureAwait(false);
+
+                // Guild membership can arrive after a player has entered the battlefield.
+                context.NextParticipantUpdateUtc = this._timeProvider.GetUtcNow().UtcDateTime + ParticipantUpdateInterval;
                 break;
             case CastleSiegeState.Start:
                 if (context.FinalGuildList.IsEmpty)
@@ -598,13 +601,15 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             await this.SendReadyCountdownIfDueAsync(context, utcNow).ConfigureAwait(false);
         }
 
-        if (context.CurrentState == CastleSiegeState.Start
+        if (context.CurrentState is CastleSiegeState.Ready or CastleSiegeState.Start
             && context.NextParticipantUpdateUtc <= utcNow)
         {
             await context.SetPlayerJoinSideAsync().ConfigureAwait(false);
-            await CastleSiegeParticipantTracker
-                .TrackAsync(context, utcNow)
-                .ConfigureAwait(false);
+            if (context.CurrentState == CastleSiegeState.Start)
+            {
+                await CastleSiegeParticipantTracker.TrackAsync(context, utcNow).ConfigureAwait(false);
+            }
+
             context.NextParticipantUpdateUtc = GetNextInterval(
                 context.StateStartTimeUtc,
                 utcNow,
