@@ -1,0 +1,118 @@
+// <copyright file="MapTransferSourceTests.cs" company="MUnique">
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+// </copyright>
+
+namespace MUnique.OpenMU.Tests;
+
+using System.Buffers.Binary;
+using System.Net;
+using System.Threading;
+using Moq;
+using MUnique.OpenMU.DataModel.Entities;
+using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.Attributes;
+using MUnique.OpenMU.GameServer;
+using MUnique.OpenMU.GameServer.RemoteView;
+using MUnique.OpenMU.Network.Packets.ServerToClient;
+using MUnique.OpenMU.Network.PlugIns;
+using MUnique.OpenMU.Persistence;
+using ExitGate = MUnique.OpenMU.Persistence.BasicModel.ExitGate;
+using GameMapDefinition = MUnique.OpenMU.Persistence.BasicModel.GameMapDefinition;
+
+/// <summary>Exercises the source warp with the game server's actual transfer packet writer.</summary>
+[TestFixture]
+public sealed class MapTransferSourceTests
+{
+    private const string AccountName = "transfer";
+    private const byte DestinationServer = 2;
+    private const ushort DestinationMap = 91;
+    private static readonly ClientVersion Version = new(106, 3, ClientLanguage.English);
+    private static readonly IPEndPoint Destination = new(IPAddress.Parse("192.0.2.111"), 45906);
+
+    /// <summary>A transfer saves while detached and exposes the credential only after success.</summary>
+    /// <param name="saveSucceeded">Whether the first save is accepted.</param>
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task SourceSavesBeforeSendingTransferAsync(bool saveSucceeded)
+    {
+        var login = new LoginServer.LoginServer();
+        var persistence = new Mock<IPlayerContext>();
+        var directory = new Mock<IMapTransferDirectory>();
+        directory.Setup(d => d.FindDestinationAsync(It.IsAny<IGameServerContext>(), DestinationMap, Version))
+            .ReturnsAsync((DestinationServer, Destination));
+        await using var game = LoginTestSetup.CreateGameServerContext(LoginTestSetup.CreatePersistence(persistence.Object), login,
+            mapTransferDirectory: directory.Object);
+        game.StopPeriodicTasks();
+        game.Configuration.Maps.Single().IsActive = true;
+        game.PlugInManager.DiscoverAndRegisterPlugIns(typeof(RemotePlayer).Assembly);
+        var (player, output) = CastleSiegeRemoteViewTestHelper.CreatePlayer(game, Version);
+        await using (player.ConfigureAwait(false))
+        {
+            using (output)
+            {
+                var character = PlayerTestHelper.CreateCharacter(game, Guid.NewGuid());
+                character.Name = "Transfer01";
+                character.Attributes.Single(a => a.Definition == Stats.Level).Value = 1;
+                Mock.Get(character).SetupGet(c => c.QuestStates).Returns(new List<CharacterQuestState>());
+                persistence.Setup(p => p.GetPendingCastleSiegeRewardsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Array.Empty<CastleSiegePendingReward>());
+                await game.AddPlayerAsync(player).ConfigureAwait(false);
+                await PlayerTestHelper.EnterWorldAsync(player, character).ConfigureAwait(false);
+                Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.EnteredWorld));
+
+                Assert.That(await login.TryLoginAsync(AccountName, game.Id).ConfigureAwait(false), Is.True);
+                player.SetLoginServerRegistration(AccountName);
+                player.PlayerDisconnected += departed => departed.ReleaseLoginServerRegistration() is { } name
+                    ? login.LogOffAsync(name, game.Id)
+                    : ValueTask.CompletedTask;
+                var originalMap = character.CurrentMap;
+                var originalPosition = player.Position;
+                var targetMap = new GameMapDefinition { Id = Guid.NewGuid(), Number = (short)DestinationMap, IsActive = true };
+                var gate = new ExitGate { Map = targetMap, X1 = 30, X2 = 30, Y1 = 40, Y2 = 40 };
+                var saves = new List<(MUnique.OpenMU.DataModel.Configuration.GameMapDefinition? Map, int X, int Y, bool Detached, long Bytes)>();
+                output.SetLength(0);
+                persistence.Setup(p => p.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(() =>
+                {
+                    saves.Add((character.CurrentMap, character.PositionX, character.PositionY,
+                        player.CurrentMap is null && player.SelectedCharacter is null, output.Length));
+                    return saveSucceeded || saves.Count > 1;
+                });
+
+                await player.WarpToAsync(gate).ConfigureAwait(false);
+
+                Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.Finished));
+                Assert.That(saves.First(), Is.EqualTo((targetMap, 30, 40, true, 0L)));
+                if (!saveSucceeded)
+                {
+                    Assert.That(saves, Has.Count.EqualTo(2));
+                    Assert.That(saves[1], Is.EqualTo((originalMap, (int)originalPosition.X, (int)originalPosition.Y, true, 0L)));
+                    Assert.That(output.Length, Is.Zero);
+                    Assert.That(await login.TryLoginAsync(AccountName, game.Id).ConfigureAwait(false), Is.True);
+                    return;
+                }
+
+                Assert.That(saves, Has.Count.EqualTo(1));
+                var bytes = output.ToArray();
+                Assert.That(bytes, Has.Length.EqualTo(MapServerChangeInfo.Length));
+                var packet = new MapServerChangeInfo(bytes);
+                Assert.That(packet.Header.SubCode, Is.EqualTo(MapServerChangeInfo.SubCode));
+                Assert.That(packet.IpAddress, Is.EqualTo(Destination.Address.ToString()));
+                Assert.That(packet.Port, Is.EqualTo(Destination.Port));
+                Assert.That(packet.ServerGroup, Is.EqualTo(DestinationServer));
+                var credential = ReadCredential(packet);
+                Assert.That(await login.ClaimMapTransferAsync(credential, character.Name, DestinationServer).ConfigureAwait(false), Is.EqualTo(AccountName));
+                Assert.That(await login.ClaimMapTransferAsync(credential, character.Name, DestinationServer).ConfigureAwait(false), Is.Null);
+            }
+        }
+    }
+
+    private static Guid ReadCredential(MapServerChangeInfo packet)
+    {
+        Span<byte> bytes = stackalloc byte[16];
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes, packet.AuthenticationCode1);
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes[4..], packet.AuthenticationCode2);
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes[8..], packet.AuthenticationCode3);
+        BinaryPrimitives.WriteUInt32LittleEndian(bytes[12..], packet.AuthenticationCode4);
+        return new Guid(bytes);
+    }
+}

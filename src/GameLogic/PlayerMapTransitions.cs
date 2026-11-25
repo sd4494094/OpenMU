@@ -173,6 +173,11 @@ internal sealed class PlayerMapTransitions
             }
         }
 
+        if (!isRespawnOnSameMap && await player.TrySwitchGameServerAsync(gate).ConfigureAwait(false))
+        {
+            return;
+        }
+
         if (!await this.TryRemoveFromCurrentMapAsync(isRespawnOnSameMap).ConfigureAwait(false))
         {
             return;

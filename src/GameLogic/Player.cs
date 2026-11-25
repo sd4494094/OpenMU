@@ -127,6 +127,8 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
 
     private Lazy<ComboStateMachine>? _comboStateLazy;
 
+    private volatile bool _preparingMapTransfer;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="Player" /> class.
     /// </summary>di
@@ -1358,6 +1360,115 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// </summary>
     public async ValueTask RemoveFromGameAsync()
     {
+        await this.DetachFromGameAsync().ConfigureAwait(false);
+
+        try
+        {
+            await this.SaveProgressAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Couldn't save when leaving the game. Player: {player}", this);
+        }
+    }
+
+    /// <summary>Attempts a warp that requires connecting the client to another server.</summary>
+    /// <param name="gate">The destination gate.</param>
+    /// <returns>Whether the warp was handled by the cross-server path.</returns>
+    protected internal virtual ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate) => ValueTask.FromResult(false);
+
+    /// <summary>Detaches and saves the character before announcing a server switch.</summary>
+    /// <param name="gate">The destination gate.</param>
+    /// <param name="targetServerId">The destination game server.</param>
+    /// <param name="notify">Sends a single-use credential to the client.</param>
+    /// <returns>Whether the transfer attempt took ownership of the source session.</returns>
+    protected async ValueTask<bool> TransferToServerAsync(ExitGate gate, byte targetServerId, Func<Guid, ValueTask> notify)
+    {
+        var handled = await this.RunPersistenceExclusiveAsync(
+            () => this.PrepareMapTransferAsync(gate, targetServerId, notify)).ConfigureAwait(false);
+        if (handled)
+        {
+            await this.DisconnectAsync().ConfigureAwait(false);
+        }
+
+        return handled;
+    }
+
+    private async ValueTask<bool> PrepareMapTransferAsync(ExitGate gate, byte targetServerId, Func<Guid, ValueTask> notify)
+    {
+        if (this.GameContext is not IGameServerContext { LoginServer: IMapTransferLoginServer transfers } context
+            || context.Id == targetServerId || this.PlayerState.CurrentState != GameLogic.PlayerState.EnteredWorld
+            || !this.IsAlive || this.CurrentMiniGame is not null || this.DuelRoom is not null
+            || Volatile.Read(ref this._loginServerRegistration) is not { } accountName
+            || this.SelectedCharacter is not { } character || gate.Map is not { IsActive: true } targetMap)
+        {
+            return false;
+        }
+
+        var previous = (character.CurrentMap, character.PositionX, character.PositionY);
+        var restorePosition = true;
+        this._preparingMapTransfer = true;
+        try
+        {
+            if (!await this.PlayerState.TryAdvanceToAsync(GameLogic.PlayerState.TransferringServer).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            await this._movement.StopWalkingAsync().ConfigureAwait(false);
+            this.IsAlive = false;
+            await this.DetachFromGameAsync().ConfigureAwait(false);
+
+            var destination = gate.GetRandomPoint();
+            character.CurrentMap = targetMap;
+            character.PositionX = destination.X;
+            character.PositionY = destination.Y;
+            if (!await this.SaveProgressAsync().ConfigureAwait(false)
+                || this.PlayerState.CurrentState != GameLogic.PlayerState.TransferringServer)
+            {
+                return true;
+            }
+
+            if (await transfers.BeginMapTransferAsync(accountName, character.Name, context.Id, targetServerId).ConfigureAwait(false) is not { } credential)
+            {
+                return true;
+            }
+
+            // After the credential can reach the client, only its destination may save this session.
+            this._persistence.WritesSuppressed = true;
+            restorePosition = false;
+            try
+            {
+                await notify(credential).ConfigureAwait(false);
+            }
+            catch
+            {
+                // Cancel releases the registration for ordinary login. The source must stay
+                // read-only because a fresh session can already be loading the committed save.
+                await transfers.CancelMapTransferAsync(credential, context.Id).ConfigureAwait(false);
+                throw;
+            }
+        }
+        catch (Exception ex)
+        {
+            this.Logger.LogError(ex, "Could not transfer the character to game server {TargetServerId}.", targetServerId);
+        }
+        finally
+        {
+            // A regular disconnect will save the original location when handoff was refused.
+            if (restorePosition)
+            {
+                (character.CurrentMap, character.PositionX, character.PositionY) = previous;
+            }
+
+            this._preparingMapTransfer = false;
+        }
+
+        return true;
+    }
+
+    private async ValueTask DetachFromGameAsync()
+    {
         if (this.Party is { } party)
         {
             await party.LeaveTemporarilyAsync(this).ConfigureAwait(false);
@@ -1382,15 +1493,6 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
         Interlocked.Exchange(ref this._lastAliveReportTicks, 0);
 
         await this.MagicEffectList.ClearAllEffectsAsync().ConfigureAwait(false);
-
-        try
-        {
-            await this.SaveProgressAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            this.Logger.LogError(ex, "Couldn't save when leaving the game. Player: {player}", this);
-        }
     }
 
     /// <summary>
@@ -1613,7 +1715,17 @@ public class Player : AsyncDisposable, IBucketMapObserver, IAttackable, IAttacke
     /// </summary>
     protected virtual async ValueTask InternalDisconnectAsync()
     {
-        await this.RemoveFromGameAsync().ConfigureAwait(false);
+        if (this._preparingMapTransfer)
+        {
+            // Wait until the attempt either hands off the saved session or restores its old position.
+            await this.RunPersistenceExclusiveAsync(() => this._persistence.WritesSuppressed
+                ? ValueTask.CompletedTask
+                : this.RemoveFromGameAsync()).ConfigureAwait(false);
+        }
+        else if (!this._persistence.WritesSuppressed)
+        {
+            await this.RemoveFromGameAsync().ConfigureAwait(false);
+        }
     }
 
     /// <summary>

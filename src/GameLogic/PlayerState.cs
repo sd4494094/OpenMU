@@ -81,6 +81,7 @@ public static class PlayerState
         // A map change can be started while the player is in the world, while it's dead (respawn on
         // another map) and while an NPC dialog is opened, because some NPCs warp the player.
         EnteredWorld.PossibleTransitions.Add(PlayerState.ChangingMap);
+        EnteredWorld.PossibleTransitions.Add(PlayerState.TransferringServer);
         Dead.PossibleTransitions!.Add(PlayerState.ChangingMap);
         NpcDialogOpened.PossibleTransitions.Add(PlayerState.ChangingMap);
 
@@ -214,6 +215,13 @@ public static class PlayerState
             EnteredWorld,
             CharacterSelection,
         },
+    };
+
+    /// <summary>Gets the source session state while handing off a player to another server.</summary>
+    public static State TransferringServer { get; } = new(new Guid("CB66C088-4768-42E7-87C1-A2B2030CA4A6"))
+    {
+        Name = "Transferring Server",
+        PossibleTransitions = new List<State> { Disconnected },
     };
 
     /// <summary>

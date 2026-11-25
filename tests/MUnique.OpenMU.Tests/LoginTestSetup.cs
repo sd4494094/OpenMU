@@ -37,8 +37,9 @@ internal static class LoginTestSetup
     /// <param name="loginServer">The login server.</param>
     /// <param name="eventPublisher">The event publisher; a mock, when it's <c>null</c>.</param>
     /// <param name="maximumPlayers">The maximum players of the game server.</param>
+    /// <param name="mapTransferDirectory">The optional directory of remote map hosts.</param>
     /// <returns>The game server context.</returns>
-    public static GameServerContext CreateGameServerContext(IPersistenceContextProvider persistence, ILoginServer loginServer, IEventPublisher? eventPublisher = null, short maximumPlayers = 10)
+    public static GameServerContext CreateGameServerContext(IPersistenceContextProvider persistence, ILoginServer loginServer, IEventPublisher? eventPublisher = null, short maximumPlayers = 10, IMapTransferDirectory? mapTransferDirectory = null)
     {
         var gameConfiguration = new Persistence.BasicModel.GameConfiguration();
         gameConfiguration.Maps.Add(new Persistence.BasicModel.GameMapDefinition { TerrainData = new byte[ushort.MaxValue + 3] });
@@ -58,7 +59,8 @@ internal static class LoginTestSetup
             NullLoggerFactory.Instance,
             new PlugInManager(new List<PlugInConfiguration>(), NullLoggerFactory.Instance, null, null),
             NullDropGenerator.Instance,
-            new ConfigurationChangeMediator());
+            new ConfigurationChangeMediator(),
+            mapTransferDirectory: mapTransferDirectory);
         mapInitializer.PlugInManager = gameServerContext.PlugInManager;
         mapInitializer.PathFinderPool = gameServerContext.PathFinderPool;
         return gameServerContext;

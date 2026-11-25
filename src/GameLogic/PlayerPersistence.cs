@@ -53,6 +53,9 @@ internal sealed class PlayerPersistence
         this._player = player;
     }
 
+    /// <summary>Gets or sets whether the target game server has exclusive authority to save the session.</summary>
+    public bool WritesSuppressed { get; set; }
+
     /// <summary>
     /// Saves the progress of the player.
     /// </summary>
@@ -66,7 +69,7 @@ internal sealed class PlayerPersistence
         }
 
         return await this.RunExclusiveAsync(
-            () => this.SaveChangesAsync(cancellationToken),
+            () => this.WritesSuppressed ? ValueTask.FromResult(true) : this.SaveChangesAsync(cancellationToken),
             cancellationToken).ConfigureAwait(false);
     }
 

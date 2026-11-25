@@ -46,6 +46,7 @@ public partial class GameServerContext : GameContext, IGameServerContext
     /// <param name="dropGenerator">The drop generator.</param>
     /// <param name="changeMediator">The change mediator.</param>
     /// <param name="mapHostLocator">The locator for the maps which are hosted by other game servers.</param>
+    /// <param name="mapTransferDirectory">The directory for maps in another game server process.</param>
     public GameServerContext(
         GameServerDefinition gameServerDefinition,
         IGuildServer guildServer,
@@ -58,7 +59,8 @@ public partial class GameServerContext : GameContext, IGameServerContext
         PlugInManager plugInManager,
         IDropGenerator dropGenerator,
         IConfigurationChangeMediator changeMediator,
-        IMapHostLocator? mapHostLocator = null)
+        IMapHostLocator? mapHostLocator = null,
+        IMapTransferDirectory? mapTransferDirectory = null)
         : base(
             gameServerDefinition.GameConfiguration ?? throw new InvalidOperationException("GameServerDefinition requires a GameConfiguration"),
             persistenceContextProvider,
@@ -75,6 +77,7 @@ public partial class GameServerContext : GameContext, IGameServerContext
         this.LoginServer = loginServer;
         this.FriendServer = friendServer;
         this.MapHostLocator = mapHostLocator;
+        this.MapTransferDirectory = mapTransferDirectory;
         this.ServerConfiguration = gameServerDefinition.ServerConfiguration ?? throw new InvalidOperationException("GameServerDefinition requires a ServerConfiguration");
         this._groundItemRecovery = new GroundItemRecovery(this, gameServerDefinition);
     }
@@ -109,6 +112,9 @@ public partial class GameServerContext : GameContext, IGameServerContext
 
     /// <inheritdoc/>
     public IMapHostLocator? MapHostLocator { get; }
+
+    /// <summary>Gets the directory for maps hosted in another game server process.</summary>
+    public IMapTransferDirectory? MapTransferDirectory { get; }
 
     /// <inheritdoc/>
     public IEnumerable<AttributeRequirement> JoinRequirements => this._gameServerDefinition.JoinRequirements ?? Enumerable.Empty<AttributeRequirement>();

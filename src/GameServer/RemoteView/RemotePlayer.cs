@@ -5,11 +5,17 @@
 namespace MUnique.OpenMU.GameServer.RemoteView;
 
 using System.Buffers;
+using System.Buffers.Binary;
+using System.Net;
 using Microsoft.Extensions.Logging;
+using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.Views;
+using MUnique.OpenMU.GameLogic.Views.World;
 using MUnique.OpenMU.GameServer.MessageHandler;
+using MUnique.OpenMU.GameServer.MessageHandler.Login;
 using MUnique.OpenMU.Network;
+using MUnique.OpenMU.Network.Packets.ServerToClient;
 using MUnique.OpenMU.Network.PlugIns;
 using MUnique.OpenMU.PlugIns;
 
@@ -104,6 +110,29 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
         return new ViewPlugInContainer(this, this.ClientVersion, this.GameContext.PlugInManager);
     }
 
+    /// <inheritdoc />
+    protected override async ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate)
+    {
+        if (this.GameServerContext is not GameServerContext { MapTransferDirectory: { } directory }
+            || gate.Map is not { } map
+            || !this.ClientVersion.IsPlugInSuitable(typeof(MapTransferAuthenticationHandlerPlugIn))
+            || this.PlayerState.CurrentState != GameLogic.PlayerState.EnteredWorld
+            || await this.GameContext.GetMapAsync((ushort)map.Number).ConfigureAwait(false) is not null)
+        {
+            return false;
+        }
+
+        if (await directory.FindDestinationAsync(this.GameServerContext, (ushort)map.Number, this.ClientVersion).ConfigureAwait(false) is { } destination
+            && await this.TransferToServerAsync(gate, destination.ServerId,
+                credential => this.SendMapTransferAsync(destination.ServerId, destination.EndPoint, credential)).ConfigureAwait(false))
+        {
+            return true;
+        }
+
+        await this.InvokeViewPlugInAsync<IMapChangePlugIn>(view => view.MapChangeFailedAsync()).ConfigureAwait(false);
+        return true;
+    }
+
     /// <inheritdoc/>
     protected override async ValueTask InternalDisconnectAsync()
     {
@@ -158,6 +187,22 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
             // connection ever accepted stays reachable from it, even one which never logged in.
             this.MainPacketHandler.Dispose();
         }
+    }
+
+    private ValueTask SendMapTransferAsync(byte serverId, IPEndPoint endpoint, Guid credential)
+    {
+        if (this.Connection is not { Connected: true } connection)
+        {
+            throw new InvalidOperationException("The source game connection is already closed.");
+        }
+
+        Span<byte> bytes = stackalloc byte[16];
+        credential.TryWriteBytes(bytes);
+        return connection.SendMapServerChangeInfoAsync(endpoint.Address.ToString(), (ushort)endpoint.Port, serverId,
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[4..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[8..]),
+            BinaryPrimitives.ReadUInt32LittleEndian(bytes[12..]));
     }
 
     /// <summary>

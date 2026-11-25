@@ -32,6 +32,7 @@ var services = builder.Services;
 services.AddSingleton<GameServer>()
     .AddSingleton<DaprAppTokenAuthorizationFilter>()
     .AddSingleton<MapTransferAuthorizationFilter>()
+    .AddSingleton<IMapTransferDirectory, DaprMapTransferDirectory>()
     .AddSingleton<AdministrationDeliveries>()
     .AddSingleton<IGameServer>(s => s.GetService<GameServer>()!)
     .AddSingleton<IList<IManageableServer>>(s => new List<IManageableServer> { s.GetService<GameServer>()! })
