@@ -30,13 +30,30 @@ public sealed class MapTransferTargetTests
     private static readonly byte[] VersionBytes = "20404"u8.ToArray();
 
     /// <summary>A valid transfer selects the saved character and acknowledges on the target connection.</summary>
-    [Test]
-    public async Task AuthenticatesAndEntersWithTheSavedCharacterAsync()
+    /// <param name="blockedLanding">Whether the saved landing is blocked on the receiving server.</param>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task AuthenticatesAndEntersWithTheSavedCharacterAsync(bool blockedLanding)
     {
         var logins = new LoginServer.LoginServer();
         var persistence = new Mock<IPlayerContext>();
         await using var game = CreateGame(persistence, logins);
         var account = CreateAccount(game);
+        var character = account.Characters.Single();
+        character.PositionX = 30;
+        character.PositionY = 31;
+        var terrain = game.Configuration.Maps.Single().TerrainData!;
+        terrain[3 + (22 * 256) + 21] = (byte)TerrainAttributeType.Safezone;
+        if (blockedLanding)
+        {
+            terrain[3 + (31 * 256) + 30] = (byte)TerrainAttributeType.Blocked;
+            persistence.Setup(p => p.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(() =>
+            {
+                Assert.That((character.PositionX, character.PositionY), Is.EqualTo((21, 22)));
+                return ValueTask.FromResult(true);
+            });
+        }
+
         persistence.Setup(p => p.GetAccountByLoginNameAsync(LoginName, It.IsAny<CancellationToken>())).ReturnsAsync(account);
         var credential = await ReserveAsync(logins, game.Id).ConfigureAwait(false);
         var (player, output) = CastleSiegeRemoteViewTestHelper.CreatePlayer(game, Version);
@@ -50,6 +67,7 @@ public sealed class MapTransferTargetTests
                 Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.EnteredWorld));
                 Assert.That(player.SelectedCharacter, Is.SameAs(account.Characters.Single()));
                 Assert.That(player.CurrentMap?.Definition, Is.SameAs(account.Characters.Single().CurrentMap));
+                Assert.That((character.PositionX, character.PositionY), Is.EqualTo(blockedLanding ? (21, 22) : (30, 31)));
                 Assert.That(output.ToArray()[^4..], Is.EqualTo(new byte[] { 0xC1, 4, 0xB1, 1 }));
 
                 await player.MainPacketHandler.HandlePacketAsync(player, CreatePacket(credential)).ConfigureAwait(false);

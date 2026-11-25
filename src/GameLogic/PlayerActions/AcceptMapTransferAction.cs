@@ -90,9 +90,27 @@ public sealed class AcceptMapTransferAction
 
         var character = account.Characters.FirstOrDefault(candidate => string.Equals(candidate.Name, characterName, StringComparison.Ordinal));
         if (character?.CurrentMap is not { IsActive: true } destination
-            || await context.GetMapAsync((ushort)destination.Number).ConfigureAwait(false) is not { IsTornDown: false })
+            || await context.GetMapAsync((ushort)destination.Number).ConfigureAwait(false) is not { IsTornDown: false } map)
         {
             return null;
+        }
+
+        // Finish any landing correction before world entry. The regular blocked spawn recovery
+        // starts a second map change, which leaves the transfer waiting for an acknowledgement.
+        if (!map.Terrain.WalkMap[character.PositionX, character.PositionY])
+        {
+            var landing = map.Terrain.GetWalkableCoordinate(map.SafeZoneSpawnGate) ?? map.Terrain.AnyWalkableCoordinate;
+            if (landing is not { } point)
+            {
+                return null;
+            }
+
+            character.PositionX = point.X;
+            character.PositionY = point.Y;
+            if (!await player.PersistenceContext.SaveChangesAsync().ConfigureAwait(false))
+            {
+                return null;
+            }
         }
 
         transition.Allowed = true;
