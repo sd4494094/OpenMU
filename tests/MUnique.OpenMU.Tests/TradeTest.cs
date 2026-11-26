@@ -4,9 +4,11 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using System.Threading;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel;
+using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
@@ -90,6 +92,7 @@ public class TradeTest
         trader2.TradingPartner = trader1;
 
         var gameContext = new Mock<IGameContext>();
+        gameContext.Setup(c => c.Configuration).Returns(new GameConfiguration { MaximumInventoryMoney = int.MaxValue });
         gameContext.Setup(c => c.PlugInManager).Returns(new PlugInManager(null, new NullLoggerFactory(), null, null));
         gameContext.Setup(c => c.PersistenceContextProvider).Returns(new InMemoryPersistenceContextProvider());
 
@@ -233,6 +236,7 @@ public class TradeTest
     {
         var trader = new Mock<ITrader>();
         trader.SetupAllProperties();
+        trader.Setup(t => t.SaveProgressAsync(It.IsAny<CancellationToken>())).Returns(new ValueTask<bool>(true));
         trader.Setup(t => t.PlayerState).Returns(new StateMachine(playerState));
         var inventory = new Mock<IInventoryStorage>();
         var itemStorage = new Mock<ItemStorage>();

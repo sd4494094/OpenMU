@@ -13,7 +13,9 @@ using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.CashShop;
 using MUnique.OpenMU.GameLogic.PlayerActions.CashShop;
 using MUnique.OpenMU.GameLogic.PlugIns;
+using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.CashShop;
+using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence;
 using BasicModel = MUnique.OpenMU.Persistence.BasicModel;
 
@@ -170,6 +172,40 @@ public class CashShopProductDeliveryTest
         Assert.That(player.Account!.UnlockedCharacterClasses, Is.Empty);
         Assert.That(await GetStorageItemsAsync(player).ConfigureAwait(false), Has.Count.EqualTo(1));
         GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.CannotUse), Times.Once);
+    }
+
+    /// <summary>
+    /// Special deliveries must also end an unconfirmed session without announcing the benefit.
+    /// The tracked benefit is retained for reconciliation rather than blindly undone.
+    /// </summary>
+    /// <param name="priceSequence">The product's price sequence.</param>
+    [TestCase(VaultCertificatePrice)]
+    [TestCase(MagicBackpackPrice)]
+    [TestCase(RageFighterCardPrice)]
+    public async Task SpecialDeliverySaveFailureDisconnectsWithoutSuccessAsync(int priceSequence)
+    {
+        var player = await this.CreatePlayerAsync().ConfigureAwait(false);
+        player.GameContext.PlugInManager.RegisterPlugIn<ICashShopProductDeliveryPlugIn, VaultExtensionDeliveryPlugIn>();
+        player.GameContext.PlugInManager.RegisterPlugIn<ICashShopProductDeliveryPlugIn, InventoryExtensionDeliveryPlugIn>();
+        player.GameContext.PlugInManager.RegisterPlugIn<ICashShopProductDeliveryPlugIn, RageFighterCharacterCardDeliveryPlugIn>();
+        var rageFighter = new CharacterClass { Number = RageFighterNumber, Name = new("Rage Fighter") };
+        player.GameContext.Configuration.CharacterClasses.Add(rageFighter);
+        var account = player.Account!;
+        var character = player.SelectedCharacter!;
+        await AddStorageItemAsync(player, priceSequence).ConfigureAwait(false);
+        var messages = Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMessagePlugIn>()!);
+        CashShopActionsTest.SaveFailingContext.Install(player, () => true);
+
+        await this._actions.UseStorageItemAsync(player, 0, priceSequence).ConfigureAwait(false);
+
+        Assert.That(player.IsConnected, Is.False);
+        Assert.That(player.IsCashShopOpen, Is.False);
+        GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.SaveFailed), Times.Once);
+        GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.Success), Times.Never);
+        messages.Verify(v => v.ShowMessageAsync(It.IsAny<string>(), MessageType.BlueNormal), Times.Never);
+        Assert.That(account.IsVaultExtended, Is.EqualTo(priceSequence == VaultCertificatePrice));
+        Assert.That(character.InventoryExtensions, Is.EqualTo(priceSequence == MagicBackpackPrice ? 1 : 0));
+        Assert.That(account.UnlockedCharacterClasses.Contains(rageFighter), Is.EqualTo(priceSequence == RageFighterCardPrice));
     }
 
     private static Mock<ICashShopViewPlugIn> GetView(Player player)

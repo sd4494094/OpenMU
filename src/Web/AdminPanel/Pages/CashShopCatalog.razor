@@ -28,6 +28,9 @@ else if (this._selectedPackage is not { } package)
     <CascadingValue TValue="IContext" Value="this._persistenceContext">
         <EditForm Model="configuration" OnValidSubmit="this.OnSaveAsync" Context="editContext">
             <h2>@Resources.CashShopVersions</h2>
+            <a id="downloadCashShopScript" class="btn btn-outline-primary mb-2"
+               href="download/cash-shop-script?culture=@System.Globalization.CultureInfo.CurrentUICulture.Name&amp;ui-culture=@System.Globalization.CultureInfo.CurrentUICulture.Name"
+               target="_blank" rel="noopener">@Resources.DownloadFile: @Resources.CashShopScriptVersion</a>
             <table class="table table-sm w-auto">
                 <thead>
                 <tr>

@@ -18,6 +18,13 @@ public interface IPacketHandlerPlugInBase : IStrategyPlugIn<byte>
     bool IsEncryptionExpected { get; }
 
     /// <summary>
+    /// Gets a value indicating whether this handler acquires its own persistence locks.
+    /// The default packet funnel holds the receiving player's lock. A handler which saves
+    /// another player must instead acquire all required locks in a stable order before mutation.
+    /// </summary>
+    bool HandlesOwnPersistenceSynchronization => false;
+
+    /// <summary>
     /// Handles the packet for the specified player.
     /// </summary>
     /// <param name="player">The player for which the packet should be handled.</param>

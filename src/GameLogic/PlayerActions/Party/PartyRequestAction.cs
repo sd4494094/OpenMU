@@ -33,6 +33,12 @@ public class PartyRequestAction
             return;
         }
 
+        if (!isPartyMember && player.Party is { } party && party.PartyList.Count >= party.MaxPartySize)
+        {
+            await player.InvokeViewPlugInAsync<IShowPartyFullPlugIn>(p => p.ShowPartyFullAsync()).ConfigureAwait(false);
+            return;
+        }
+
         if (toRequest.Party != null || toRequest.LastPartyRequester != null)
         {
             // A server-side bot is asked as well when it is a plain member of its (bot) party: a living

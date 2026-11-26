@@ -27,4 +27,32 @@ public static class QuestExtensions
 
         questState.RequirementStates.Clear();
     }
+
+    /// <summary>
+    /// Confirms the quest outcome before success is published, closing an uncertain session without reapplying the outcome.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <returns>Whether persistence confirmed the outcome.</returns>
+    internal static async ValueTask<bool> SaveQuestOutcomeAsync(this Player player)
+    {
+        try
+        {
+            if (await player.SaveProgressAsync().ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            player.Logger.LogError("The quest outcome for player {Player} was not saved; disconnecting.", player);
+        }
+        catch (Exception exception)
+        {
+            player.Logger.LogError(exception, "Couldn't confirm saving the quest outcome for player {Player}; disconnecting.", player);
+        }
+
+        // A failed commit acknowledgement is ambiguous. Teardown retries the same tracked
+        // outcome under the persistence gate; refunding or reapplying it could duplicate rewards.
+        // A new session loads the durable result, even when teardown cannot confirm its save.
+        await player.DisconnectAsync().ConfigureAwait(false);
+        return false;
+    }
 }

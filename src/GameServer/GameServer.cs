@@ -204,6 +204,11 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
         this.ServerState = ServerState.Starting;
         try
         {
+            if (this._gameContext is GameServerContext groundHost)
+            {
+                await groundHost.StartGroundItemRecoveryAsync().ConfigureAwait(false);
+            }
+
             foreach (var listener in this._listeners)
             {
                 await listener.StartAsync().ConfigureAwait(false);
@@ -213,6 +218,11 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
         }
         catch (Exception e)
         {
+            if (this._gameContext is GameServerContext groundHost)
+            {
+                await groundHost.StopGroundItemRecoveryAsync().ConfigureAwait(false);
+            }
+
             this._logger.LogError(e, $"Could not start the server listeners: {e.Message}");
             foreach (var listener in this._listeners)
             {
@@ -245,6 +255,10 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
         // disconnect loop below on the same player instances (save vs. dispose), which surfaces as
         // Npgsql "Can't close, connection is in state Connecting" or ObjectDisposedException errors.
         this._gameContext.StopPeriodicTasks();
+        if (this._gameContext is GameServerContext groundHost)
+        {
+            await groundHost.StopGroundItemRecoveryAsync().ConfigureAwait(false);
+        }
 
         this._logger.LogInformation("Saving all open sessions...");
 
@@ -452,8 +466,10 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
     /// <inheritdoc/>
     public async ValueTask GuildDeletedAsync(uint guildId)
     {
-        await this._gameContext.RemoveGuildAsync(guildId).ConfigureAwait(false);
+        // Notify and clear members before removing the index used by this iteration.
+        // Do not unregister individual members while holding the guild list's read lock.
         await this._gameContext.ForEachGuildPlayerAsync(guildId, p => this.RemovePlayerFromGuildAsync(p, false).AsTask()).ConfigureAwait(false);
+        await this._gameContext.RemoveGuildAsync(guildId).ConfigureAwait(false);
 
         //// todo: alliance things?
     }

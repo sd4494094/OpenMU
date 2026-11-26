@@ -65,6 +65,7 @@ const sidebars = {
         "server-features/anti-cheat",
         "server-features/test-actors",
         "server-features/gens",
+        "server-features/guilds",
         "server-features/cash-shop",
         "server-features/discord",
         "server-features/player-shop-currencies",

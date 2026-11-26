@@ -2540,4 +2540,10 @@
   </data>
   <data name="ShowStatAdvisor_Name" xml:space="preserve"><value>属性管理菜单</value></data>
   <data name="ShowStatAdvisor_Description" xml:space="preserve"><value>向主动请求的客户端发送洗点确认和批量加点菜单。</value></data>
+  <data name="CharacterInventoryRequestPacketHandlerPlugIn_Name" xml:space="preserve">
+    <value>角色背包刷新</value>
+  </data>
+  <data name="CharacterInventoryRequestPacketHandlerPlugIn_Description" xml:space="preserve">
+    <value>处理加密的角色背包刷新请求（0xF3, 0x10）。</value>
+  </data>
 </root>

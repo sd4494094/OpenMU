@@ -130,4 +130,16 @@ internal class CacheAwareRepositoryProvider : ICacheAwareRepositoryProvider, ICo
             }
         }
     }
+    /// <summary>
+    /// Captures and warms one cache generation for a recovery page. A concurrent cache
+    /// reset cannot switch the returned resolver between initialization and use.
+    /// </summary>
+    /// <returns>The warmed resolver belonging to the captured cache generation.</returns>
+    internal ConfigurationIdReferenceResolver CaptureConfigurationReferences()
+    {
+        var provider = this._cachingRepositoryProvider;
+        provider.EnsureCachesForCurrentGameConfiguration();
+        return provider.ConfigurationReferences;
+    }
+
 }

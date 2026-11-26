@@ -25,8 +25,65 @@ public class BuyRequestAction
     /// <param name="slot">The slot.</param>
     public async ValueTask BuyItemAsync(Player player, Player requestedPlayer, byte slot)
     {
+        // Enter before either single-player packet scope: progress saves and both
+        // players' other requests must not observe or persist an unfinished purchase.
+        await player.RunPersistenceExclusiveAsync(
+            requestedPlayer,
+            () => this.BuyItemExclusiveAsync(player, requestedPlayer, slot)).ConfigureAwait(false);
+    }
+
+    private static async ValueTask RestorePurchaseAsync(ShopPurchase purchase, Item item, byte storeSlot, ShopPrice price, bool detached)
+    {
+        var buyer = purchase.Buyer;
+        var seller = purchase.Seller;
+        var store = seller.ShopStorage!;
+        if (detached)
+        {
+            // Reattach before restoring fields, so the owner context detects those
+            // restored values even when the original sale had not yet been saved.
+            purchase.TradeContext.Detach(item);
+            seller.PersistenceContext.Attach(item);
+        }
+
+        if (buyer.Inventory!.Items.Any(i => ReferenceEquals(i, item)))
+        {
+            await buyer.Inventory.RemoveItemAsync(item).ConfigureAwait(false);
+        }
+
+        item.SetStorePrice(price);
+        if (!ReferenceEquals(store.GetItem(storeSlot), item))
+        {
+            if (!await store.RestoreItemAsync(storeSlot, item).ConfigureAwait(false))
+            {
+                throw new InvalidOperationException("Couldn't restore the rejected sale to its original store slot.");
+            }
+        }
+
+        foreach (var (paymentItem, buyerSlot) in purchase.PaymentItems)
+        {
+            if (detached)
+            {
+                purchase.TradeContext.Detach(paymentItem);
+                buyer.PersistenceContext.Attach(paymentItem);
+            }
+
+            await seller.Inventory!.RemoveItemAsync(paymentItem).ConfigureAwait(false);
+            if (!await buyer.Inventory.AddItemAsync(buyerSlot, paymentItem).ConfigureAwait(false))
+            {
+                throw new InvalidOperationException("Couldn't restore the rejected payment to its original inventory slot.");
+            }
+        }
+    }
+
+    private async ValueTask BuyItemExclusiveAsync(Player player, Player requestedPlayer, byte slot)
+    {
         using var loggerScope = player.Logger.BeginScope(this.GetType());
-        if (requestedPlayer.IsTemplatePlayer || player.IsTemplatePlayer)
+        if (ReferenceEquals(player, requestedPlayer)
+            || (player.Account is not null && ReferenceEquals(player.Account, requestedPlayer.Account))
+            || requestedPlayer.IsTemplatePlayer || player.IsTemplatePlayer
+            || player.PlayerState.CurrentState != PlayerState.EnteredWorld
+            || requestedPlayer.PlayerState.CurrentState != PlayerState.EnteredWorld
+            || player.SelectedCharacter?.Inventory is null || requestedPlayer.SelectedCharacter?.Inventory is null)
         {
             await player.InvokeViewPlugInAsync<IPlayerShopBuyRequestResultPlugIn>(p => p.ShowResultAsync(requestedPlayer, ItemBuyResult.ItemBlock, null)).ConfigureAwait(false);
             return;
@@ -129,34 +186,55 @@ public class BuyRequestAction
             player.Logger.LogDebug("BuyRequest, Item Price: {0} {1}", price.Amount, price.PriceItem?.ToString() ?? price.CoinType?.ToString() ?? "zen");
             using var itemContext = requestedPlayer.GameContext.PersistenceContextProvider.CreateNewTradeContext();
             var purchase = new ShopPurchase(player, requestedPlayer, price, itemContext);
-            var paymentResult = await exchange.TryPayAsync(purchase).ConfigureAwait(false);
-            if (paymentResult != ShopPaymentResult.Success)
+            var detached = false;
+            try
             {
-                await this.ShowPaymentFailedAsync(player, requestedPlayer, price, paymentResult).ConfigureAwait(false);
+                var paymentResult = await exchange.TryPayAsync(purchase).ConfigureAwait(false);
+                if (paymentResult != ShopPaymentResult.Success)
+                {
+                    await this.ShowPaymentFailedAsync(player, requestedPlayer, price, paymentResult).ConfigureAwait(false);
+                    return;
+                }
+
+                itemContext.Attach(item);
+                await requestedPlayer.ShopStorage.RemoveItemAsync(item).ConfigureAwait(false);
+                item.SetStorePrice(null);
+                if (!await player.Inventory!.AddItemAsync(freeslot.Value, item).ConfigureAwait(false))
+                {
+                    throw new InvalidOperationException("The reserved purchase slot is unavailable.");
+                }
+
+                requestedPlayer.PersistenceContext.Detach(item);
+                foreach (var (paymentItem, _) in purchase.PaymentItems)
+                {
+                    player.PersistenceContext.Detach(paymentItem);
+                }
+
+                detached = true;
+                if (!await itemContext.SaveChangesAsync().ConfigureAwait(false))
+                {
+                    throw new InvalidOperationException("The personal store purchase was not saved.");
+                }
+            }
+            catch (Exception exception)
+            {
+                await RestorePurchaseAsync(purchase, item, slot, price, detached).ConfigureAwait(false);
+                player.Logger.LogError(exception, "Couldn't commit the purchase from {Seller} by {Buyer}.", requestedPlayer, player);
+                await player.InvokeViewPlugInAsync<IPlayerShopBuyRequestResultPlugIn>(p => p.ShowResultAsync(requestedPlayer, ItemBuyResult.Undefined, null)).ConfigureAwait(false);
                 return;
             }
 
-            itemContext.Attach(item);
-            await requestedPlayer.ShopStorage.RemoveItemAsync(item).ConfigureAwait(false);
-            await exchange.NotifySellerAsync(purchase).ConfigureAwait(false);
-            await requestedPlayer.InvokeViewPlugInAsync<IItemSoldByPlayerShopPlugIn>(p => p.ItemSoldByPlayerShopAsync(slot, player)).ConfigureAwait(false);
-            await requestedPlayer.InvokeViewPlugInAsync<IItemRemovedPlugIn>(p => p.RemoveItemAsync(slot)).ConfigureAwait(false);
-            item.ItemSlot = (byte)freeslot;
-            item.SetStorePrice(null);
-            await player.Inventory!.AddItemAsync(item).ConfigureAwait(false);
-            requestedPlayer.PersistenceContext.Detach(item);
-            foreach (var (paymentItem, _) in purchase.PaymentItems)
-            {
-                player.PersistenceContext.Detach(paymentItem);
-            }
-
-            await itemContext.SaveChangesAsync().ConfigureAwait(false);
+            // Committed sales are never rolled back because a later view or extension fails.
+            purchase.CompletePayment();
             player.PersistenceContext.Attach(item);
             foreach (var (paymentItem, _) in purchase.PaymentItems)
             {
                 requestedPlayer.PersistenceContext.Attach(paymentItem);
             }
 
+            await exchange.NotifySellerAsync(purchase).ConfigureAwait(false);
+            await requestedPlayer.InvokeViewPlugInAsync<IItemSoldByPlayerShopPlugIn>(p => p.ItemSoldByPlayerShopAsync(slot, player)).ConfigureAwait(false);
+            await requestedPlayer.InvokeViewPlugInAsync<IItemRemovedPlugIn>(p => p.RemoveItemAsync(slot)).ConfigureAwait(false);
             await player.InvokeViewPlugInAsync<IPlayerShopBuyRequestResultPlugIn>(p => p.ShowResultAsync(requestedPlayer, ItemBuyResult.Success, item)).ConfigureAwait(false);
             await exchange.NotifyBuyerAsync(purchase).ConfigureAwait(false);
             itemSold = true;

@@ -4,6 +4,7 @@ using System.Reflection;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -22,8 +23,10 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.Item",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item),
                 baseEntityType,
-                propertyCount: 12,
-                navigationCount: 2,
+                propertyCount: 13,
+                navigationCount: 3,
+                foreignKeyCount: 1,
+                unnamedIndexCount: 1,
                 keyCount: 1);
 
             var id = runtimeEntityType.AddProperty(
@@ -52,6 +55,15 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
                 fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.Item).GetField("<Durability>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 sentinel: 0.0);
             durability.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var groundDeliveryId = runtimeEntityType.AddProperty(
+                "GroundDeliveryId",
+                typeof(Guid?),
+                propertyInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item).GetProperty("GroundDeliveryId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item).GetField("<GroundDeliveryId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true,
+                concurrencyToken: true);
+            groundDeliveryId.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var hasSkill = runtimeEntityType.AddProperty(
                 "HasSkill",
@@ -129,7 +141,28 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
                 new[] { id });
             runtimeEntityType.SetPrimaryKey(key);
 
+            var index = runtimeEntityType.AddIndex(
+                new[] { groundDeliveryId },
+                unique: true);
+
             return runtimeEntityType;
+        }
+
+        public static RuntimeForeignKey CreateForeignKey1(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
+        {
+            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("GroundDeliveryId") },
+                principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
+                principalEntityType,
+                deleteBehavior: DeleteBehavior.Restrict,
+                unique: true);
+
+            var rawGroundDelivery = declaringEntityType.AddNavigation("RawGroundDelivery",
+                runtimeForeignKey,
+                onDependent: true,
+                typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery),
+                propertyInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item).GetProperty("RawGroundDelivery", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+
+            return runtimeForeignKey;
         }
 
         public static void CreateAnnotations(RuntimeEntityType runtimeEntityType)

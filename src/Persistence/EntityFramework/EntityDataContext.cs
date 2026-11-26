@@ -151,6 +151,8 @@ public class EntityDataContext : ExtendedTypeContext
         modelBuilder.Entity<GensMember>().Apply();
         modelBuilder.Entity<GensAbuse>().Apply();
         modelBuilder.Entity<ItemCrafting>().Apply();
+        modelBuilder.Entity<Item>().Apply();
+        modelBuilder.Entity<GroundItemDelivery>().Apply();
         modelBuilder.Entity<ItemDefinition>().Apply();
         modelBuilder.Entity<ItemLevelBonusTable>().Apply();
         modelBuilder.Entity<ItemPriceDefinition>().Apply();

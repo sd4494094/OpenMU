@@ -12,7 +12,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
     public partial class TradeContextModel
     {
         private TradeContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("3354f79e-6c11-4196-b706-28c658530ea2"), entityTypeCount: 48)
+            : base(skipDetectChanges: false, modelId: new Guid("433bce58-127d-4fd4-88c6-11e6f18f7817"), entityTypeCount: 50)
         {
         }
 
@@ -42,6 +42,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
             var gameServerConfigurationGameMapDefinition = GameServerConfigurationGameMapDefinitionEntityType.Create(this);
             var gensAbuse = GensAbuseEntityType.Create(this);
             var gensMember = GensMemberEntityType.Create(this);
+            var groundItemDelivery = GroundItemDeliveryEntityType.Create(this);
             var guildChatBinding = GuildChatBindingEntityType.Create(this);
             var item = ItemEntityType.Create(this);
             var itemAppearance = ItemAppearanceEntityType.Create(this);
@@ -54,6 +55,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
             var itemDropItemGroupItemDefinition = ItemDropItemGroupItemDefinitionEntityType.Create(this);
             var itemItemOfItemSet = ItemItemOfItemSetEntityType.Create(this);
             var itemOptionLink = ItemOptionLinkEntityType.Create(this);
+            var itemStorage = ItemStorageEntityType.Create(this);
             var letterBody = LetterBodyEntityType.Create(this);
             var letterHeader = LetterHeaderEntityType.Create(this);
             var masterSkillDefinitionSkill = MasterSkillDefinitionSkillEntityType.Create(this);
@@ -67,6 +69,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
             var skillEntry = SkillEntryEntityType.Create(this);
             var statAttribute = StatAttributeEntityType.Create(this);
 
+            AccountEntityType.CreateForeignKey1(account, itemStorage);
             AccountAttributeGrantEntityType.CreateForeignKey1(accountAttributeGrant, account);
             AccountCharacterClassEntityType.CreateForeignKey1(accountCharacterClass, account);
             AccountExternalLinkEntityType.CreateForeignKey1(accountExternalLink, account);
@@ -77,11 +80,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
             CastleSiegeNpcStateEntityType.CreateForeignKey1(castleSiegeNpcState, castleSiegeData);
             CastleSiegePendingRewardEntityType.CreateForeignKey1(castleSiegePendingReward, character);
             CharacterEntityType.CreateForeignKey1(character, account);
+            CharacterEntityType.CreateForeignKey2(character, itemStorage);
+            CharacterEntityType.CreateForeignKey3(character, itemStorage);
             CharacterDropItemGroupEntityType.CreateForeignKey1(characterDropItemGroup, character);
             CharacterQuestStateEntityType.CreateForeignKey1(characterQuestState, character);
             GensAbuseEntityType.CreateForeignKey1(gensAbuse, character);
             GensAbuseEntityType.CreateForeignKey2(gensAbuse, character);
             GensMemberEntityType.CreateForeignKey1(gensMember, character);
+            ItemEntityType.CreateForeignKey1(item, groundItemDelivery);
             ItemAppearanceEntityType.CreateForeignKey1(itemAppearance, appearanceData);
             ItemAppearanceItemOptionTypeEntityType.CreateForeignKey1(itemAppearanceItemOptionType, itemAppearance);
             ItemItemOfItemSetEntityType.CreateForeignKey1(itemItemOfItemSet, item);
@@ -120,6 +126,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
             GameServerConfigurationGameMapDefinitionEntityType.CreateAnnotations(gameServerConfigurationGameMapDefinition);
             GensAbuseEntityType.CreateAnnotations(gensAbuse);
             GensMemberEntityType.CreateAnnotations(gensMember);
+            GroundItemDeliveryEntityType.CreateAnnotations(groundItemDelivery);
             GuildChatBindingEntityType.CreateAnnotations(guildChatBinding);
             ItemEntityType.CreateAnnotations(item);
             ItemAppearanceEntityType.CreateAnnotations(itemAppearance);
@@ -132,6 +139,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
             ItemDropItemGroupItemDefinitionEntityType.CreateAnnotations(itemDropItemGroupItemDefinition);
             ItemItemOfItemSetEntityType.CreateAnnotations(itemItemOfItemSet);
             ItemOptionLinkEntityType.CreateAnnotations(itemOptionLink);
+            ItemStorageEntityType.CreateAnnotations(itemStorage);
             LetterBodyEntityType.CreateAnnotations(letterBody);
             LetterHeaderEntityType.CreateAnnotations(letterHeader);
             MasterSkillDefinitionSkillEntityType.CreateAnnotations(masterSkillDefinitionSkill);

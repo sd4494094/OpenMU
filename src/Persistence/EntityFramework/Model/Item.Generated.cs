@@ -94,6 +94,32 @@ internal partial class Item : MUnique.OpenMU.DataModel.Entities.Item, IIdentifia
         }
     }
 
+    /// <summary>
+    /// Gets or sets the identifier of <see cref="GroundDelivery"/>.
+    /// </summary>
+    public Guid? GroundDeliveryId { get; set; }
+
+    /// <summary>
+    /// Gets the raw object of <see cref="GroundDelivery" />.
+    /// </summary>
+    [ForeignKey(nameof(GroundDeliveryId))]
+    public GroundItemDelivery RawGroundDelivery
+    {
+        get => base.GroundDelivery as GroundItemDelivery;
+        set => base.GroundDelivery = value;
+    }
+
+    /// <inheritdoc/>
+    [NotMapped]
+    public override MUnique.OpenMU.DataModel.Entities.GroundItemDelivery GroundDelivery
+    {
+        get => base.GroundDelivery;set
+        {
+            base.GroundDelivery = value;
+            this.GroundDeliveryId = this.RawGroundDelivery?.Id;
+        }
+    }
+
     /// <inheritdoc />
     public override MUnique.OpenMU.DataModel.Entities.Item Clone(MUnique.OpenMU.DataModel.Configuration.GameConfiguration gameConfiguration)
     {

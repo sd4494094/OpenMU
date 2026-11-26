@@ -5,6 +5,7 @@
 namespace MUnique.OpenMU.GameLogic.NPC;
 
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyInjection;
 using MUnique.OpenMU.GameLogic.Aria;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.NPC;
@@ -26,7 +27,14 @@ public class CreatorGoddessNpcPlugIn : NpcTalkPlugInBase
     private readonly IAriaChatService? _chatService;
 
     /// <summary>Initializes a new instance of the <see cref="CreatorGoddessNpcPlugIn"/> class.</summary>
-    /// <param name="chatService">The optional, separately enabled AI conversation integration.</param>
+    public CreatorGoddessNpcPlugIn()
+        : this(null)
+    {
+    }
+
+    /// <summary>Initializes a new instance of the <see cref="CreatorGoddessNpcPlugIn"/> class with the optional AI conversation integration.</summary>
+    /// <param name="chatService">The separately enabled AI conversation integration.</param>
+    [ActivatorUtilitiesConstructor]
     public CreatorGoddessNpcPlugIn(IAriaChatService? chatService = null)
     {
         this._chatService = chatService;

@@ -103,7 +103,7 @@ public class CompiledModelTests
         return model.GetEntityTypes()
             .SelectMany(entityType => new[] { $"{entityType.Name} : {entityType.BaseType?.Name}" }
                 .Concat(entityType.GetDeclaredProperties().Select(p =>
-                    $"{entityType.Name}.{p.Name}: {p.ClrType}, nullable: {p.IsNullable}, max length: {p.GetMaxLength()}, generated: {p.ValueGenerated}, generator: {GetValueGeneratorType(p)}"))
+                    $"{entityType.Name}.{p.Name}: {p.ClrType}, nullable: {p.IsNullable}, max length: {p.GetMaxLength()}, generated: {p.ValueGenerated}, concurrency: {p.IsConcurrencyToken}, generator: {GetValueGeneratorType(p)}"))
                 .Concat(entityType.GetDeclaredKeys().Select(k =>
                     $"{entityType.Name} key ({Names(k.Properties)}), primary: {k.IsPrimaryKey()}"))
                 .Concat(entityType.GetDeclaredForeignKeys().Select(fk =>

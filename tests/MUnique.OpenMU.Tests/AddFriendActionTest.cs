@@ -4,11 +4,13 @@
 
 namespace MUnique.OpenMU.Tests;
 
+using System.Globalization;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.PlayerActions.Messenger;
+using MUnique.OpenMU.GameLogic.Properties;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameServer;
 using MUnique.OpenMU.Interfaces;
@@ -30,11 +32,13 @@ public class AddFriendActionTest
     {
         var friendServer = new Mock<IFriendServer>();
         var player = await CreatePlayerAsync(friendServer.Object, "Existing").ConfigureAwait(false);
+        player.Culture = CultureInfo.GetCultureInfo("en");
 
         await new AddFriendAction().AddFriendAsync(player, "Nobody").ConfigureAwait(false);
 
         friendServer.Verify(f => f.FriendRequestAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-        Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMessagePlugIn>()!).Verify(v => v!.ShowMessageAsync("Character 'Nobody' not found.", MessageType.BlueNormal), Times.Once);
+        var expectedMessage = player.GetLocalizedMessage(nameof(PlayerMessage.CharacterNotFound), "Nobody");
+        Mock.Get(player.ViewPlugIns.GetPlugIn<IShowMessagePlugIn>()!).Verify(v => v!.ShowMessageAsync(expectedMessage, MessageType.BlueNormal), Times.Once);
     }
 
     /// <summary>

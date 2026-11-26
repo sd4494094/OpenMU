@@ -24,10 +24,10 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.Item",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item),
                 baseEntityType,
-                propertyCount: 12,
-                navigationCount: 5,
-                foreignKeyCount: 3,
-                unnamedIndexCount: 3,
+                propertyCount: 13,
+                navigationCount: 6,
+                foreignKeyCount: 4,
+                unnamedIndexCount: 4,
                 keyCount: 1);
 
             var id = runtimeEntityType.AddProperty(
@@ -56,6 +56,15 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.Item).GetField("<Durability>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 sentinel: 0.0);
             durability.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var groundDeliveryId = runtimeEntityType.AddProperty(
+                "GroundDeliveryId",
+                typeof(Guid?),
+                propertyInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item).GetProperty("GroundDeliveryId", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item).GetField("<GroundDeliveryId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true,
+                concurrencyToken: true);
+            groundDeliveryId.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var hasSkill = runtimeEntityType.AddProperty(
                 "HasSkill",
@@ -137,9 +146,13 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 new[] { definitionId });
 
             var index0 = runtimeEntityType.AddIndex(
-                new[] { itemStorageId });
+                new[] { groundDeliveryId },
+                unique: true);
 
             var index1 = runtimeEntityType.AddIndex(
+                new[] { itemStorageId });
+
+            var index2 = runtimeEntityType.AddIndex(
                 new[] { storePriceItemDefinitionId });
 
             return runtimeEntityType;
@@ -162,6 +175,23 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
 
         public static RuntimeForeignKey CreateForeignKey2(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
         {
+            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("GroundDeliveryId") },
+                principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
+                principalEntityType,
+                deleteBehavior: DeleteBehavior.Restrict,
+                unique: true);
+
+            var rawGroundDelivery = declaringEntityType.AddNavigation("RawGroundDelivery",
+                runtimeForeignKey,
+                onDependent: true,
+                typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery),
+                propertyInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Item).GetProperty("RawGroundDelivery", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+
+            return runtimeForeignKey;
+        }
+
+        public static RuntimeForeignKey CreateForeignKey3(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
+        {
             var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("ItemStorageId") },
                 principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
                 principalEntityType,
@@ -183,7 +213,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             return runtimeForeignKey;
         }
 
-        public static RuntimeForeignKey CreateForeignKey3(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
+        public static RuntimeForeignKey CreateForeignKey4(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
         {
             var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("StorePriceItemDefinitionId") },
                 principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),

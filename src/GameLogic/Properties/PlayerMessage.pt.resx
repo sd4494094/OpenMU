@@ -1171,4 +1171,262 @@ Extensões de inventário: {18}</value>
   <data name="MiniGameTicketRequired" xml:space="preserve">
     <value>Você precisa de um ingresso para entrar neste evento.</value>
   </data>
+  <data name="AdvisorAgility" xml:space="preserve">
+    <value>Agilidade</value>
+  </data>
+  <data name="AdvisorAllocate" xml:space="preserve">
+    <value>Distribuir {0}</value>
+  </data>
+  <data name="AdvisorAllocationNotice" xml:space="preserve">
+    <value>Informe os pontos a adicionar, não um valor final. Apenas um atributo por solicitação; sem custo em Zen.</value>
+  </data>
+  <data name="AdvisorAlreadyApplied" xml:space="preserve">
+    <value>Esta distribuição já foi processada. Ela não foi aplicada novamente.</value>
+  </data>
+  <data name="AdvisorApplied" xml:space="preserve">
+    <value>O aumento do atributo foi concluído e salvo. Os valores abaixo são os valores atuais do servidor.</value>
+  </data>
+  <data name="AdvisorAppliedSavePending" xml:space="preserve">
+    <value>Distribuição concluída, mas o salvamento está pendente. Não repita a distribuição; contate um administrador.</value>
+  </data>
+  <data name="AdvisorAttribute" xml:space="preserve">
+    <value>Atributo</value>
+  </data>
+  <data name="AdvisorAvailable" xml:space="preserve">
+    <value>Pontos disponíveis</value>
+  </data>
+  <data name="AdvisorBack" xml:space="preserve">
+    <value>Voltar</value>
+  </data>
+  <data name="AdvisorClear" xml:space="preserve">
+    <value>Limpar</value>
+  </data>
+  <data name="AdvisorConfirmAllocation" xml:space="preserve">
+    <value>Confirmar distribuição</value>
+  </data>
+  <data name="AdvisorConfirmReset" xml:space="preserve">
+    <value>Confirmar redefinição de atributos</value>
+  </data>
+  <data name="AdvisorCurrent" xml:space="preserve">
+    <value>Valor base</value>
+  </data>
+  <data name="AdvisorEnergy" xml:space="preserve">
+    <value>Energia</value>
+  </data>
+  <data name="AdvisorExpired" xml:space="preserve">
+    <value>Esta confirmação é inválida ou expirou. Volte e solicite uma nova prévia.</value>
+  </data>
+  <data name="AdvisorHomeNotice" xml:space="preserve">
+    <value>Escolha uma redefinição de atributos ou um atributo para distribuir pontos.</value>
+  </data>
+  <data name="AdvisorIncrease" xml:space="preserve">
+    <value>Aumentar em</value>
+  </data>
+  <data name="AdvisorInsufficientPoints" xml:space="preserve">
+    <value>Informe pelo menos um ponto, sem exceder seus pontos normais disponíveis. Nenhum ponto foi distribuído.</value>
+  </data>
+  <data name="AdvisorInvalidAllocation" xml:space="preserve">
+    <value>Aumente apenas um atributo compatível por solicitação, dentro do limite. Nenhum ponto foi distribuído.</value>
+  </data>
+  <data name="AdvisorInvalidInput" xml:space="preserve">
+    <value>Informe números inteiros não negativos, dentro do saldo disponível e dos limites dos atributos.</value>
+  </data>
+  <data name="AdvisorLeadership" xml:space="preserve">
+    <value>Liderança</value>
+  </data>
+  <data name="AdvisorLeave" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  <data name="AdvisorNext" xml:space="preserve">
+    <value>Próximo</value>
+  </data>
+  <data name="AdvisorRemaining" xml:space="preserve">
+    <value>Pontos restantes</value>
+  </data>
+  <data name="AdvisorReset" xml:space="preserve">
+    <value>Redefinir atributos</value>
+  </data>
+  <data name="AdvisorResetEquipment" xml:space="preserve">
+    <value>Remova todos os equipamentos antes de confirmar. Os atributos voltam aos valores base da classe.</value>
+  </data>
+  <data name="AdvisorResetItem" xml:space="preserve">
+    <value>Item necessário: {0} x1.</value>
+  </data>
+  <data name="AdvisorResetNotice" xml:space="preserve">
+    <value>Apenas Confirmar redefinição de atributos cobra o custo e realiza a redefinição. Voltar ou Sair não tem custo.</value>
+  </data>
+  <data name="AdvisorResetRefund" xml:space="preserve">
+    <value>Devolução: {0} pontos investidos; pontos não gastos após a redefinição: {1}. O nível e a contagem de resets permanecem iguais.</value>
+  </data>
+  <data name="AdvisorResetRequirements" xml:space="preserve">
+    <value>Nível necessário: {0}; custo: {1} Zen.</value>
+  </data>
+  <data name="AdvisorResult" xml:space="preserve">
+    <value>Após a distribuição</value>
+  </data>
+  <data name="AdvisorStateChanged" xml:space="preserve">
+    <value>Seu personagem ou as regras mudaram após a prévia. Volte e revise uma nova prévia. Nada foi aplicado.</value>
+  </data>
+  <data name="AdvisorStrength" xml:space="preserve">
+    <value>Força</value>
+  </data>
+  <data name="AdvisorTotal" xml:space="preserve">
+    <value>Aumento total</value>
+  </data>
+  <data name="AdvisorVitality" xml:space="preserve">
+    <value>Vitalidade</value>
+  </data>
+  <data name="AdvisorWaiting" xml:space="preserve">
+    <value>Processando…</value>
+  </data>
+  <data name="AriaBusy" xml:space="preserve">
+    <value>Aguarde Aria terminar de responder antes de perguntar novamente.</value>
+  </data>
+  <data name="AriaFailure" xml:space="preserve">
+    <value>A conexão foi interrompida. Pergunte novamente em instantes.</value>
+  </data>
+  <data name="AriaForgotten" xml:space="preserve">
+    <value>Seu histórico de conversa e a memória de Aria sobre você foram apagados.</value>
+  </data>
+  <data name="AriaInvalidQuestion" xml:space="preserve">
+    <value>Entre no mundo e digite uma pergunta curta.</value>
+  </data>
+  <data name="AriaQuestionEcho" xml:space="preserve">
+    <value>Para Aria: {0}</value>
+  </data>
+  <data name="AriaSender" xml:space="preserve">
+    <value>Aria</value>
+  </data>
+  <data name="AriaUnavailable" xml:space="preserve">
+    <value>Aria está descansando. Tente novamente mais tarde.</value>
+  </data>
+  <data name="AriaUsage" xml:space="preserve">
+    <value>Use /Aria seguido de uma pergunta; /Aria forget apaga sua memória.</value>
+  </data>
+  <data name="CastleSiegeGuildRegistrationOpen" xml:space="preserve">
+    <value>As inscrições de guilds para Castle Siege estão abertas.</value>
+  </data>
+  <data name="CastleSiegeInProgress" xml:space="preserve">
+    <value>Castle Siege está em andamento.</value>
+  </data>
+  <data name="CastleSiegeMarkRegistrationOpen" xml:space="preserve">
+    <value>O registro de marcas para Castle Siege está aberto.</value>
+  </data>
+  <data name="CastleSiegePreparationsInProgress" xml:space="preserve">
+    <value>Os preparativos para Castle Siege estão em andamento.</value>
+  </data>
+  <data name="CastleSiegeStartsInMinutes" xml:space="preserve">
+    <value>Castle Siege começa em {0} minuto(s).</value>
+  </data>
+  <data name="CreatorGoddessAiGreeting" xml:space="preserve">
+    <value>Que a criação ilumine sua jornada. Fale comigo usando /Aria e sua pergunta.</value>
+  </data>
+  <data name="CreatorGoddessGreeting" xml:space="preserve">
+    <value>Que a luz da criação guie sua jornada.</value>
+  </data>
+  <data name="ItemRegistrationMissingItem" xml:space="preserve">
+    <value>Você não tem o item necessário no inventário.</value>
+  </data>
+  <data name="ItemRegistrationMoneyLimit" xml:space="preserve">
+    <value>Você atingiu o limite máximo de Zen no inventário.</value>
+  </data>
+  <data name="ItemRegistrationProgress" xml:space="preserve">
+    <value>Itens registrados: {0}/{1}.</value>
+  </data>
+  <data name="ItemRegistrationRewardClaimed" xml:space="preserve">
+    <value>Itens registrados: {0}/{0}! Recompensa recebida.</value>
+  </data>
+  <data name="ItemRegistrationTotal" xml:space="preserve">
+    <value>Total de itens registrados: {0}.</value>
+  </data>
+  <data name="ItemRegistrationUnavailable" xml:space="preserve">
+    <value>O registro neste NPC ainda não está disponível. Ele poderá ser ampliado no futuro.</value>
+  </data>
+  <data name="LevelingWarpChanged" xml:space="preserve">
+    <value>O menu de teleporte mudou ou expirou. Fale com o guia novamente.</value>
+  </data>
+  <data name="LevelingWarpClose" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  <data name="LevelingWarpLevel" xml:space="preserve">
+    <value>Nível</value>
+  </data>
+  <data name="LevelingWarpRequirements" xml:space="preserve">
+    <value>Você não atende aos requisitos de teleporte ou o destino está indisponível.</value>
+  </data>
+  <data name="LevelingWarpTitle" xml:space="preserve">
+    <value>Destinos para evoluir</value>
+  </data>
+  <data name="LevelingWarpUnavailable" xml:space="preserve">
+    <value>Este serviço de teleporte está indisponível para seu personagem ou cliente.</value>
+  </data>
+  <data name="LevelingWarpZen" xml:space="preserve">
+    <value>Zen</value>
+  </data>
+  <data name="NpcAllQuestsCompleted" xml:space="preserve">
+    <value>Não tenho mais tarefas para você. Você já concluiu todas as minhas missões.</value>
+  </data>
+  <data name="NpcAlreadyInGuild" xml:space="preserve">
+    <value>Você já pertence a uma guild</value>
+  </data>
+  <data name="NpcGuildMinimumLevel" xml:space="preserve">
+    <value>Seu nível deve ser pelo menos {0}</value>
+  </data>
+  <data name="NpcNoQuests" xml:space="preserve">
+    <value>Não tenho missões para você.</value>
+  </data>
+  <data name="NpcQuestLevelTooLow" xml:space="preserve">
+    <value>Não tenho tarefas para você. Volte quando estiver mais forte.</value>
+  </data>
+  <data name="RemoveEquipmentForStatReset" xml:space="preserve">
+    <value>Remova todos os itens equipados antes de redefinir seus pontos de atributo.</value>
+  </data>
+  <data name="ResetNpcApply" xml:space="preserve">
+    <value>Solicitar reset</value>
+  </data>
+  <data name="ResetNpcConfirm" xml:space="preserve">
+    <value>Confirmar reset</value>
+  </data>
+  <data name="ResetNpcConfirmationNotice" xml:space="preserve">
+    <value>Consultar e solicitar são gratuitos. Apenas Confirmar reset realiza o reset.</value>
+  </data>
+  <data name="ResetNpcItems" xml:space="preserve">
+    <value>{0} necessários: {1}; em posse: {2}.</value>
+  </data>
+  <data name="ResetNpcLeave" xml:space="preserve">
+    <value>Sair</value>
+  </data>
+  <data name="ResetNpcLimit" xml:space="preserve">
+    <value>Limite de resets: {0}.</value>
+  </data>
+  <data name="ResetNpcLogout" xml:space="preserve">
+    <value>Retorna à seleção de personagem.</value>
+  </data>
+  <data name="ResetNpcMoney" xml:space="preserve">
+    <value>Zen necessário: {0}; em posse: {1}.</value>
+  </data>
+  <data name="ResetNpcMoveHome" xml:space="preserve">
+    <value>Retorna ao ponto de nascimento da sua cidade inicial.</value>
+  </data>
+  <data name="ResetNpcNext" xml:space="preserve">
+    <value>Próximo reset: {0}. Nível: {1}; necessário: {2}.</value>
+  </data>
+  <data name="ResetNpcQuery" xml:space="preserve">
+    <value>Consultar requisitos de reset</value>
+  </data>
+  <data name="ResetNpcQueryRefreshed" xml:space="preserve">
+    <value>Requisitos de reset atualizados. Nenhum reset foi realizado.</value>
+  </data>
+  <data name="ResetNpcResult" xml:space="preserve">
+    <value>Nível após o reset: {0}. Recompensa: {1} pontos; total disponível: {2}.</value>
+  </data>
+  <data name="ResetNpcReviewConfirmation" xml:space="preserve">
+    <value>Revise as condições abaixo e escolha Confirmar reset para continuar.</value>
+  </data>
+  <data name="ResetNpcStatsKept" xml:space="preserve">
+    <value>Os atributos distribuídos são mantidos.</value>
+  </data>
+  <data name="ResetNpcStatsReset" xml:space="preserve">
+    <value>Os atributos distribuídos voltam aos valores padrão da classe.</value>
+  </data>
 </root>

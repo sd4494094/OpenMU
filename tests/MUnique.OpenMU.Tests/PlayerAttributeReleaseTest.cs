@@ -33,6 +33,10 @@ public class PlayerAttributeReleaseTest
 
         var playerReference = await CreateAndDisposePlayerWithItemPowerUpAsync(configurationElement).ConfigureAwait(false);
 
+        // A completed ValueTask can resume this test inline while the helper's
+        // player local is still on its completion stack. Unwind that stack before
+        // checking heap reachability; keep the original collection assertion.
+        await Task.CompletedTask.ConfigureAwait(ConfigureAwaitOptions.ForceYielding);
         CollectibleAssert.IsCollected(playerReference, "disposed player");
         GC.KeepAlive(configurationElement);
     }

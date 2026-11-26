@@ -1119,6 +1119,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.Property<byte>("PositionY")
                         .HasColumnType("smallint");
 
+                    b.Property<Guid?>("RecoveryStorageId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("State")
                         .HasColumnType("integer");
 
@@ -1146,6 +1149,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                         .IsUnique();
 
                     b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("RecoveryStorageId")
                         .IsUnique();
 
                     b.ToTable("Character", "data");
@@ -2125,6 +2131,48 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.ToTable("GensMember", "data");
                 });
 
+            modelBuilder.Entity("MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("DroppedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HostServerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MapDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("MapInstanceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("OwnerCharacterId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("OwnerPriorityUntil")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<byte>("PositionX")
+                        .HasColumnType("smallint");
+
+                    b.Property<byte>("PositionY")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HostServerId", "ExpiresAt");
+
+                    b.HasIndex("HostServerId", "MapDefinitionId", "MapInstanceId", "ExpiresAt");
+
+                    b.ToTable("GroundItemDelivery", "data");
+                });
+
             modelBuilder.Entity("MUnique.OpenMU.Persistence.EntityFramework.Model.Guild", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2276,6 +2324,10 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.Property<double>("Durability")
                         .HasColumnType("double precision");
 
+                    b.Property<Guid?>("GroundDeliveryId")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("HasSkill")
                         .HasColumnType("boolean");
 
@@ -2306,6 +2358,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DefinitionId");
+
+                    b.HasIndex("GroundDeliveryId")
+                        .IsUnique();
 
                     b.HasIndex("ItemStorageId");
 
@@ -5040,11 +5095,18 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                         .HasForeignKey("MUnique.OpenMU.Persistence.EntityFramework.Model.Character", "InventoryId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("MUnique.OpenMU.Persistence.EntityFramework.Model.ItemStorage", "RawRecoveryStorage")
+                        .WithOne()
+                        .HasForeignKey("MUnique.OpenMU.Persistence.EntityFramework.Model.Character", "RecoveryStorageId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("RawCharacterClass");
 
                     b.Navigation("RawCurrentMap");
 
                     b.Navigation("RawInventory");
+
+                    b.Navigation("RawRecoveryStorage");
                 });
 
             modelBuilder.Entity("MUnique.OpenMU.Persistence.EntityFramework.Model.CharacterClass", b =>
@@ -5477,6 +5539,11 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                         .WithMany()
                         .HasForeignKey("DefinitionId");
 
+                    b.HasOne("MUnique.OpenMU.Persistence.EntityFramework.Model.GroundItemDelivery", "RawGroundDelivery")
+                        .WithOne()
+                        .HasForeignKey("MUnique.OpenMU.Persistence.EntityFramework.Model.Item", "GroundDeliveryId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("MUnique.OpenMU.Persistence.EntityFramework.Model.ItemStorage", "RawItemStorage")
                         .WithMany("RawItems")
                         .HasForeignKey("ItemStorageId")
@@ -5487,6 +5554,8 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                         .HasForeignKey("StorePriceItemDefinitionId");
 
                     b.Navigation("RawDefinition");
+
+                    b.Navigation("RawGroundDelivery");
 
                     b.Navigation("RawItemStorage");
 

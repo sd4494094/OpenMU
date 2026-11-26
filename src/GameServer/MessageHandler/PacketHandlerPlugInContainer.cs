@@ -123,7 +123,14 @@ public class PacketHandlerPlugInContainer<THandler> : StrategyPlugInProvider<byt
             return;
         }
 
-        await handler.HandlePacketAsync(player, packet).ConfigureAwait(false);
+        if (handler.HandlesOwnPersistenceSynchronization)
+        {
+            await handler.HandlePacketAsync(player, packet).ConfigureAwait(false);
+        }
+        else
+        {
+            await player.RunPersistenceExclusiveAsync(() => handler.HandlePacketAsync(player, packet)).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc/>

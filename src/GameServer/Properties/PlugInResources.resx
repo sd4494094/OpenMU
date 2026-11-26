@@ -2791,4 +2791,10 @@
   </data>
   <data name="ShowStatAdvisor_Name" xml:space="preserve"><value>Stat advisor dialog</value></data>
   <data name="ShowStatAdvisor_Description" xml:space="preserve"><value>Sends stat reset confirmations and allocation forms to clients which request the extended workflow.</value></data>
+  <data name="CharacterInventoryRequestPacketHandlerPlugIn_Name" xml:space="preserve">
+    <value>Character - Inventory refresh</value>
+  </data>
+  <data name="CharacterInventoryRequestPacketHandlerPlugIn_Description" xml:space="preserve">
+    <value>Handles encrypted character inventory refresh requests (0xF3, 0x10).</value>
+  </data>
 </root>

@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -22,8 +23,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Account),
                 baseEntityType,
                 propertyCount: 19,
-                navigationCount: 4,
-                unnamedIndexCount: 1,
+                navigationCount: 5,
+                foreignKeyCount: 1,
+                unnamedIndexCount: 2,
                 keyCount: 1);
 
             var id = runtimeEntityType.AddProperty(
@@ -187,7 +189,28 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForTradeCont
                 new[] { loginName },
                 unique: true);
 
+            var index0 = runtimeEntityType.AddIndex(
+                new[] { vaultId },
+                unique: true);
+
             return runtimeEntityType;
+        }
+
+        public static RuntimeForeignKey CreateForeignKey1(RuntimeEntityType declaringEntityType, RuntimeEntityType principalEntityType)
+        {
+            var runtimeForeignKey = declaringEntityType.AddForeignKey(new[] { declaringEntityType.FindProperty("VaultId") },
+                principalEntityType.FindKey(new[] { principalEntityType.FindProperty("Id") }),
+                principalEntityType,
+                deleteBehavior: DeleteBehavior.Cascade,
+                unique: true);
+
+            var rawVault = declaringEntityType.AddNavigation("RawVault",
+                runtimeForeignKey,
+                onDependent: true,
+                typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.ItemStorage),
+                propertyInfo: typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.Account).GetProperty("RawVault", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+
+            return runtimeForeignKey;
         }
 
         public static void CreateAnnotations(RuntimeEntityType runtimeEntityType)

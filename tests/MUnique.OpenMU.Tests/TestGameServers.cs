@@ -30,6 +30,7 @@ internal static class TestGameServers
         return new GameServer(
             new BasicModel.GameServerDefinition
             {
+                Id = Guid.NewGuid(),
                 ServerID = 1,
                 GameConfiguration = gameConfiguration,
                 ServerConfiguration = new BasicModel.GameServerConfiguration(),

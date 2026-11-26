@@ -181,6 +181,24 @@ public partial class Character : MUnique.OpenMU.DataModel.Entities.Character, II
         set => base.Inventory = value;
     }
 
+    /// <summary>
+    /// Gets the raw object of <see cref="RecoveryStorage" />.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("recoveryStorage")]
+    public ItemStorage RawRecoveryStorage
+    {
+        get => base.RecoveryStorage as ItemStorage;
+        set => base.RecoveryStorage = value;
+    }
+
+    /// <inheritdoc/>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public override MUnique.OpenMU.DataModel.Entities.ItemStorage RecoveryStorage
+    {
+        get => base.RecoveryStorage;
+        set => base.RecoveryStorage = value;
+    }
+
 
     /// <inheritdoc/>
     public override bool Equals(object obj)

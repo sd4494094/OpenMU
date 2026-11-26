@@ -97,6 +97,7 @@ internal sealed class BasicModelConverter
             Gate value => this.Convert(value),
             GensAbuse value => this.Convert(value),
             GensMember value => this.Convert(value),
+            GroundItemDelivery value => this.Convert(value),
             GuildChatBinding value => this.Convert(value),
             GuildMember value => this.Convert(value),
             Item value => this.Convert(value),
@@ -851,6 +852,7 @@ internal sealed class BasicModelConverter
         }
 
         target.Inventory = (MUnique.OpenMU.DataModel.Entities.ItemStorage)this.ConvertObject(source.Inventory)!;
+        target.RecoveryStorage = (MUnique.OpenMU.DataModel.Entities.ItemStorage)this.ConvertObject(source.RecoveryStorage)!;
         if (source.DropItemGroups is { } dropItemGroupsItems)
         {
             foreach (var item in dropItemGroupsItems)
@@ -1698,6 +1700,28 @@ internal sealed class BasicModelConverter
         return target;
     }
 
+    private BasicModel.GroundItemDelivery Convert(GroundItemDelivery source)
+    {
+        if (this._converted.TryGetValue(source, out var converted))
+        {
+            return (BasicModel.GroundItemDelivery)converted;
+        }
+
+        var target = new BasicModel.GroundItemDelivery();
+        this._converted.Add(source, target);
+        target.Id = source.Id;
+        target.HostServerId = source.HostServerId;
+        target.MapDefinitionId = source.MapDefinitionId;
+        target.MapInstanceId = source.MapInstanceId;
+        target.OwnerCharacterId = source.OwnerCharacterId;
+        target.PositionX = source.PositionX;
+        target.PositionY = source.PositionY;
+        target.DroppedAt = source.DroppedAt;
+        target.OwnerPriorityUntil = source.OwnerPriorityUntil;
+        target.ExpiresAt = source.ExpiresAt;
+        return target;
+    }
+
     private BasicModel.Guild Convert(Guild source)
     {
         if (this._converted.TryGetValue(source, out var converted))
@@ -1824,6 +1848,7 @@ internal sealed class BasicModelConverter
         target.StorePriceItemDefinition = (MUnique.OpenMU.DataModel.Configuration.Items.ItemDefinition)this.ConvertObject(source.StorePriceItemDefinition)!;
         target.StorePriceCoinType = source.StorePriceCoinType;
         target.PetExperience = source.PetExperience;
+        target.GroundDelivery = (MUnique.OpenMU.DataModel.Entities.GroundItemDelivery)this.ConvertObject(source.GroundDelivery)!;
         return target;
     }
 

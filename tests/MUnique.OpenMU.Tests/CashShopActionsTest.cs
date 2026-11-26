@@ -5,8 +5,10 @@
 namespace MUnique.OpenMU.Tests;
 
 using System.ComponentModel;
+using System.IO;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Entities;
@@ -15,6 +17,7 @@ using MUnique.OpenMU.GameLogic.CashShop;
 using MUnique.OpenMU.GameLogic.PlayerActions.CashShop;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views.CashShop;
+using MUnique.OpenMU.GameLogic.Views.Inventory;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.Persistence;
 using BasicModel = MUnique.OpenMU.Persistence.BasicModel;
@@ -468,6 +471,63 @@ public class CashShopActionsTest
     }
 
     /// <summary>
+    /// Two senders which pass the preliminary capacity check must not both fill the last free slots.
+    /// </summary>
+    [Test]
+    public async Task ConcurrentGiftsRespectRecipientStorageCapacityAsync()
+    {
+        var first = await this.CreateOpenedCashShopPlayerAsync(new CashShopSettings { MaximumStorageItems = 2 }).ConfigureAwait(false);
+        var second = await PlayerTestHelper.CreatePlayerAsync(first.GameContext).ConfigureAwait(false);
+        await second.PlayerState.TryAdvanceToAsync(PlayerState.EnteredWorld).ConfigureAwait(false);
+        second.CurrentMap!.Terrain.SafezoneMap[second.Position.X, second.Position.Y] = true;
+        await this._actions.OpenAsync(second).ConfigureAwait(false);
+        first.Account = first.PersistenceContext.CreateNew<Account>();
+        second.Account = second.PersistenceContext.CreateNew<Account>();
+        first.Account.GoblinPoints = 1000;
+        second.Account.GoblinPoints = 1000;
+        second.SelectedCharacter!.Name = "Second";
+        var recipient = await CreateRecipientAsync(first).ConfigureAwait(false);
+        var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var calls = 0;
+        var buyingPlugIn = new Mock<ICashShopPackageBuyingPlugIn>();
+        buyingPlugIn.Setup(p => p.PackageBuyingAsync(It.IsAny<Player>(), It.IsAny<CashShopPackage>(), It.IsAny<IReadOnlyCollection<CashShopProduct>>(), It.IsAny<string?>(), It.IsAny<CancelEventArgs>()))
+            .Returns(async () =>
+            {
+                if (Interlocked.Increment(ref calls) == 2)
+                {
+                    entered.TrySetResult();
+                }
+
+                await release.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            });
+        first.GameContext.PlugInManager.RegisterPlugInAtPlugInPoint(buyingPlugIn.Object);
+        var gifts = new[]
+        {
+            this._actions.GiftAsync(first, BundlePackage, 0, CashShopCoinType.GoblinPoints, RecipientName, string.Empty).AsTask(),
+            this._actions.GiftAsync(second, BundlePackage, 0, CashShopCoinType.GoblinPoints, RecipientName, string.Empty).AsTask(),
+        };
+        try
+        {
+            await entered.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+        }
+        finally
+        {
+            release.TrySetResult();
+            await Task.WhenAll(gifts).WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+        }
+
+        var storage = await first.PersistenceContext.GetCashShopStorageItemsAsync(recipient).ConfigureAwait(false);
+        Assert.That(storage, Has.Count.EqualTo(2), "Only one two-product bundle fits.");
+        Assert.That(first.Account.GoblinPoints + second.Account.GoblinPoints, Is.EqualTo(1920));
+        var results = new[] { first, second }
+            .SelectMany(player => GetView(player).Invocations)
+            .Where(call => call.Method.Name == nameof(ICashShopViewPlugIn.ShowGiftResultAsync))
+            .Select(call => (CashShopGiftResult)call.Arguments[0]);
+        Assert.That(results, Is.EquivalentTo(new[] { CashShopGiftResult.Success, CashShopGiftResult.RecipientStorageFull }));
+    }
+
+    /// <summary>
     /// Tests that gifts can be deactivated, and that gifts to the own account can be refused.
     /// </summary>
     [Test]
@@ -563,22 +623,69 @@ public class CashShopActionsTest
     }
 
     /// <summary>
-    /// Tests that a storage item can't be used twice when the save after its use fails. The database still
-    /// contains it until the next save succeeds.
+    /// A failed or unconfirmed claim save must not acknowledge delivery or leave a playable session.
     /// </summary>
-    [Test]
-    public async Task UsedItemIsSkippedWhenTheSaveFailsAsync()
+    /// <param name="returnsFalse">Whether saving returns false instead of throwing.</param>
+    /// <param name="viewFails">Whether sending the failure result also throws.</param>
+    [TestCase(false, false)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    [TestCase(true, true)]
+    public async Task FailedClaimSaveDisconnectsWithoutAcknowledgingDeliveryAsync(bool returnsFalse, bool viewFails)
     {
         var player = await this.CreateOpenedCashShopPlayerAsync().ConfigureAwait(false);
         await AddStorageItemAsync(player, player.Account!.GetId(), 11, isGift: false, DateTime.UtcNow, productSequence: 1).ConfigureAwait(false);
-        SaveFailingContext.Install(player, () => true);
+        var appearances = Mock.Get(player.ViewPlugIns.GetPlugIn<IItemAppearPlugIn>()!);
+        SaveFailingContext.Install(player, () => true, returnsFalse ? () => ValueTask.FromResult(false) : null);
+        if (viewFails)
+        {
+            GetView(player).Setup(v => v.ShowUseResultAsync(CashShopUseResult.SaveFailed))
+                .Returns(ValueTask.FromException(new IOException("The connection failed.")));
+        }
 
         await this._actions.UseStorageItemAsync(player, 0, 11).ConfigureAwait(false);
+
+        Assert.That(player.IsConnected, Is.False);
+        Assert.That(player.IsCashShopOpen, Is.False);
         await this._actions.UseStorageItemAsync(player, 0, 11).ConfigureAwait(false);
+
+        GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.SaveFailed), Times.Once);
+        GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.Success), Times.Never);
+        appearances.Verify(v => v.ItemAppearAsync(It.IsAny<Item>()), Times.Never);
+    }
+
+    /// <summary>
+    /// No successful result or item notification is sent until the save has completed successfully.
+    /// </summary>
+    [Test]
+    public async Task ClaimAcknowledgementWaitsForSuccessfulSaveAsync()
+    {
+        var player = await this.CreateOpenedCashShopPlayerAsync().ConfigureAwait(false);
+        await AddStorageItemAsync(player, player.Account!.GetId(), 11, isGift: false, DateTime.UtcNow, productSequence: 1).ConfigureAwait(false);
+        var appearances = Mock.Get(player.ViewPlugIns.GetPlugIn<IItemAppearPlugIn>()!);
+        var saving = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var release = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        SaveFailingContext.Install(player, () => true, async () =>
+        {
+            saving.TrySetResult();
+            return await release.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+        });
+        var claim = this._actions.UseStorageItemAsync(player, 0, 11).AsTask();
+        try
+        {
+            await saving.Task.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            GetView(player).Verify(v => v.ShowUseResultAsync(It.IsAny<CashShopUseResult>()), Times.Never);
+            appearances.Verify(v => v.ItemAppearAsync(It.IsAny<Item>()), Times.Never);
+        }
+        finally
+        {
+            release.TrySetResult(true);
+            await claim.WaitAsync(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+        }
 
         GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.Success), Times.Once);
-        GetView(player).Verify(v => v.ShowUseResultAsync(CashShopUseResult.ItemNotFound), Times.Once);
-        Assert.That(player.Inventory!.Items.Count(), Is.EqualTo(1));
+        appearances.Verify(v => v.ItemAppearAsync(It.IsAny<Item>()), Times.Once);
+        Assert.That(player.IsConnected, Is.True);
     }
 
     /// <summary>
@@ -706,17 +813,21 @@ public class CashShopActionsTest
 
         private Func<bool> _saveFails = null!;
 
+        private Func<ValueTask<bool>>? _save;
+
         /// <summary>
         /// Replaces the persistence context of the player by one whose save fails on demand.
         /// </summary>
         /// <param name="player">The player.</param>
         /// <param name="saveFails">Determines whether a save fails.</param>
-        public static void Install(Player player, Func<bool> saveFails)
+        /// <param name="save">An optional replacement for the failing save.</param>
+        public static void Install(Player player, Func<bool> saveFails, Func<ValueTask<bool>>? save = null)
         {
             var proxy = Create<IPlayerContext, SaveFailingContext>();
             var context = (SaveFailingContext)(object)proxy;
             context._inner = player.PersistenceContext;
             context._saveFails = saveFails;
+            context._save = save;
             typeof(Player).GetField($"<{nameof(Player.PersistenceContext)}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)!
                 .SetValue(player, proxy);
         }
@@ -724,8 +835,19 @@ public class CashShopActionsTest
         /// <inheritdoc />
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
-            if (targetMethod!.Name == nameof(IContext.SaveChangesAsync) && this._saveFails())
+            if (targetMethod!.Name == nameof(IPlayerContext.TrySaveCashShopPurchaseAsync) && this._saveFails())
             {
+                ((Action)args![4]!)();
+                throw new InvalidOperationException("The save failed.");
+            }
+
+            if (targetMethod.Name == nameof(IContext.SaveChangesAsync) && this._saveFails())
+            {
+                if (this._save is { } save)
+                {
+                    return save();
+                }
+
                 throw new InvalidOperationException("The save failed.");
             }
 

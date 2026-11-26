@@ -44,4 +44,7 @@ public class ShopStorage : Storage, IShopStorage
 
         return await base.AddItemAsync(slot, item).ConfigureAwait(false);
     }
+
+    /// <inheritdoc />
+    public ValueTask<bool> RestoreItemAsync(byte slot, Item item) => base.AddItemAsync(slot, item);
 }

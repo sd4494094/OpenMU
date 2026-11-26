@@ -4,9 +4,10 @@
 
 namespace MUnique.OpenMU.Persistence.Initialization.VersionSeasonSix;
 
-using System.Globalization;
+using System.Text.Json;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic.NPC;
+using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.Initialization.Updates;
 using MUnique.OpenMU.PlugIns;
@@ -33,12 +34,7 @@ public static class CreatorGoddessInitialization
             npc = context.CreateNew<MonsterDefinition>();
             npc.SetGuid(CreatorGoddessNpcPlugIn.NpcNumber);
             npc.Number = CreatorGoddessNpcPlugIn.NpcNumber;
-            var designation = LocalizedString.FromResource(() => Properties.MonsterNames.CreatorGoddessAria);
-
-            // Existing MuMain accounts use English on the wire while this deployment displays Chinese.
-            npc.Designation = designation.WithTranslation(
-                CultureInfo.GetCultureInfo("en"),
-                designation.GetTranslation(CultureInfo.GetCultureInfo("zh-CN")) ?? designation.ToString() ?? string.Empty);
+            npc.Designation = LocalizedString.FromResource(() => Properties.MonsterNames.CreatorGoddessAria);
             npc.ObjectKind = NpcObjectKind.PassiveNpc;
             npc.NpcWindow = NpcWindow.Undefined;
             configuration.Monsters.Add(npc);
@@ -65,10 +61,28 @@ public static class CreatorGoddessInitialization
             talk.SetGuid(typeId);
             talk.TypeId = typeId;
             talk.IsActive = true;
+            configuration.PlugInConfigurations.Add(talk);
+        }
+
+        // Fresh initialization discovers the talk plugin before the version-specific NPC exists.
+        // Fill its unassigned reference without replacing an owner's NPC or activation setting.
+        if (IsNpcUnassigned(talk.CustomConfiguration))
+        {
             talk.SetConfiguration(
                 new CreatorGoddessNpcPlugIn().CreateDefaultConfig(configuration),
                 new ConfigureNpcTalkPlugInsPlugInBase.IdReferenceHandler());
-            configuration.PlugInConfigurations.Add(talk);
         }
+    }
+
+    private static bool IsNpcUnassigned(string? customConfiguration)
+    {
+        if (string.IsNullOrEmpty(customConfiguration))
+        {
+            return true;
+        }
+
+        using var document = JsonDocument.Parse(customConfiguration);
+        return !document.RootElement.TryGetProperty(nameof(NpcTalkPlugInConfiguration.Npc), out var npc)
+               || npc.ValueKind == JsonValueKind.Null;
     }
 }

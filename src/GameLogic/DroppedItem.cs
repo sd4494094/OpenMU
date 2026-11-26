@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.GameLogic;
 using System.Threading;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.Pathfinding;
+using MUnique.OpenMU.Persistence;
 using Nito.AsyncEx;
 
 /// <summary>
@@ -21,7 +22,15 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
     /// </summary>
     private readonly AsyncLock _pickupLock = new();
 
-    private readonly DateTime _dropTimestamp = DateTime.UtcNow;
+    private readonly DateTime _ownerPriorityUntil;
+
+    private readonly DateTime _expiresAt;
+
+    private readonly Guid? _ownerCharacterId;
+
+    private readonly IGameContext? _persistenceHost;
+
+    private readonly Guid? _deliveryGeneration;
 
     /// <summary>
     /// Indicates if the item was persistent (exists on the database) when it was dropped.
@@ -35,7 +44,7 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
 
     private Timer? _removeTimer;
 
-    private bool _availableToPick = true;
+    private volatile bool _availableToPick = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DroppedItem" /> class.
@@ -59,6 +68,23 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
     /// <param name="owners">The owners.</param>
     /// <param name="wasItemPersisted">If set to <c>true</c>, the item was persisted before and exists on the database.</param>
     public DroppedItem(Item item, Point position, GameMap map, Player? dropper, IEnumerable<object>? owners, bool wasItemPersisted = false)
+        : this(item, position, map, dropper, owners, wasItemPersisted, dropper?.GameContext, false)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DroppedItem"/> class without starting its timer before map publication.
+    /// </summary>
+    /// <param name="item">The detached aggregate with its original delivery.</param>
+    /// <param name="map">The exact destination map and instance.</param>
+    /// <param name="host">The persistence host, also usable without an online owner.</param>
+    /// <param name="dropper">The online original owner, if available.</param>
+    internal DroppedItem(Item item, GameMap map, IGameContext host, Player? dropper)
+        : this(item, new Point(item.GroundDelivery!.PositionX, item.GroundDelivery.PositionY), map, dropper, null, true, host, true)
+    {
+    }
+
+    private DroppedItem(Item item, Point position, GameMap map, Player? dropper, IEnumerable<object>? owners, bool wasItemPersisted, IGameContext? host, bool deferExpiry)
     {
         this.Item = item;
         this.Position = position;
@@ -66,7 +92,17 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
         this._dropper = dropper;
         this._owners = owners;
         this._wasItemPersisted = wasItemPersisted;
-        this._removeTimer = new Timer(this.DisposeAndDelete, null, (int)map.ItemDropDuration.TotalMilliseconds, Timeout.Infinite);
+        this._persistenceHost = host;
+        var droppedAt = item.GroundDelivery?.DroppedAt ?? DateTime.UtcNow;
+        this._ownerPriorityUntil = item.GroundDelivery?.OwnerPriorityUntil ?? droppedAt.Add(TimeUntilDropIsFree);
+        this._expiresAt = item.GroundDelivery?.ExpiresAt ?? droppedAt.Add(map.ItemDropDuration);
+        this._ownerCharacterId = item.GroundDelivery?.OwnerCharacterId;
+        this._deliveryGeneration = item.GroundDelivery?.GetId();
+        this._removeTimer = new Timer(this.DisposeAndDelete, null, Timeout.Infinite, Timeout.Infinite);
+        if (!deferExpiry)
+        {
+            this.StartExpiry();
+        }
     }
 
     /// <summary>
@@ -88,7 +124,12 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
     /// <summary>
     /// Gets a value indicating whether the owner-pickup priority period is still active.
     /// </summary>
-    public bool IsOwnerPickupPriorityActive => DateTime.UtcNow < this._dropTimestamp.Add(TimeUntilDropIsFree);
+    public bool IsOwnerPickupPriorityActive => DateTime.UtcNow < this._ownerPriorityUntil;
+
+    /// <summary>
+    /// Gets the original priority duration used when staging a durable drop.
+    /// </summary>
+    internal static TimeSpan OwnerPickupPriorityDuration => TimeUntilDropIsFree;
 
     /// <summary>
     /// Tries to pick the item up by the specified player.
@@ -101,10 +142,70 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
     /// <remarks>
     /// Can be overwritten, for example, for quest items which dropped only for a specific player.
     /// </remarks>
-    public async ValueTask<(bool Success, Item? StackTarget)> TryPickUpByAsync(Player player)
+    public ValueTask<(bool Success, Item? StackTarget)> TryPickUpByAsync(Player player)
+        => player.RunPersistenceExclusiveAsync(() => this.TryPickUpCoreAsync(player));
+
+    /// <summary>
+    /// Determines whether the specified player is an owner of this dropped item.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <returns><c>true</c> if the player is an owner; otherwise, <c>false</c>.</returns>
+    public bool IsPlayerAnOwner(Player player)
+    {
+        if (this._ownerCharacterId is { } owner)
+        {
+            return player.SelectedCharacter?.GetId() == owner;
+        }
+
+        return this._owners?.Contains(player) ?? true;
+    }
+
+    /// <inheritdoc/>
+    public override string ToString()
+    {
+        return $"{this.Id}: {this.Item} at {this.CurrentMap.Definition.Name} ({this.Position})";
+    }
+
+    /// <summary>
+    /// Starts the original remaining lifetime after a durable publication completes.
+    /// </summary>
+    internal void StartExpiry()
+    {
+        var remaining = this._expiresAt - DateTime.UtcNow;
+        this._removeTimer?.Change(remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, Timeout.InfiniteTimeSpan);
+    }
+
+    /// <inheritdoc/>
+    protected override async ValueTask DisposeAsyncCore()
+    {
+        this._availableToPick = false;
+        var timer = this._removeTimer;
+        if (timer != null)
+        {
+            this._removeTimer = null;
+            await timer.DisposeAsync().ConfigureAwait(false);
+            await this.CurrentMap.RemoveAsync(this).ConfigureAwait(false);
+            this._dropper = null;
+            this._owners = null;
+        }
+
+        await base.DisposeAsyncCore().ConfigureAwait(false);
+    }
+
+    private async ValueTask<(bool Success, Item? StackTarget)> TryPickUpCoreAsync(Player player)
     {
         Item? stackTarget = null;
-        if (!this._availableToPick)
+        if (!this._availableToPick
+            || DateTime.UtcNow >= this._expiresAt
+            || player.SelectedCharacter is null
+            || player.PlayerState.CurrentState == PlayerState.Disconnected
+            || player.PlayerState.CurrentState == PlayerState.Finished)
+        {
+            return (false, stackTarget);
+        }
+
+        if (!this.IsPlayerAnOwner(player)
+            && (this.Item.Definition!.IsBoundToCharacter || this.IsOwnerPickupPriorityActive))
         {
             return (false, stackTarget);
         }
@@ -124,68 +225,33 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
             return (false, stackTarget);
         }
 
-        if (this.Item.Definition!.IsBoundToCharacter && !this.IsPlayerAnOwner(player))
-        {
-            return (false, stackTarget);
-        }
-
-        if (!this.IsPlayerAnOwner(player)
-            && DateTime.UtcNow < this._dropTimestamp.Add(TimeUntilDropIsFree))
-        {
-            return (false, stackTarget);
-        }
-
         return (await this.TryPickUpAsync(player).ConfigureAwait(false), stackTarget);
-    }
-
-    /// <summary>
-    /// Determines whether the specified player is an owner of this dropped item.
-    /// </summary>
-    /// <param name="player">The player.</param>
-    /// <returns><c>true</c> if the player is an owner; otherwise, <c>false</c>.</returns>
-    public bool IsPlayerAnOwner(Player player)
-    {
-        return this._owners?.Contains(player) ?? true;
-    }
-
-    /// <inheritdoc/>
-    public override string ToString()
-    {
-        return $"{this.Id}: {this.Item} at {this.CurrentMap.Definition.Name} ({this.Position})";
-    }
-
-    /// <inheritdoc/>
-    protected override async ValueTask DisposeAsyncCore()
-    {
-        var timer = this._removeTimer;
-        if (timer != null)
-        {
-            this._removeTimer = null;
-            await timer.DisposeAsync().ConfigureAwait(false);
-            await this.CurrentMap.RemoveAsync(this).ConfigureAwait(false);
-            this._dropper = null;
-            this._owners = null;
-        }
-
-        await base.DisposeAsyncCore().ConfigureAwait(false);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "VSTHRD100:Avoid async void methods", Justification = "Catching all Exceptions.")]
     private async void DisposeAndDelete(object? state)
     {
-        var player = this._dropper;
         try
         {
-            await this.DisposeAsync().ConfigureAwait(false);
-            if (player != null)
+            // Lock order: the player's persistence gate precedes this drop's pickup lock.
+            // Expiry only takes the pickup lock and never enters a player's context.
+            using var pickup = await this._pickupLock.LockAsync().ConfigureAwait(false);
+            if (!this._availableToPick)
             {
-                await this.DeleteItemAsync(player).ConfigureAwait(false);
+                return;
+            }
+
+            this._availableToPick = false;
+            await this.DisposeAsync().ConfigureAwait(false);
+            if (this._persistenceHost is not null)
+            {
+                await this.DeleteItemAsync().ConfigureAwait(false);
             }
         }
         catch (Exception ex)
         {
             // we have to catch all errors, because it runs under a pooled thread without an additional safety net ;-)
-            player?.Logger.LogError(ex, "Error during DroppedItem.DisposeAndDeleteAsync");
+            this._persistenceHost?.LoggerFactory.CreateLogger<DroppedItem>().LogError(ex, "Error during DroppedItem.DisposeAndDeleteAsync");
         }
     }
 
@@ -202,7 +268,7 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
         var itemWasTemporary = this.Item is TemporaryItem;
         using (await this._pickupLock.LockAsync().ConfigureAwait(false))
         {
-            if (!this._availableToPick)
+            if (!this._availableToPick || DateTime.UtcNow >= this._expiresAt)
             {
                 player.Logger.LogDebug("Picked up by another player in the mean time, Player {0}, Item {1}", player, this);
                 return false;
@@ -235,25 +301,13 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
             }
 
             this._availableToPick = false;
-        }
-
-        player.Logger.LogDebug("Item '{0}' was picked up by player '{1}' and added to his inventory.", this, player);
-        var dropper = this._dropper;
-        await this.DisposeAsync().ConfigureAwait(false);
-
-        if (!itemWasTemporary)
-        {
-            // The row of this item has no storage since it was dropped. We save right away, so it
-            // doesn't stay like that until the next periodic save (or forever, if that one fails).
-            player.Logger.LogInformation("Item picked up: {Player} picked up '{DroppedItem}', dropped by {Dropper}.", player, this, dropper);
-            try
+            if (!itemWasTemporary && !await this.SavePickupOutcomeAsync(player).ConfigureAwait(false))
             {
-                await player.SaveProgressAsync().ConfigureAwait(false);
+                return false;
             }
-            catch (Exception ex)
-            {
-                player.Logger.LogError(ex, "Couldn't save after {Player} picked up '{DroppedItem}'.", player, this);
-            }
+
+            player.Logger.LogInformation("Item picked up: {Player} picked up '{DroppedItem}', dropped by {Dropper}.", player, this, this._dropper);
+            await this.DisposeAsync().ConfigureAwait(false);
         }
 
         return true;
@@ -264,19 +318,58 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
         player.Logger.LogDebug("Player {0} tries to pick up {1}, trying to add to an existing item at slot {2}", player, this, stackTarget.ItemSlot);
         using (await this._pickupLock.LockAsync().ConfigureAwait(false))
         {
-            if (!this._availableToPick)
+            if (!this._availableToPick || DateTime.UtcNow >= this._expiresAt)
             {
                 player.Logger.LogDebug("Picked up by another player in the mean time, Player {0}, Item {1}", player, this);
                 return false;
             }
 
+            var itemWasTemporary = this.Item is TemporaryItem;
+            if (!itemWasTemporary)
+            {
+                player.PersistenceContext.Attach(this.Item);
+                try
+                {
+                    if (!await player.PersistenceContext.DeleteAsync(this.Item).ConfigureAwait(false))
+                    {
+                        player.PersistenceContext.Detach(this.Item);
+                        return false;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    // No inventory delta or save has happened yet. Discard a partially
+                    // staged deletion, retaining the unchanged source on the ground.
+                    player.PersistenceContext.Detach(this.Item);
+                    player.Logger.LogError(exception, "Couldn't stage consumption of '{DroppedItem}' for {Player}.", this, player);
+                    return false;
+                }
+            }
+
             stackTarget.Durability += this.Item.Durability;
             this._availableToPick = false;
+            if (!itemWasTemporary)
+            {
+                // Consume the source aggregate and update the tracked target in one commit.
+                // A separate expiry/trade context could otherwise delete the source without
+                // saving the new quantity, or save the quantity without consuming the source.
+                if (!await this.SavePickupOutcomeAsync(player, stackTarget).ConfigureAwait(false))
+                {
+                    return false;
+                }
+            }
+
+            await this.DisposeAsync().ConfigureAwait(false);
         }
 
         player.Logger.LogInformation("Item '{0}' got picked up by player '{1}'. Durability of available stack {2} increased to {3}", this, player, stackTarget, stackTarget.Durability);
-        this.DisposeAndDelete(null);
-        if (player.GameContext.PlugInManager.GetPlugInPoint<PlugIns.IItemStackedPlugIn>() is { } itemStackedPlugIn)
+        if (this._wasItemPersisted)
+        {
+            player.GameContext.PlugInManager.GetPlugInPoint<IItemDestroyedPlugIn>()?.ItemDestroyed(this.Item);
+        }
+
+        if (this.Item is TemporaryItem
+            && player.GameContext.PlugInManager.GetPlugInPoint<IItemStackedPlugIn>() is { } itemStackedPlugIn)
         {
             await itemStackedPlugIn.ItemStackedAsync(player, this.Item, stackTarget).ConfigureAwait(false);
         }
@@ -284,32 +377,109 @@ public sealed class DroppedItem : AsyncDisposable, ILocateable
         return true;
     }
 
-    private async ValueTask DeleteItemAsync(Player player)
+    private async ValueTask<bool> SavePickupOutcomeAsync(Player player, Item? stackTarget = null)
     {
-        player.Logger.LogDebug("Item '{0}' which was dropped by player '{1}' is getting deleted.", this, player);
-        if (!this._wasItemPersisted)
+        try
+        {
+            if (stackTarget is null && this.Item.GroundDelivery is { } delivery)
+            {
+                // Attach has already captured generation M. Clearing it now and
+                // deleting the marker must enter the same inventory commit.
+                this.Item.GroundDelivery = null;
+                if (!await player.PersistenceContext.DeleteAsync(delivery).ConfigureAwait(false))
+                {
+                    throw new InvalidOperationException("Couldn't stage consumption of the ground delivery marker.");
+                }
+            }
+
+            // Existing stacking hooks can turn a full stack into another item. Persist
+            // their final inventory state with source consumption, before pickup success.
+            if (stackTarget is not null
+                && player.GameContext.PlugInManager.GetPlugInPoint<IItemStackedPlugIn>() is { } itemStackedPlugIn)
+            {
+                await itemStackedPlugIn.ItemStackedAsync(player, this.Item, stackTarget).ConfigureAwait(false);
+            }
+
+            if (await player.SaveProgressAsync().ConfigureAwait(false))
+            {
+                if (this._deliveryGeneration is { } generation)
+                {
+                    this.CurrentMap.ConfirmGroundPickup(generation);
+                }
+
+                return true;
+            }
+
+            player.Logger.LogError("The pickup of '{DroppedItem}' by {Player} was not saved; disconnecting.", this, player);
+        }
+        catch (Exception exception)
+        {
+            player.Logger.LogError(exception, "Couldn't confirm the pickup of '{DroppedItem}' by {Player}; disconnecting.", this, player);
+        }
+
+        // Retain the same tracked outcome for teardown's save. An unconfirmed commit may
+        // already be durable; undoing it, detaching the source or adding the quantity again
+        // could lose an item or permit a second grant. No pickup success escapes this session.
+        try
+        {
+            await this.DisposeAsync().ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            player.Logger.LogError(exception, "Couldn't remove the unconfirmed drop '{DroppedItem}'.", this);
+        }
+        finally
+        {
+            if (this._deliveryGeneration is { } generation)
+            {
+                this.CurrentMap.QuarantineGroundPickup(generation, player);
+            }
+
+            try
+            {
+                await player.DisconnectAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                if (this._deliveryGeneration is not null)
+                {
+                    // A base/test player has no remote subscriber which disposes it.
+                    // Disposal publishes the release fence only after its tracker is gone.
+                    await player.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private async ValueTask DeleteItemAsync()
+    {
+        if (!this._wasItemPersisted || this._persistenceHost is not { } host)
         {
             return;
         }
 
         try
         {
-            var repositoryManager = player.GameContext.PersistenceContextProvider;
+            var repositoryManager = host.PersistenceContextProvider;
 
             // We could use here the persistence context of the dropper - but if it logged out and is not saving anymore, the deletion would not be saved.
             // So we use a new temporary persistence context instead.
             // We use a trade-context as it just focuses on the items. Otherwise, we would track a lot more items.
             using var context = repositoryManager.CreateNewTradeContext();
             context.Attach(this.Item);
-            await context.DeleteAsync(this.Item).ConfigureAwait(false);
-            await context.SaveChangesAsync().ConfigureAwait(false);
-            player.Logger.LogInformation("Item expired: '{DroppedItem}', dropped by {Player}, wasn't picked up and got deleted.", this, player);
+            if (!await context.DeleteAsync(this.Item).ConfigureAwait(false)
+                || !await context.SaveChangesAsync().ConfigureAwait(false))
+            {
+                return;
+            }
+
+            host.PlugInManager.GetPlugInPoint<IItemDestroyedPlugIn>()?.ItemDestroyed(this.Item);
         }
         catch (Exception e)
         {
-            player.Logger.LogWarning("Exception during deleting of the item {0}: {1}\n{2}", this, e.Message, e.StackTrace);
+            host.LoggerFactory.CreateLogger<DroppedItem>().LogWarning(e, "Couldn't delete expired item {Item}; durable delivery scanning can retry.", this.Item);
         }
-
-        player.GameContext.PlugInManager.GetPlugInPoint<IItemDestroyedPlugIn>()?.ItemDestroyed(this.Item);
     }
 }

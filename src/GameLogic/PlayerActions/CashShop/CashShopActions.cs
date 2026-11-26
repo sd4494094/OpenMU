@@ -237,24 +237,48 @@ public class CashShopActions
                 return deliveryResult;
             }
 
-            deliveredProduct = product;
             await player.PersistenceContext.DeleteAsync(storageItem).ConfigureAwait(false);
             UsedStorageItems.GetOrCreateValue(player).Add(storageItem.GetId());
 
-            // The delivered product and the removal of the storage item are committed together. If this save fails,
-            // they stay in the context of the player and are committed by the next save. Until then, the storage
-            // item is still loaded from the database, so it's skipped as used.
+            // Save the delivery and storage removal together before acknowledging either one.
+            // A connection failure may leave the commit outcome unknown. Keep the same tracked
+            // delivery for the regular disconnect save instead of undoing it and permitting a
+            // second claim. Reconnect then loads whichever state actually committed.
             try
             {
-                await player.SaveProgressAsync().ConfigureAwait(false);
+                if (await player.SaveProgressAsync().ConfigureAwait(false))
+                {
+                    deliveredProduct = product;
+                    return CashShopUseResult.Success;
+                }
+
+                player.Logger.LogError("Saving returned false after player {player} used a cash shop storage item; disconnecting to reconcile the delivery.", player);
             }
             catch (Exception ex)
             {
-                player.Logger.LogError(ex, "Couldn't save after player {player} used a cash shop storage item; it's saved with the next save.", player);
+                player.Logger.LogError(ex, "Couldn't confirm saving after player {player} used a cash shop storage item; disconnecting to reconcile the delivery.", player);
             }
 
-            return CashShopUseResult.Success;
+            // Stay inside the persistence gate until teardown finishes, so another action can't
+            // use or transfer the unconfirmed delivery. Even a broken result connection must not
+            // leave a playable session. No delivery notification is sent on this path.
+            player.IsCashShopOpen = false;
+            try
+            {
+                await player.InvokeViewPlugInAsync<ICashShopViewPlugIn>(p => p.ShowUseResultAsync(CashShopUseResult.SaveFailed)).ConfigureAwait(false);
+            }
+            finally
+            {
+                await player.DisconnectAsync().ConfigureAwait(false);
+            }
+
+            return CashShopUseResult.SaveFailed;
         }).ConfigureAwait(false);
+
+        if (result == CashShopUseResult.SaveFailed)
+        {
+            return;
+        }
 
         if (delivery is not null && deliveredProduct is not null)
         {
@@ -320,10 +344,11 @@ public class CashShopActions
                 return PurchaseResult.NotGiftable;
             }
 
-            if (CashShopFeaturePlugIn.GetSettings(player.GameContext) is { MaximumStorageItems: > 0 } settings)
+            var settings = CashShopFeaturePlugIn.GetSettings(player.GameContext);
+            if (settings is { MaximumStorageItems: > 0 })
             {
                 var storedItems = await player.PersistenceContext.GetCashShopStorageItemsAsync(storageAccountId).ConfigureAwait(false);
-                if (storedItems.Count + products.Count > settings.MaximumStorageItems)
+                if ((long)storedItems.Count + products.Count > settings.MaximumStorageItems)
                 {
                     return PurchaseResult.StorageFull;
                 }
@@ -346,20 +371,23 @@ public class CashShopActions
                 return PurchaseResult.NotEnoughCoins;
             }
 
-            account.SetCashShopCoins(package.CoinType, coins - price);
             var storageItems = new List<CashShopStorageItem>(products.Count);
-            foreach (var product in products)
+            var saveResult = await TrySaveAsync(player, account.GetId(), storageAccountId, products.Count, settings?.MaximumStorageItems ?? 0, () =>
             {
-                var storageItem = player.PersistenceContext.CreateNew<CashShopStorageItem>();
-                storageItem.AccountId = storageAccountId;
-                initializeGift?.Invoke(storageItem);
-                storageItem.ProductSequence = product.ProductSequence;
-                storageItem.PriceSequence = product.PriceSequence;
-                storageItem.AddedAt = DateTime.UtcNow;
-                storageItems.Add(storageItem);
-            }
+                account.SetCashShopCoins(package.CoinType, coins - price);
+                foreach (var product in products)
+                {
+                    var storageItem = player.PersistenceContext.CreateNew<CashShopStorageItem>();
+                    storageItem.AccountId = storageAccountId;
+                    initializeGift?.Invoke(storageItem);
+                    storageItem.ProductSequence = product.ProductSequence;
+                    storageItem.PriceSequence = product.PriceSequence;
+                    storageItem.AddedAt = DateTime.UtcNow;
+                    storageItems.Add(storageItem);
+                }
+            }).ConfigureAwait(false);
 
-            if (await TrySaveAsync(player).ConfigureAwait(false))
+            if (saveResult == PurchaseResult.Success)
             {
                 boughtPackage = package;
                 boughtProducts = products;
@@ -373,7 +401,7 @@ public class CashShopActions
                 await player.PersistenceContext.DeleteAsync(storageItem).ConfigureAwait(false);
             }
 
-            return PurchaseResult.SaveFailed;
+            return saveResult;
         }).ConfigureAwait(false);
 
         if (boughtPackage is not null
@@ -419,16 +447,18 @@ public class CashShopActions
     /// <summary>
     /// Saves the progress of the player. A failed save throws, which is logged here.
     /// </summary>
-    private static async ValueTask<bool> TrySaveAsync(Player player)
+    private static async ValueTask<PurchaseResult> TrySaveAsync(Player player, Guid senderAccountId, Guid storageAccountId, int itemCount, int maximumStorageItems, Action createPurchase)
     {
         try
         {
-            return await player.SaveProgressAsync().ConfigureAwait(false);
+            return await player.PersistenceContext.TrySaveCashShopPurchaseAsync(senderAccountId, storageAccountId, itemCount, maximumStorageItems, createPurchase).ConfigureAwait(false)
+                ? PurchaseResult.Success
+                : PurchaseResult.StorageFull;
         }
         catch (Exception ex)
         {
             player.Logger.LogError(ex, "Couldn't save the cash shop purchase of player {player}.", player);
-            return false;
+            return PurchaseResult.SaveFailed;
         }
     }
 

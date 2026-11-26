@@ -250,4 +250,13 @@ public interface IShopStorage : IStorage
     /// Gets the store lock.
     /// </summary>
     AsyncLock StoreLock { get; }
+
+    /// <summary>
+    /// Restores an uncommitted sale to its original slot even while the store remains open.
+    /// The caller must hold the owner's persistence lock and <see cref="StoreLock"/>.
+    /// </summary>
+    /// <param name="slot">The original store slot.</param>
+    /// <param name="item">The original unsold item.</param>
+    /// <returns>Whether the item was restored.</returns>
+    ValueTask<bool> RestoreItemAsync(byte slot, Item item);
 }

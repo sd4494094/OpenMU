@@ -70,6 +70,13 @@ public class CreateCharacterAction
             return null;
         }
 
+        // Restricted classes must be unlocked for the account, whether by leveling or a character card.
+        if (characterClass.CreationAllowedFlag != 0
+            && account.UnlockedCharacterClasses.All(c => c.Number != characterClass.Number))
+        {
+            return null;
+        }
+
         var character = player.PersistenceContext.CreateNew<DataModel.Entities.Character>();
         character.Name = name;
         character.CharacterSlot = freeSlot.Value;

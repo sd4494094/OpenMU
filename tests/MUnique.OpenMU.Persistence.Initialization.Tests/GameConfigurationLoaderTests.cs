@@ -11,6 +11,7 @@ using MUnique.OpenMU.Persistence.EntityFramework;
 using MUnique.OpenMU.Persistence.EntityFramework.Json;
 using MUnique.OpenMU.Persistence.EntityFramework.Loading;
 using MUnique.OpenMU.PlugIns;
+using MUnique.OpenMU.Testing;
 
 /// <summary>
 /// Tests for the <see cref="GameConfigurationLoader"/>.
@@ -24,9 +25,11 @@ public class GameConfigurationLoaderTests
     /// </summary>
     /// <returns>The task.</returns>
     [Test]
-    [Ignore("This is not a real test which should run automatically. It requires a database.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task LoadsSameGraphAsJsonQueryAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync(initializeConfiguration: true).ConfigureAwait(false);
         JsonConverterRegistry.RegisterConverter(new LocalizedStringJsonConverter());
         JsonConverterRegistry.RegisterConverter(new BinaryAsHexJsonConverter());
         await using var context = new EntityDataContext();

@@ -238,9 +238,9 @@ public class MoveItemAction
     /// <param name="storageType">Type of the storage.</param>
     /// <returns>The information about the requested storage for the specified player.</returns>
     /// <remarks>
-    /// For extended inventories and vaults, this is simplified!
-    /// The client would prevent storing an item across boundaries, the
-    /// server wouldn't.
+    /// The grid includes all storage pages. Vault placements additionally check
+    /// the page boundary before moving the item, while existing cross-page items
+    /// remain accessible for withdrawal.
     /// </remarks>
     private StorageInfo? GetStorageInfo(Player player, Storages storageType)
     {
@@ -263,7 +263,7 @@ public class MoveItemAction
                 break;
             case Storages.Vault when player.Vault is not null:
                 var warehouseSize = player.Account!.IsVaultExtended ? WarehouseSize * 2 : WarehouseSize;
-                var warehouseRows = (byte)(WarehouseRows * 2);
+                var warehouseRows = (byte)(warehouseSize / RowSize);
                 result = new StorageInfo(player.Vault, warehouseRows, 0, (byte)warehouseSize);
                 break;
             case Storages.Trade:
@@ -356,6 +356,15 @@ public class MoveItemAction
 
     private Movement ItemFitsAtNewLocation(Player player, Item item, byte toSlot, byte fromSlot, StorageInfo toStorage, StorageInfo fromStorage)
     {
+        // The client renders the base vault and its extension as separate grids.
+        // Validate the destination only, so items saved across the boundary by
+        // older servers can still be withdrawn or moved to a valid location.
+        if (toStorage.Storage == player.Vault
+            && ((toSlot % WarehouseSize) / RowSize) + item.Definition!.Height > WarehouseRows)
+        {
+            return Movement.None;
+        }
+
         var targetItem = toStorage.Storage.GetItem(toSlot);
         if (targetItem != null)
         {

@@ -52,7 +52,7 @@ public class InMemoryPersistenceContextProvider : IMigratableDatabaseContextProv
     }
 
     /// <inheritdoc/>
-    public IContext CreateNewTradeContext()
+    public ITradeContext CreateNewTradeContext()
     {
         return new InMemoryContext(this._repositoryProvider);
     }

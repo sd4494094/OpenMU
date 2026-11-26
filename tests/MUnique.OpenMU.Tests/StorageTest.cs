@@ -16,6 +16,43 @@ using MUnique.OpenMU.GameLogic;
 public class StorageTest
 {
     /// <summary>
+    /// A failed return preserves occupied destination slots which share source slot numbers.
+    /// </summary>
+    /// <param name="freeSlots">The insufficient number of remaining bag slots.</param>
+    /// <returns>The task.</returns>
+    [TestCase(0)]
+    [TestCase(1)]
+    public async ValueTask FailedTakeAllPreservesEquippedSlotsAsync(int freeSlots)
+    {
+        var destination = new Storage(12 + 64, 12, 0, this.CreateItemStorage());
+        var source = new Storage(32, this.CreateItemStorage());
+        var equipped = new[] { this.GetItem(1, 3), this.GetItem(2, 2) };
+        Assert.That(await destination.AddItemAsync(0, equipped[0]).ConfigureAwait(false), Is.True);
+        Assert.That(await destination.AddItemAsync(1, equipped[1]).ConfigureAwait(false), Is.True);
+        foreach (var slot in destination.FreeSlots.Take(64 - freeSlots).ToArray())
+        {
+            Assert.That(await destination.AddItemAsync(slot, this.GetItem(1, 1)).ConfigureAwait(false), Is.True);
+        }
+
+        var earlier = new[] { this.GetItem(1, 1), this.GetItem(1, 1) };
+        Assert.That(await source.AddItemAsync(0, earlier[0]).ConfigureAwait(false), Is.True);
+        Assert.That(await source.AddItemAsync(1, earlier[1]).ConfigureAwait(false), Is.True);
+        var original = destination.Items.Select(item => (Item: item, Slot: item.ItemSlot)).ToArray();
+        var originalFreeSlots = destination.FreeSlots.ToArray();
+
+        Assert.That(await destination.TryTakeAllAsync(source).ConfigureAwait(false), Is.False);
+
+        Assert.That(destination.Items, Is.EquivalentTo(original.Select(x => x.Item)));
+        Assert.That(destination.ItemStorage.Items, Is.EquivalentTo(original.Select(x => x.Item)));
+        Assert.That(original.All(x => x.Item.ItemSlot == x.Slot), Is.True);
+        Assert.That(destination.GetItem(0), Is.SameAs(equipped[0]));
+        Assert.That(destination.GetItem(1), Is.SameAs(equipped[1]));
+        Assert.That(destination.FreeSlots, Is.EqualTo(originalFreeSlots));
+        Assert.That(source.Items, Is.EquivalentTo(earlier));
+        Assert.That(earlier.Select(item => item.ItemSlot), Is.EqualTo(new byte[] { 0, 1 }));
+    }
+
+    /// <summary>
     /// Tests the adding of a small item to the upper left corner of the storage.
     /// </summary>
     [Test]

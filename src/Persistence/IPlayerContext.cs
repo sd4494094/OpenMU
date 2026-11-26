@@ -15,6 +15,17 @@ using MUnique.OpenMU.Interfaces;
 public interface IPlayerContext : IContext
 {
     /// <summary>
+    /// Reads a bounded page of outstanding ground item aggregates, ordered by original
+    /// expiry time and delivery identity. Database implementations return detached
+    /// aggregates with references to the supplied game configuration's cached definitions.
+    /// No inventory-owned item may be returned, even if it has an inconsistent marker.
+    /// </summary>
+    /// <param name="query">The host, map, instance, time range and keyset cursor.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The scanned page, preserving item, option and delivery identities.</returns>
+    ValueTask<IReadOnlyList<Item>> GetGroundItemPageAsync(GroundItemQuery query, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the letter body by the id of its header.
     /// </summary>
     /// <param name="headerId">The id of its header.</param>
@@ -158,6 +169,29 @@ public interface IPlayerContext : IContext
     /// <returns>The items of the cash shop storage.</returns>
     ValueTask<IReadOnlyList<CashShopStorageItem>> GetCashShopStorageItemsAsync(
         Guid accountId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks storage capacity and commits a purchase's changes atomically against other purchases.
+    /// </summary>
+    /// <param name="senderAccountId">The account whose coins are spent.</param>
+    /// <param name="storageAccountId">The account which receives the products.</param>
+    /// <param name="itemCount">The number of storage records to create.</param>
+    /// <param name="maximumStorageItems">The storage limit; zero means unlimited.</param>
+    /// <param name="createPurchase">Creates the storage records and deducts coins in this context, without saving.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns><c>true</c> after commit; <c>false</c> if capacity is insufficient, without invoking <paramref name="createPurchase"/>.</returns>
+    /// <remarks>
+    /// The caller must serialize access to this player context for the whole operation, as for ordinary
+    /// player actions. The synchronous callback may create entities, but must not save or access another context.
+    /// Persistence failures throw; a capacity refusal must not be confused with a failed save.
+    /// </remarks>
+    ValueTask<bool> TrySaveCashShopPurchaseAsync(
+        Guid senderAccountId,
+        Guid storageAccountId,
+        int itemCount,
+        int maximumStorageItems,
+        Action createPurchase,
         CancellationToken cancellationToken = default);
 
     /// <summary>

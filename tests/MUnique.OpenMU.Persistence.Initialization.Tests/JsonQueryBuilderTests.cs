@@ -9,6 +9,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using MUnique.OpenMU.Persistence.EntityFramework;
 using MUnique.OpenMU.Persistence.EntityFramework.Json;
+using MUnique.OpenMU.Testing;
 using Account = MUnique.OpenMU.Persistence.EntityFramework.Model.Account;
 using GameConfiguration = MUnique.OpenMU.Persistence.EntityFramework.Model.GameConfiguration;
 
@@ -82,14 +83,16 @@ internal class JsonQueryBuilderTests
 
     /// <summary>
     /// Loads the <see cref="GameConfiguration"/> using the <see cref="JsonQueryBuilder"/> and the <see cref="JsonObjectLoader"/>.
-    /// It always fails, because it reports the taken time.
+    /// Checks the loaded configuration graph; elapsed time is diagnostic rather than a functional requirement.
     /// </summary>
     [Test]
-    [Ignore("It hits the database.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task LoadConfigByJsonAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync(initializeConfiguration: true).ConfigureAwait(false);
         await using var installationContext = new ConfigurationContext();
-        installationContext.Database.OpenConnection();
+        await installationContext.Database.OpenConnectionAsync().ConfigureAwait(false);
         var builder = new GameConfigurationJsonObjectLoader();
         IEnumerable<GameConfiguration> result;
         Stopwatch stopwatch = new();
@@ -106,6 +109,10 @@ internal class JsonQueryBuilderTests
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.Count, Is.Not.EqualTo(0));
-        Assert.That(stopwatch.ElapsedMilliseconds, Is.EqualTo(0));
+        var configuration = result.Single();
+        Assert.That(configuration.Items, Is.Not.Empty);
+        Assert.That(configuration.Maps, Is.Not.Empty);
+        Assert.That(configuration.CharacterClasses, Is.Not.Empty);
+        TestContext.Progress.WriteLine($"Loaded configuration through JSON in {stopwatch.ElapsedMilliseconds} ms.");
     }
 }

@@ -19,6 +19,12 @@ public class TradeCancelAction : BaseTradeAction
     {
         using var loggerScope = (trader as Player)?.Logger.BeginScope(this.GetType());
         var tradingPartner = trader.TradingPartner;
+        using var tradeLock = await TradeSynchronization.LockAsync(trader, tradingPartner).ConfigureAwait(false);
+        if (!ReferenceEquals(trader.TradingPartner, tradingPartner))
+        {
+            return;
+        }
+
         if (tradingPartner != null)
         {
             await base.CancelTradeAsync(tradingPartner).ConfigureAwait(false);

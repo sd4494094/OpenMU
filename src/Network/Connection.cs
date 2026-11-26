@@ -259,7 +259,7 @@ public sealed class Connection : PacketPipeReaderBase, IConnection
             }
 
             await this.PacketReceived.SafeInvokeAsync(packet).ConfigureAwait(false);
-            return true;
+            return !this._disconnected;
         }
         finally
         {

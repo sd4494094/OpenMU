@@ -12,7 +12,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
     public partial class EntityDataContextModel
     {
         private EntityDataContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("f7f8b383-ff32-43f8-baec-11c76e079c81"), entityTypeCount: 129)
+            : base(skipDetectChanges: false, modelId: new Guid("68777784-8282-424e-81b4-7b6bf4b68f42"), entityTypeCount: 130)
         {
         }
 
@@ -74,6 +74,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             var gameServerEndpoint = GameServerEndpointEntityType.Create(this);
             var gensAbuse = GensAbuseEntityType.Create(this);
             var gensMember = GensMemberEntityType.Create(this);
+            var groundItemDelivery = GroundItemDeliveryEntityType.Create(this);
             var guild = GuildEntityType.Create(this);
             var guildChatBinding = GuildChatBindingEntityType.Create(this);
             var guildMember = GuildMemberEntityType.Create(this);
@@ -206,6 +207,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             CharacterEntityType.CreateForeignKey2(character, characterClass);
             CharacterEntityType.CreateForeignKey3(character, gameMapDefinition);
             CharacterEntityType.CreateForeignKey4(character, itemStorage);
+            CharacterEntityType.CreateForeignKey5(character, itemStorage);
             CharacterClassEntityType.CreateForeignKey1(characterClass, skillComboDefinition);
             CharacterClassEntityType.CreateForeignKey2(characterClass, gameConfiguration);
             CharacterClassEntityType.CreateForeignKey3(characterClass, gameMapDefinition);
@@ -262,8 +264,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             IncreasableItemOptionEntityType.CreateForeignKey2(increasableItemOption, itemOptionType);
             IncreasableItemOptionEntityType.CreateForeignKey3(increasableItemOption, powerUpDefinition);
             ItemEntityType.CreateForeignKey1(item, itemDefinition);
-            ItemEntityType.CreateForeignKey2(item, itemStorage);
-            ItemEntityType.CreateForeignKey3(item, itemDefinition);
+            ItemEntityType.CreateForeignKey2(item, groundItemDelivery);
+            ItemEntityType.CreateForeignKey3(item, itemStorage);
+            ItemEntityType.CreateForeignKey4(item, itemDefinition);
             ItemAppearanceEntityType.CreateForeignKey1(itemAppearance, appearanceData);
             ItemAppearanceEntityType.CreateForeignKey2(itemAppearance, itemDefinition);
             ItemAppearanceItemOptionTypeEntityType.CreateForeignKey1(itemAppearanceItemOptionType, itemAppearance);
@@ -460,6 +463,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             GameServerEndpointEntityType.CreateAnnotations(gameServerEndpoint);
             GensAbuseEntityType.CreateAnnotations(gensAbuse);
             GensMemberEntityType.CreateAnnotations(gensMember);
+            GroundItemDeliveryEntityType.CreateAnnotations(groundItemDelivery);
             GuildEntityType.CreateAnnotations(guild);
             GuildChatBindingEntityType.CreateAnnotations(guildChatBinding);
             GuildMemberEntityType.CreateAnnotations(guildMember);

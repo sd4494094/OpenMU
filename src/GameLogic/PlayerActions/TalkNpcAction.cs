@@ -10,6 +10,7 @@ using MUnique.OpenMU.GameLogic.PlayerActions.Quests;
 using MUnique.OpenMU.GameLogic.PlugIns;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.GameLogic.Views.Guild;
+using MUnique.OpenMU.GameLogic.Views.Inventory;
 using MUnique.OpenMU.GameLogic.Views.NPC;
 using MUnique.OpenMU.GameLogic.Views.Quest;
 using MUnique.OpenMU.GameLogic.Views.Vault;
@@ -28,6 +29,22 @@ public class TalkNpcAction
     public async ValueTask TalkToNpcAsync(Player player, NonPlayerCharacter npc)
     {
         var npcStats = npc.Definition;
+        if (player.PlayerState.CurrentState == PlayerState.EnteredWorld)
+        {
+            if (await player.RecoverInventoryItemsAsync().ConfigureAwait(false))
+            {
+                await player.InvokeViewPlugInAsync<IUpdateInventoryListPlugIn>(p => p.UpdateInventoryListAsync()).ConfigureAwait(false);
+            }
+
+            if (npcStats.ItemCraftings.Any() && player.SelectedCharacter?.RecoveryStorage?.Items.Count > 0)
+            {
+                // Allow shops and the vault so the player can free space, but recover existing
+                // results before allowing another mix to produce more temporary items.
+                await player.ShowLocalizedBlueMessageAsync(nameof(PlayerMessage.InventoryNotEnoughSpace)).ConfigureAwait(false);
+                return;
+            }
+        }
+
         if (CrywolfPlugIn.GetContext(player.GameContext) is { } crywolf && crywolf.IsNpcHidden(npc))
         {
             // The NPCs of the crywolf fortress are hidden while it isn't in peace, so they can't be used.

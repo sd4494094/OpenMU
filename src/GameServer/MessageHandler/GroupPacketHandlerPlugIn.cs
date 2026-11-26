@@ -33,6 +33,9 @@ internal abstract class GroupPacketHandlerPlugIn : PacketHandlerPlugInContainer<
     public abstract bool IsEncryptionExpected { get; }
 
     /// <inheritdoc />
+    public virtual bool HandlesOwnPersistenceSynchronization => false;
+
+    /// <inheritdoc />
     public async ValueTask HandlePacketAsync(Player player, Memory<byte> packet)
     {
         var subTypeIndex = packet.Span[0] % 2 == 1 ? 3 : 4;

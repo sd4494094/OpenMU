@@ -1819,7 +1819,7 @@
     <value>创造宝石</value>
   </data>
   <data name="ScrollOfEmperorRingOfHonor" xml:space="preserve">
-    <value>帝王之书;荣誉戒指</value>
+    <value>帝王之书;荣誉之戒</value>
   </data>
   <data name="BrokenSwordDarkStone" xml:space="preserve">
     <value>断魂之剑;暗黑之石</value>
@@ -1918,13 +1918,13 @@
     <value>烟花</value>
   </data>
   <data name="FlameOfDeathBeamKnight" xml:space="preserve">
-    <value>天魔菲尼斯的火种</value>
+    <value>炽炎魔的火种</value>
   </data>
   <data name="HornOfHellMaine" xml:space="preserve">
-    <value>炽炎魔的角</value>
+    <value>丛林召唤者的角</value>
   </data>
   <data name="FeatherOfDarkPhoenix" xml:space="preserve">
-    <value>丛林召唤者的羽毛</value>
+    <value>天魔菲尼斯的羽毛</value>
   </data>
   <data name="EyeOfAbyssal" xml:space="preserve">
     <value>深渊之眼</value>

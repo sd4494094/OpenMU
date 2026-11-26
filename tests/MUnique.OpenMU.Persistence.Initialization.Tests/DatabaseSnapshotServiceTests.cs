@@ -13,6 +13,7 @@ using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.EntityFramework;
 using MUnique.OpenMU.Persistence.EntityFramework.Json;
 using MUnique.OpenMU.PlugIns;
+using MUnique.OpenMU.Testing;
 
 /// <summary>
 /// Tests the database snapshot, which requires a running postgres database.
@@ -25,9 +26,11 @@ internal class DatabaseSnapshotServiceTests
     /// and checks if the data is there again.
     /// </summary>
     [Test]
-    [Ignore("This is not a real test which should run automatically. It requires a database.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task SnapshotRoundTripAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync(allowSnapshotRestore: true).ConfigureAwait(false);
         // These converters are registered by the host application (see Startup/Program.cs).
         JsonConverterRegistry.ClearConverters();
         JsonConverterRegistry.RegisterConverter(new LocalizedStringJsonConverter());
@@ -60,9 +63,11 @@ internal class DatabaseSnapshotServiceTests
     /// Tests if a snapshot of a newer server is rejected - we don't know how to create its schema.
     /// </summary>
     [Test]
-    [Ignore("This is not a real test which should run automatically. It requires a database.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task SnapshotOfNewerServerIsRejectedAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync().ConfigureAwait(false);
         await ReCreateDatabaseAsync().ConfigureAwait(false);
         var snapshotService = new DatabaseSnapshotService();
         using var snapshot = new MemoryStream();
@@ -97,7 +102,6 @@ internal class DatabaseSnapshotServiceTests
     /// Tests if a file which is no snapshot is rejected, so that the database isn't dropped for nothing.
     /// </summary>
     [Test]
-    [Ignore("This is not a real test which should run automatically. It requires a database.")]
     public async Task OtherFilesAreRejectedAsync()
     {
         var snapshotService = new DatabaseSnapshotService();

@@ -12,6 +12,7 @@ using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence.EntityFramework;
 using MUnique.OpenMU.Persistence.EntityFramework.Json;
 using MUnique.OpenMU.PlugIns;
+using MUnique.OpenMU.Testing;
 
 /// <summary>
 /// Tests the mini game leaderboard query of <see cref="IPlayerContext.GetMiniGameLeaderboardAsync"/>
@@ -25,9 +26,11 @@ internal class MiniGameLeaderboardEfCoreTests
     /// and checks the totals, the time filter, the bot exclusion, the order and the limit.
     /// </summary>
     [Test]
-    [Ignore("This is not a real test which should run automatically. It requires a database.")]
+    [Explicit("Requires OPENMU_INTEGRATION_TEST_CONNECTION pointing to a disposable local PostgreSQL cluster.")]
+    [NonParallelizable]
     public async Task LeaderboardIsAggregatedByTheDatabaseAsync()
     {
+        await using var database = await PostgreSqlTestDatabase.CreateAsync().ConfigureAwait(false);
         // These converters are registered by the host application (see Startup/Program.cs).
         JsonConverterRegistry.ClearConverters();
         JsonConverterRegistry.RegisterConverter(new LocalizedStringJsonConverter());

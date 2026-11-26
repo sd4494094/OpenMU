@@ -11,7 +11,7 @@ using MUnique.OpenMU.Persistence.EntityFramework.Model;
 /// A context which is used for trades.
 /// </summary>
 /// <remarks>
-/// In an ideal world, it would just need to track two properties: <see cref="DataModel.Entities.ItemStorage"/> and <see cref="DataModel.Entities.Item.ItemSlot"/>.
+/// Tracks item ownership, slots and inventory balances, so a completed trade has one commit boundary.
 /// </remarks>
 /// <seealso cref="Microsoft.EntityFrameworkCore.DbContext" />
 internal class TradeContext : AccountContext
@@ -28,6 +28,8 @@ internal class TradeContext : AccountContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Ignore<ItemStorage>();
+        // Balances participate in the trade transaction, but unrelated inventory items
+        // must not be attached or saved through their collection navigation.
+        modelBuilder.Entity<ItemStorage>().Ignore(storage => storage.RawItems);
     }
 }

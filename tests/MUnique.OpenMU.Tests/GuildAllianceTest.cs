@@ -479,7 +479,7 @@ public class GuildAllianceTest : GuildTestBase
         public IConfigurationContext CreateNewConfigurationContext()
             => this._innerProvider.CreateNewConfigurationContext();
 
-        public IContext CreateNewTradeContext() => this._innerProvider.CreateNewTradeContext();
+        public ITradeContext CreateNewTradeContext() => this._innerProvider.CreateNewTradeContext();
 
         public IPlayerContext CreateNewPlayerContext(GameConfiguration gameConfiguration)
             => this._innerProvider.CreateNewPlayerContext(gameConfiguration);

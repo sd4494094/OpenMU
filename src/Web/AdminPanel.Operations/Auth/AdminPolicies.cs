@@ -35,6 +35,9 @@ internal static class AdminPolicies
     /// <summary>Authenticated operational API callers; initial setup anonymity is not accepted.</summary>
     internal const string AuthenticatedOperator = "Admin.AuthenticatedOperator";
 
+    /// <summary>Authenticated administrators; initial setup anonymity is not accepted.</summary>
+    internal const string AuthenticatedAdministrator = "Admin.AuthenticatedAdministrator";
+
     /// <summary>Authenticated cash shop API callers.</summary>
     internal const string AuthenticatedCashShop = "Admin.AuthenticatedCashShop";
 

@@ -425,7 +425,8 @@ pull request what you ran.
 * Configuration data changes: `MUnique.OpenMU.Persistence.Initialization.Tests`,
   which runs the data initialization in memory — no database needed — and
   holds the per-feature data tests (see rule 4). The variant against a real
-  PostgreSQL instance is marked `[Ignore]` and only run by hand.
+  PostgreSQL instance is marked `[Explicit]` and selected deliberately against
+  a disposable local cluster; see [`tests/README.md`](../tests/README.md).
 * Packet definition changes: build the packets project and its test project so
   the generated structures and tests are regenerated (see rule 2).
 * Game mechanics: verify in the game client, and use the

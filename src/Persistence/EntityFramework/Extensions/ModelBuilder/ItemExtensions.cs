@@ -14,6 +14,32 @@ using MUnique.OpenMU.Persistence.EntityFramework.Model;
 internal static class ItemExtensions
 {
     /// <summary>
+    /// Applies delivery generation concurrency to the original item aggregate.
+    /// </summary>
+    /// <param name="builder">The builder.</param>
+    public static void Apply(this EntityTypeBuilder<Item> builder)
+    {
+        // A stale claimant retains the original non-null generation, including after a
+        // rejected save. Clearing this reference and changing inventory ownership must
+        // commit together; a competing pickup, stack or expiry then affects zero rows.
+        builder.Property(item => item.GroundDeliveryId).IsConcurrencyToken();
+        builder.HasOne(item => item.RawGroundDelivery).WithOne()
+            .HasForeignKey<Item>(item => item.GroundDeliveryId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Applies indexes for recovery limited to one actual host and map or expiry range.
+    /// </summary>
+    /// <param name="builder">The builder.</param>
+    public static void Apply(this EntityTypeBuilder<GroundItemDelivery> builder)
+    {
+        builder.HasIndex(delivery => new { delivery.HostServerId, delivery.MapDefinitionId, delivery.MapInstanceId, delivery.ExpiresAt });
+        builder.HasIndex(delivery => new { delivery.HostServerId, delivery.ExpiresAt });
+    }
+
+    /// <summary>
     /// Applies the settings for the <see cref="ItemDefinition"/> entity.
     /// </summary>
     /// <param name="builder">The builder.</param>

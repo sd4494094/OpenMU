@@ -23,6 +23,9 @@ internal class TradeAcceptHandlerPlugIn : IPacketHandlerPlugIn
     /// <inheritdoc/>
     public bool IsEncryptionExpected => false;
 
+    /// <inheritdoc />
+    public bool HandlesOwnPersistenceSynchronization => true;
+
     /// <inheritdoc/>
     public byte Key => TradeRequestResponse.Code;
 

@@ -11,10 +11,9 @@ using MUnique.OpenMU.GameLogic.CashShop;
 /// of the buyer to the one of the seller.
 /// </summary>
 /// <remarks>
-/// The pending coin grants of the buyer are applied first, so the balance is up to date. The account of the
-/// buyer is saved right away, and the balances are restored when that fails. The account of the seller is
-/// saved by its regular progress save, like the zen of a zen price: the persistence lock of the seller must
-/// not be taken from the flow of the buyer (see the lock order invariant of <c>PlayerPersistence</c>).
+/// Pending grants are saved before the purchase. The payment itself schedules both
+/// account balances in the same transaction as the sold item. The caller holds both
+/// player persistence locks before entering the store lock.
 /// </remarks>
 public sealed class AccountCoinShopCurrencyExchange : IShopCurrencyExchange
 {
@@ -40,6 +39,12 @@ public sealed class AccountCoinShopCurrencyExchange : IShopCurrencyExchange
         }
 
         await purchase.Buyer.ApplyPendingCashShopCoinGrantsAsync().ConfigureAwait(false);
+        await purchase.Seller.ApplyPendingCashShopCoinGrantsAsync().ConfigureAwait(false);
+        if (!await purchase.Buyer.SaveProgressAsync().ConfigureAwait(false)
+            || !await purchase.Seller.SaveProgressAsync().ConfigureAwait(false))
+        {
+            return ShopPaymentResult.Failed;
+        }
 
         var buyerBalance = buyerAccount.GetCashShopCoins(coinType);
         if (buyerBalance < purchase.Price.Amount)
@@ -53,27 +58,7 @@ public sealed class AccountCoinShopCurrencyExchange : IShopCurrencyExchange
             return ShopPaymentResult.SellerOverflow;
         }
 
-        buyerAccount.SetCashShopCoins(coinType, buyerBalance - purchase.Price.Amount);
-        bool saved;
-        try
-        {
-            saved = await purchase.Buyer.SaveProgressAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            purchase.Buyer.Logger.LogError(ex, "Couldn't save the account of {buyer} after paying {price} {coinType} in the store of {seller}.", purchase.Buyer, purchase.Price.Amount, coinType, purchase.Seller);
-            saved = false;
-        }
-
-        if (!saved)
-        {
-            buyerAccount.SetCashShopCoins(coinType, buyerBalance);
-            return ShopPaymentResult.Failed;
-        }
-
-        // Read again, because the seller may have received coins in the meantime.
-        sellerAccount.SetCashShopCoins(coinType, (int)Math.Min((long)sellerAccount.GetCashShopCoins(coinType) + purchase.Price.Amount, int.MaxValue));
-        purchase.Buyer.Logger.LogInformation("{buyer} paid {price} {coinType} to {seller} for an item of the player store.", purchase.Buyer, purchase.Price.Amount, coinType, purchase.Seller);
+        purchase.SetCoins(coinType, buyerBalance - purchase.Price.Amount, sellerBalance + purchase.Price.Amount);
         return ShopPaymentResult.Success;
     }
 

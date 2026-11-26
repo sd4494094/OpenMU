@@ -36,13 +36,13 @@ public class GameContext : AsyncDisposable, IGameContext
 
     private static readonly IObjectPool<PathFinder> PathFinderPoolInstance = new LimitedObjectPool<PathFinder>(new PathFinderPoolingPolicy());
 
-    private readonly Dictionary<ushort, GameMap> _mapList = new();
+    private readonly ConcurrentDictionary<ushort, AsyncLazy<GameMap?>> _mapInitializations = new();
+
+    private readonly ConcurrentDictionary<ushort, GameMap> _initializedMaps = new();
 
     private readonly Timer _recoverTimer;
 
     private readonly IMapInitializer _mapInitializer;
-
-    private readonly AsyncLock _mapInitializerLock = new();
 
     private readonly Timer _tasksTimer;
 
@@ -136,7 +136,7 @@ public class GameContext : AsyncDisposable, IGameContext
             this._tasksTimer = new Timer(this.ExecutePeriodicTasks, null, 1000, 1000);
             this.FeaturePlugIns = new FeaturePlugInContainer(this.PlugInManager);
             this.MiniGames = new MiniGameManager(this, mapInitializer);
-            this.MiniGames.GameMapCreated += (_, map) => this.GameMapCreated?.Invoke(this, map);
+            this.MiniGames.GameMapCreated += (_, map) => this.NotifyMapCreated(map);
             this.MiniGames.GameMapRemoved += (_, map) => this.GameMapRemoved?.Invoke(this, map);
             this._configChangeHandlerRegistration = this.ConfigurationChangeMediator.RegisterObject(this.Configuration, this, this.OnGameConfigurationChangeAsync);
             this.DuelRoomManager = new DuelRoomManager(this.Configuration.DuelConfiguration!);
@@ -281,62 +281,50 @@ public class GameContext : AsyncDisposable, IGameContext
     /// <summary>
     /// Gets the initialized maps which are hosted on this context.
     /// </summary>
-    public async ValueTask<IEnumerable<GameMap>> GetMapsAsync()
+    public ValueTask<IEnumerable<GameMap>> GetMapsAsync()
     {
-        using var l = await this._mapInitializerLock.LockAsync().ConfigureAwait(false);
-        return this._mapList.Values.Concat(this.MiniGames.Maps).ToList();
+        var maps = this._initializedMaps.Values.ToList();
+        maps.AddRange(this.MiniGames.Maps);
+        return ValueTask.FromResult<IEnumerable<GameMap>>(maps);
     }
 
     /// <inheritdoc/>
     public async ValueTask<GameMap?> GetMapAsync(ushort mapId, bool createIfNotExists = true)
     {
-        if (this._mapList.TryGetValue(mapId, out var map))
+        ObjectDisposedException.ThrowIf(this.IsDisposed || this.IsDisposing, this);
+        if (this._initializedMaps.TryGetValue(mapId, out var initializedMap))
         {
-            return map;
+            return initializedMap;
         }
 
-        if (!createIfNotExists)
+        if (!this._mapInitializations.TryGetValue(mapId, out var initialization) && !createIfNotExists)
         {
             return null;
         }
 
-        GameMap? createdMap;
-        using (await this._mapInitializerLock.LockAsync().ConfigureAwait(false))
+        // GetOrAdd may create several Lazy wrappers, but only the stored wrapper starts
+        // its asynchronous work. Every caller awaits that same readiness task; no map
+        // escapes before state initialization (including durable recovery) completes.
+        initialization ??= this._mapInitializations.GetOrAdd(
+            mapId,
+            id => new AsyncLazy<GameMap?>(() => this.CreateAndInitializeMapAsync(id).AsTask()));
+        try
         {
-            if (this._mapList.TryGetValue(mapId, out map))
+            var map = await initialization.Task.ConfigureAwait(false);
+            if (map is null)
             {
-                return map;
+                this._mapInitializations.TryRemove(new KeyValuePair<ushort, AsyncLazy<GameMap?>>(mapId, initialization));
             }
 
-            createdMap = this._mapInitializer.CreateGameMap(mapId);
-            if (createdMap is null)
-            {
-                return null;
-            }
-
-            this._mapList.Add(mapId, createdMap);
-            createdMap.ObjectAdded += async args =>
-            {
-                if (this.PlugInManager.GetPlugInPoint<IObjectAddedToMapPlugIn>() is { } plugInPoint)
-                {
-                    await plugInPoint.ObjectAddedToMapAsync(args.Map, args.Object).ConfigureAwait(false);
-                }
-            };
-            createdMap.ObjectRemoved += async args =>
-            {
-                if (this.PlugInManager.GetPlugInPoint<IObjectRemovedFromMapPlugIn>() is { } plugInPoint)
-                {
-                    await plugInPoint.ObjectRemovedFromMapAsync(args.Map, args.Object).ConfigureAwait(false);
-                }
-            };
+            return map;
         }
-
-        // ReSharper disable once InconsistentlySynchronizedField it's desired behavior to initialize the map outside the lock to keep locked timespan short.
-        await this._mapInitializer.InitializeStateAsync(createdMap).ConfigureAwait(false);
-        this.GameMapCreated?.Invoke(this, createdMap);
-        MapCounter.Add(1);
-
-        return createdMap;
+        catch
+        {
+            // Keep failures observable to all current waiters, but allow a later call
+            // to retry after a transient database or initialization failure.
+            this._mapInitializations.TryRemove(new KeyValuePair<ushort, AsyncLazy<GameMap?>>(mapId, initialization));
+            throw;
+        }
     }
 
     /// <summary>
@@ -587,6 +575,19 @@ public class GameContext : AsyncDisposable, IGameContext
         await base.DisposeAsyncCore().ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Initializes a map before it becomes available to players and map-host lookups.
+    /// </summary>
+    /// <param name="map">The new map.</param>
+    /// <returns>The initialization operation.</returns>
+    protected virtual ValueTask InitializeMapAsync(GameMap map) => this._mapInitializer.InitializeStateAsync(map);
+
+    /// <summary>
+    /// Executes host-specific maintenance before ordinary periodic plug-ins.
+    /// </summary>
+    /// <returns>The maintenance operation.</returns>
+    protected virtual ValueTask ExecuteAdditionalPeriodicTasksAsync() => ValueTask.CompletedTask;
+
     private static long[] CreateExpTable(string experienceFormula, short maximumLevel)
     {
         var argument = new Argument("level");
@@ -600,6 +601,76 @@ public class GameContext : AsyncDisposable, IGameContext
                 return (long)expression.calculate();
             })
             .ToArray();
+    }
+
+    private async ValueTask<GameMap?> CreateAndInitializeMapAsync(ushort mapId)
+    {
+        var createdMap = this._mapInitializer.CreateGameMap(mapId);
+        if (createdMap is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            createdMap.ObjectAdded += async args =>
+            {
+                if (this.PlugInManager.GetPlugInPoint<IObjectAddedToMapPlugIn>() is { } plugInPoint)
+                {
+                    await plugInPoint.ObjectAddedToMapAsync(args.Map, args.Object).ConfigureAwait(false);
+                }
+            };
+            createdMap.ObjectRemoved += async args =>
+            {
+                if (this.PlugInManager.GetPlugInPoint<IObjectRemovedFromMapPlugIn>() is { } plugInPoint)
+                {
+                    await plugInPoint.ObjectRemovedFromMapAsync(args.Map, args.Object).ConfigureAwait(false);
+                }
+            };
+            await this.InitializeMapAsync(createdMap).ConfigureAwait(false);
+            ObjectDisposedException.ThrowIf(this.IsDisposed || this.IsDisposing, this);
+            this._initializedMaps[mapId] = createdMap;
+            MapCounter.Add(1);
+        }
+        catch
+        {
+            try
+            {
+                await createdMap.TearDownAsync().ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                this._logger.LogError(exception, "Failed to clean up an uninitialized map {Map}.", mapId);
+            }
+
+            throw;
+        }
+
+        // Observers may synchronously query this map. It is fully initialized and
+        // published before notifications, independently of the readiness task.
+        // A failing observer must not tear down a map already handed to another one.
+        this.NotifyMapCreated(createdMap);
+        return createdMap;
+    }
+
+    private void NotifyMapCreated(GameMap map)
+    {
+        foreach (var subscriber in this.GameMapCreated?.GetInvocationList() ?? [])
+        {
+            if (map.IsTornDown)
+            {
+                break;
+            }
+
+            try
+            {
+                ((EventHandler<GameMap>)subscriber)(this, map);
+            }
+            catch (Exception exception)
+            {
+                this._logger.LogError(exception, "A subscriber of map creation failed for map {Map}.", map.Definition.Number);
+            }
+        }
     }
 
     /// <summary>
@@ -722,6 +793,7 @@ public class GameContext : AsyncDisposable, IGameContext
 
         try
         {
+            await this.ExecuteAdditionalPeriodicTasksAsync().ConfigureAwait(false);
             if (this.PlugInManager.GetPlugInPoint<IPeriodicTaskPlugIn>() is { } plugInPoint)
             {
                 await plugInPoint.ExecuteTaskAsync(this).ConfigureAwait(false);

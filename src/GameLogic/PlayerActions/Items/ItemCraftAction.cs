@@ -21,44 +21,8 @@ public class ItemCraftAction
     /// <param name="player">The player.</param>
     /// <param name="mixTypeId">The mix type identifier.</param>
     /// <param name="socketSlot">The socket slot.</param>
-    public async ValueTask MixItemsAsync(Player player, byte mixTypeId, byte socketSlot)
-    {
-        var npcStats = player.OpenedNpc?.Definition;
-
-        var crafting = npcStats?.ItemCraftings.FirstOrDefault(c => c.Number == mixTypeId);
-        if (crafting is null)
-        {
-            await player.InvokeViewPlugInAsync<IShowItemCraftingResultPlugIn>(p => p.ShowResultAsync(CraftingResult.IncorrectMixItems, null)).ConfigureAwait(false);
-            return;
-        }
-
-        var craftingHandler = this.GetCraftingHandler(crafting);
-
-        (CraftingResult, Item?) result;
-        try
-        {
-            result = await craftingHandler.DoMixAsync(player, socketSlot).ConfigureAwait(false);
-        }
-        catch
-        {
-            result = (CraftingResult.LackingMixItems, null);
-        }
-
-        var itemList = player.TemporaryStorage?.Items.ToList() ?? new List<Item>();
-        await player.InvokeViewPlugInAsync<IShowItemCraftingResultPlugIn>(p => p.ShowResultAsync(result.Item1, itemList.Count > 1 ? null : result.Item2)).ConfigureAwait(false);
-        if (npcStats!.NpcWindow != NpcWindow.CombineLuckyItem)
-        {
-            // The lucky item dialog gets its result item with the crafting result. The item list would put the
-            // items into the chaos machine dialog of the client instead.
-            await player.InvokeViewPlugInAsync<IShowMerchantStoreItemListPlugIn>(
-                p => p.ShowMerchantStoreItemListAsync(
-                    itemList,
-                    npcStats.NpcWindow == NpcWindow.PetTrainer && result.Item1 != CraftingResult.Success ? StoreKind.ResurrectionFailed : StoreKind.ChaosMachine))
-                .ConfigureAwait(false);
-        }
-
-        await this.ShowCraftingPreviewAsync(player).ConfigureAwait(false);
-    }
+    public ValueTask MixItemsAsync(Player player, byte mixTypeId, byte socketSlot)
+        => player.RunPersistenceExclusiveAsync(() => this.MixItemsCoreAsync(player, mixTypeId, socketSlot));
 
     /// <summary>
     /// Finds the relevant <see cref="ItemCrafting"/> by testing the mix items against every crafting's item requirements.
@@ -104,6 +68,69 @@ public class ItemCraftAction
         }
 
         await previewPlugIn.ShowCraftingPreviewAsync(null, 0, 0).ConfigureAwait(false);
+    }
+
+    private async ValueTask MixItemsCoreAsync(Player player, byte mixTypeId, byte socketSlot)
+    {
+        if (player.PlayerState.CurrentState != PlayerState.NpcDialogOpened)
+        {
+            return;
+        }
+
+        var npcStats = player.OpenedNpc?.Definition;
+
+        var crafting = npcStats?.ItemCraftings.FirstOrDefault(c => c.Number == mixTypeId);
+        if (crafting is null)
+        {
+            await player.InvokeViewPlugInAsync<IShowItemCraftingResultPlugIn>(p => p.ShowResultAsync(CraftingResult.IncorrectMixItems, null)).ConfigureAwait(false);
+            return;
+        }
+
+        var craftingHandler = this.GetCraftingHandler(crafting);
+
+        (CraftingResult, Item?) result;
+        try
+        {
+            result = await craftingHandler.DoMixAsync(player, socketSlot).ConfigureAwait(false);
+        }
+        catch
+        {
+            result = (CraftingResult.LackingMixItems, null);
+        }
+
+        try
+        {
+            if (!await player.SaveProgressAsync().ConfigureAwait(false))
+            {
+                throw new InvalidOperationException("The crafting outcome was not saved.");
+            }
+        }
+        catch (Exception exception)
+        {
+            // A failed acknowledgement of the commit may be ambiguous. Keep the same
+            // outcome for the ordinary disconnect save instead of restoring ingredients
+            // and allowing another roll. Teardown stays inside the persistence gate so
+            // queued actions cannot use an unconfirmed result. Reconnect loads the actual
+            // durable state. This also covers a failed roll which consumed materials.
+            player.Logger.LogError(exception, "Couldn't confirm saving the crafting outcome for player {player}; disconnecting.", player);
+            await player.DisconnectAsync().ConfigureAwait(false);
+            return;
+        }
+
+        var itemList = player.TemporaryStorage?.Items.ToList() ?? new List<Item>();
+        await player.InvokeViewPlugInAsync<IShowItemCraftingResultPlugIn>(p => p.ShowResultAsync(result.Item1, itemList.Count > 1 ? null : result.Item2)).ConfigureAwait(false);
+        if (npcStats!.NpcWindow != NpcWindow.CombineLuckyItem)
+        {
+            // The lucky item dialog gets its result item with the crafting result. The item list would put the
+            // items into the chaos machine dialog of the client instead.
+            await player.InvokeViewPlugInAsync<IShowMerchantStoreItemListPlugIn>(
+                p => p.ShowMerchantStoreItemListAsync(
+                    itemList,
+                    npcStats.NpcWindow == NpcWindow.PetTrainer && result.Item1 != CraftingResult.Success ? StoreKind.ResurrectionFailed : StoreKind.ChaosMachine))
+                .ConfigureAwait(false);
+        }
+
+        await this.ShowCraftingPreviewAsync(player).ConfigureAwait(false);
     }
 
     private IItemCraftingHandler GetCraftingHandler(ItemCrafting crafting)
