@@ -59,6 +59,41 @@ public sealed class DaprMapTransferDirectory(
         }
     }
 
+    /// <inheritdoc />
+    public async ValueTask<(byte ServerId, IPEndPoint EndPoint)?> FindDestinationOnServerAsync(IGameServerContext source, byte serverId, ushort mapNumber, ClientVersion version)
+    {
+        var configurationId = source.Configuration.GetId();
+        if (serverId == source.Id
+            || configuration[MapTransferApi.TokenSetting] is not { Length: > 0 } token
+            || string.IsNullOrWhiteSpace(token)
+            || configurationId == Guid.Empty)
+        {
+            return null;
+        }
+
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        try
+        {
+            using var context = source.PersistenceContextProvider.CreateNewConfigurationContext();
+            var definitions = await context.GetAsync<GameServerDefinition>(timeout.Token).ConfigureAwait(false);
+            var isConfiguredHost = definitions.Any(definition => definition.ServerID == serverId
+                && definition.GameConfiguration?.GetId() == configurationId
+                && definition.ServerConfiguration?.Maps.Any(map => map.Number == mapNumber && map.IsActive) == true);
+            if (!isConfiguredHost)
+            {
+                return null;
+            }
+
+            var request = new MapTransferApi.DestinationRequest(configurationId, mapNumber, version.Season, version.Episode, (byte)version.Language);
+            return await this.ProbeAsync(serverId, request, token, timeout.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Could not locate configured game server {ServerId} for map {MapNumber}.", serverId, mapNumber);
+            return null;
+        }
+    }
+
     private async Task<(byte ServerId, IPEndPoint EndPoint)?> ProbeAsync(byte serverId, MapTransferApi.DestinationRequest arguments, string token, CancellationToken cancellationToken)
     {
         try

@@ -38,8 +38,9 @@ internal static class LoginTestSetup
     /// <param name="eventPublisher">The event publisher; a mock, when it's <c>null</c>.</param>
     /// <param name="maximumPlayers">The maximum players of the game server.</param>
     /// <param name="mapTransferDirectory">The optional directory of remote map hosts.</param>
+    /// <param name="mapOwnershipLocator">The optional locator for unique shared-map owners.</param>
     /// <returns>The game server context.</returns>
-    public static GameServerContext CreateGameServerContext(IPersistenceContextProvider persistence, ILoginServer loginServer, IEventPublisher? eventPublisher = null, short maximumPlayers = 10, IMapTransferDirectory? mapTransferDirectory = null)
+    public static GameServerContext CreateGameServerContext(IPersistenceContextProvider persistence, ILoginServer loginServer, IEventPublisher? eventPublisher = null, short maximumPlayers = 10, IMapTransferDirectory? mapTransferDirectory = null, IMapOwnershipLocator? mapOwnershipLocator = null)
     {
         var gameConfiguration = new Persistence.BasicModel.GameConfiguration();
         gameConfiguration.Maps.Add(new Persistence.BasicModel.GameMapDefinition { TerrainData = new byte[ushort.MaxValue + 3] });
@@ -60,7 +61,8 @@ internal static class LoginTestSetup
             new PlugInManager(new List<PlugInConfiguration>(), NullLoggerFactory.Instance, null, null),
             NullDropGenerator.Instance,
             new ConfigurationChangeMediator(),
-            mapTransferDirectory: mapTransferDirectory);
+            mapTransferDirectory: mapTransferDirectory,
+            mapOwnershipLocator: mapOwnershipLocator);
         mapInitializer.PlugInManager = gameServerContext.PlugInManager;
         mapInitializer.PathFinderPool = gameServerContext.PathFinderPool;
         return gameServerContext;

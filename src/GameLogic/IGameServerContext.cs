@@ -58,6 +58,9 @@ public interface IGameServerContext : IGameContext
     /// </summary>
     IMapHostLocator? MapHostLocator { get; }
 
+    /// <summary>Gets the locator for the unique owner of shared maps.</summary>
+    IMapOwnershipLocator? MapOwnershipLocator { get; }
+
     /// <summary>
     /// Gets the requirements which an account has to fulfill to join this game server,
     /// see <see cref="GameServerDefinition.JoinRequirements"/>.

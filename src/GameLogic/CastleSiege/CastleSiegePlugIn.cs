@@ -224,6 +224,16 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             return;
         }
 
+        if (configuration.CastleSiegeMapDefinition is { } siegeMap
+            && gameContext is IGameServerContext { MapOwnershipLocator: { } ownershipLocator } server)
+        {
+            var ownerServerId = await ownershipLocator.GetOwnerServerIdAsync(server, checked((ushort)siegeMap.Number)).ConfigureAwait(false);
+            if (ownerServerId != server.Id)
+            {
+                return;
+            }
+        }
+
         if (CastleSiegeContextResolver.GetConfiguredHost(gameContext) is { } host
             && (!host.IsStarted || !ReferenceEquals(host.Context, gameContext)))
         {

@@ -10,6 +10,7 @@ using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.CastleSiege;
 using MUnique.OpenMU.GameServer;
+using MUnique.OpenMU.GameServer.Host;
 using MUnique.OpenMU.Interfaces;
 using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.Persistence.InMemory;
@@ -135,6 +136,8 @@ public class SharedMapTests
 
         owner.Configuration.CastleSiegeConfiguration = configuration;
         var plugIn = new CastleSiegePlugIn();
+        var distributedOwnerLocator = new DaprMapOwnershipLocator(owner.PersistenceContextProvider);
+        Assert.That(await distributedOwnerLocator.GetOwnerServerIdAsync(guest, (ushort)SharedMapNumber).ConfigureAwait(false), Is.EqualTo(owner.Id));
 
         await plugIn.ExecuteTaskAsync(guest).ConfigureAwait(false);
         Assert.That(plugIn.GetContext(guest), Is.Null);
@@ -148,11 +151,13 @@ public class SharedMapTests
         Assert.That(await guest.GetMapAsync((ushort)SharedMapNumber, false).ConfigureAwait(false), Is.Null);
 
         await this._nonHostingServer.ShutdownAsync().ConfigureAwait(false);
+        Assert.That(await distributedOwnerLocator.GetOwnerServerIdAsync(guest, (ushort)SharedMapNumber).ConfigureAwait(false), Is.EqualTo(owner.Id));
         await player.ClientReadyAfterMapChangeAsync().ConfigureAwait(false);
         Assert.That(player.CurrentMap?.Definition, Is.SameAs(this._homeMap));
         var host = guest.MapHostLocator!.GetConfiguredHost(guest, (ushort)SharedMapNumber);
         Assert.That(host?.Context, Is.SameAs(owner));
         Assert.That(host?.IsStarted, Is.False);
+        Assert.That(await guest.MapOwnershipLocator!.GetOwnerServerIdAsync(guest, (ushort)SharedMapNumber).ConfigureAwait(false), Is.EqualTo(owner.Id));
         await plugIn.ExecuteTaskAsync(guest).ConfigureAwait(false);
         Assert.That(plugIn.GetContext(guest), Is.SameAs(plugIn.GetContext(owner)));
     }

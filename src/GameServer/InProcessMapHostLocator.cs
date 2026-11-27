@@ -16,7 +16,7 @@ using MUnique.OpenMU.Interfaces;
 /// enter it - without reconnecting its game client to the hosting game server. The player stays
 /// connected to its own game server, which still handles its packets, persistence, guild and friends.
 /// </remarks>
-public sealed class InProcessMapHostLocator : IMapHostLocator
+public sealed class InProcessMapHostLocator : IMapHostLocator, IMapOwnershipLocator
 {
     private readonly IDictionary<int, IGameServer> _gameServers;
 
@@ -39,6 +39,10 @@ public sealed class InProcessMapHostLocator : IMapHostLocator
         return host is null ? null : (host.Context, this._gameServers.TryGetValue(host.Context.Id, out var server)
             && server.ServerState == ServerState.Started);
     }
+
+    /// <inheritdoc />
+    public ValueTask<byte?> GetOwnerServerIdAsync(IGameServerContext requester, ushort mapNumber)
+        => ValueTask.FromResult(this.GetConfiguredHost(requester, mapNumber)?.Context.Id);
 
     /// <inheritdoc />
     public IEnumerable<IGameServerContext> GetLocalContexts(IGameServerContext requester) => this._gameServers.Values

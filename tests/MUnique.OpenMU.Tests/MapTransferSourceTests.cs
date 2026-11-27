@@ -123,6 +123,86 @@ public sealed class MapTransferSourceTests
         }
     }
 
+    /// <summary>A siege entrant is transferred to its configured owner even when the source also hosts the map.</summary>
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task SiegeWarpUsesOwnerWhenSourceHostsLocalCopyAsync(bool targetAvailable)
+    {
+        var login = new LoginServer.LoginServer();
+        var persistence = new Mock<IPlayerContext>();
+        var directory = new Mock<IMapTransferDirectory>();
+        var ownership = new Mock<IMapOwnershipLocator>();
+        ownership.Setup(locator => locator.GetOwnerServerIdAsync(It.IsAny<IGameServerContext>(), DestinationMap)).ReturnsAsync((byte?)DestinationServer);
+        directory.Setup(locator => locator.FindDestinationOnServerAsync(It.IsAny<IGameServerContext>(), DestinationServer, DestinationMap, Version))
+            .ReturnsAsync(targetAvailable ? (DestinationServer, Destination) : ((byte, IPEndPoint)?)null);
+        await using var game = LoginTestSetup.CreateGameServerContext(
+            LoginTestSetup.CreatePersistence(persistence.Object),
+            login,
+            mapTransferDirectory: directory.Object,
+            mapOwnershipLocator: ownership.Object);
+        game.StopPeriodicTasks();
+        game.Configuration.Maps.Single().IsActive = true;
+        game.PlugInManager.DiscoverAndRegisterPlugIns(typeof(RemotePlayer).Assembly);
+        var siegeMap = new Persistence.BasicModel.GameMapDefinition
+        {
+            Id = Guid.NewGuid(),
+            Number = (short)DestinationMap,
+            IsActive = true,
+            TerrainData = new byte[ushort.MaxValue + 3],
+        };
+        game.Configuration.Maps.Add(siegeMap);
+        game.ServerConfiguration.Maps.Add(siegeMap);
+        game.Configuration.CastleSiegeConfiguration = new Persistence.BasicModel.CastleSiegeConfiguration
+        {
+            Enabled = true,
+            CastleSiegeMapDefinition = siegeMap,
+        };
+        var (player, output) = CastleSiegeRemoteViewTestHelper.CreatePlayer(game, Version);
+        await using (player.ConfigureAwait(false))
+        {
+            using (output)
+            {
+                var character = PlayerTestHelper.CreateCharacter(game, Guid.NewGuid());
+                character.Name = "SiegeTransfer01";
+                var inventory = character.Inventory!;
+                inventory.Money = InitialMoney;
+                character.Attributes.Single(attribute => attribute.Definition == Stats.Level).Value = 1;
+                Mock.Get(character).SetupGet(value => value.QuestStates).Returns(new List<CharacterQuestState>());
+                persistence.Setup(value => value.GetPendingCastleSiegeRewardsAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(Array.Empty<CastleSiegePendingReward>());
+                await game.AddPlayerAsync(player).ConfigureAwait(false);
+                await PlayerTestHelper.EnterWorldAsync(player, character).ConfigureAwait(false);
+                Assert.That(await login.TryLoginAsync(AccountName, game.Id).ConfigureAwait(false), Is.True);
+                player.SetLoginServerRegistration(AccountName);
+                player.PlayerDisconnected += departed => departed.ReleaseLoginServerRegistration() is { } name
+                    ? login.LogOffAsync(name, game.Id)
+                    : ValueTask.CompletedTask;
+                persistence.Setup(value => value.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+                var gate = new ExitGate { Map = siegeMap, X1 = 30, X2 = 30, Y1 = 40, Y2 = 40 };
+                output.SetLength(0);
+                await new WarpAction().WarpToAsync(player, new WarpInfo { Gate = gate, Costs = WarpCost }).ConfigureAwait(false);
+
+                directory.Verify(value => value.FindDestinationOnServerAsync(game, DestinationServer, DestinationMap, Version), Times.Once);
+                if (!targetAvailable)
+                {
+                    Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.EnteredWorld));
+                    Assert.That(player.CurrentMap, Is.Not.Null);
+                    Assert.That(inventory.Money, Is.EqualTo(InitialMoney));
+                    Assert.That(output.Length, Is.GreaterThan(0), "the client receives the map-change failure response");
+                    return;
+                }
+
+                Assert.That(player.PlayerState.CurrentState, Is.SameAs(PlayerState.Finished));
+                Assert.That(output.Length, Is.GreaterThanOrEqualTo(MapServerChangeInfo.Length));
+                var outputBytes = output.ToArray();
+                var packet = new MapServerChangeInfo(new Memory<byte>(outputBytes, outputBytes.Length - MapServerChangeInfo.Length, MapServerChangeInfo.Length));
+                Assert.That(packet.ServerGroup, Is.EqualTo(DestinationServer));
+                Assert.That(inventory.Money, Is.EqualTo(InitialMoney - WarpCost));
+            }
+        }
+    }
+
     private static Guid ReadCredential(MapServerChangeInfo packet)
     {
         Span<byte> bytes = stackalloc byte[16];

@@ -113,16 +113,44 @@ public class RemotePlayer : Player, IClientVersionProvider, IHasIpAddress
     /// <inheritdoc />
     protected override async ValueTask<bool> TrySwitchGameServerAsync(ExitGate gate, int chargedZen)
     {
-        if (this.GameServerContext is not GameServerContext { MapTransferDirectory: { } directory }
+        if (this.GameServerContext is not GameServerContext { MapTransferDirectory: { } directory } gameServerContext
             || gate.Map is not { } map
             || !this.ClientVersion.IsPlugInSuitable(typeof(MapTransferAuthenticationHandlerPlugIn))
-            || this.PlayerState.CurrentState != GameLogic.PlayerState.EnteredWorld
-            || await this.GameContext.GetMapAsync((ushort)map.Number).ConfigureAwait(false) is not null)
+            || this.PlayerState.CurrentState != GameLogic.PlayerState.EnteredWorld)
         {
             return false;
         }
 
-        if (await directory.FindDestinationAsync(this.GameServerContext, (ushort)map.Number, this.ClientVersion).ConfigureAwait(false) is { } destination
+        var mapNumber = checked((ushort)map.Number);
+        var isSiegeMap = this.GameContext.Configuration.CastleSiegeConfiguration is { Enabled: true, CastleSiegeMapDefinition: { } siegeMap }
+            && siegeMap.Number == map.Number;
+        if (isSiegeMap && gameServerContext.MapOwnershipLocator is { } ownershipLocator)
+        {
+            var ownerServerId = await ownershipLocator.GetOwnerServerIdAsync(gameServerContext, mapNumber).ConfigureAwait(false);
+            if (ownerServerId == gameServerContext.Id)
+            {
+                return false;
+            }
+
+            if (ownerServerId is { } targetServerId
+                && await directory.FindDestinationOnServerAsync(gameServerContext, targetServerId, mapNumber, this.ClientVersion).ConfigureAwait(false) is { } siegeDestination
+                && await this.TransferToServerAsync(gate, siegeDestination.ServerId, chargedZen,
+                    credential => this.SendMapTransferAsync(siegeDestination.ServerId, siegeDestination.EndPoint, credential)).ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            this.Money += chargedZen;
+            await this.InvokeViewPlugInAsync<IMapChangePlugIn>(view => view.MapChangeFailedAsync()).ConfigureAwait(false);
+            return true;
+        }
+
+        if (await this.GameContext.GetMapAsync(mapNumber).ConfigureAwait(false) is not null)
+        {
+            return false;
+        }
+
+        if (await directory.FindDestinationAsync(this.GameServerContext, mapNumber, this.ClientVersion).ConfigureAwait(false) is { } destination
             && await this.TransferToServerAsync(gate, destination.ServerId, chargedZen,
                 credential => this.SendMapTransferAsync(destination.ServerId, destination.EndPoint, credential)).ConfigureAwait(false))
         {

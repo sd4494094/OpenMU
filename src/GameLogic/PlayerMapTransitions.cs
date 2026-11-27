@@ -302,6 +302,36 @@ internal sealed class PlayerMapTransitions
             return;
         }
 
+        if (player.GameContext is IGameServerContext
+            {
+                MapHostLocator: null,
+                MapOwnershipLocator: { } ownershipLocator,
+            } serverContext
+            && player.GameContext.Configuration.CastleSiegeConfiguration is { Enabled: true, CastleSiegeMapDefinition: { } siegeMap }
+            && player.CurrentMap.Definition.Number == siegeMap.Number)
+        {
+            var ownerServerId = await ownershipLocator.GetOwnerServerIdAsync(serverContext, checked((ushort)siegeMap.Number)).ConfigureAwait(false);
+            if (ownerServerId != serverContext.Id)
+            {
+                var position = player.Position;
+                var ownerGate = new ExitGate
+                {
+                    Map = player.CurrentMap.Definition,
+                    X1 = position.X,
+                    X2 = position.X,
+                    Y1 = position.Y,
+                    Y2 = position.Y,
+                };
+                await player.TrySwitchGameServerAsync(ownerGate, 0).ConfigureAwait(false);
+                if (player.PlayerState.CurrentState != PlayerState.Finished)
+                {
+                    await this.WarpToHomeMapAsync().ConfigureAwait(false);
+                }
+
+                return;
+            }
+        }
+
         await this._summon.AddToMapAsync(player.CurrentMap).ConfigureAwait(false);
     }
 

@@ -60,6 +60,7 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
     /// <param name="mapHostLocator">The locator for the maps which are hosted by other game servers.
     /// It's only available when the maps can be shared between game servers.</param>
     /// <param name="mapTransferDirectory">The directory for maps in another game server process.</param>
+    /// <param name="mapOwnershipLocator">The locator for the unique owner of shared maps.</param>
     public GameServer(
         GameServerDefinition gameServerDefinition,
         IGuildServer guildServer,
@@ -72,7 +73,8 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
         IConfigurationChangeMediator changeMediator,
         IPacketArchive? packetArchive = null,
         IMapHostLocator? mapHostLocator = null,
-        IMapTransferDirectory? mapTransferDirectory = null)
+        IMapTransferDirectory? mapTransferDirectory = null,
+        IMapOwnershipLocator? mapOwnershipLocator = null)
     {
         this.Id = gameServerDefinition.ServerID;
         this.Description = gameServerDefinition.Description;
@@ -86,7 +88,7 @@ public sealed partial class GameServer : IGameServer, IDisposable, IAsyncDisposa
             var gameConfiguration = gameServerDefinition.GameConfiguration ?? throw Error.NotInitializedProperty(gameServerDefinition, nameof(gameServerDefinition.GameConfiguration));
             var dropGenerator = new DefaultDropGenerator(gameConfiguration, Rand.GetRandomizer());
             var mapInitializer = new GameServerMapInitializer(gameServerDefinition, loggerFactory.CreateLogger<GameServerMapInitializer>(), dropGenerator, changeMediator);
-            this._gameContext = new GameServerContext(gameServerDefinition, guildServer, eventPublisher, loginServer, friendServer, persistenceContextProvider, mapInitializer, loggerFactory, plugInManager, dropGenerator, changeMediator, mapHostLocator, mapTransferDirectory);
+            this._gameContext = new GameServerContext(gameServerDefinition, guildServer, eventPublisher, loginServer, friendServer, persistenceContextProvider, mapInitializer, loggerFactory, plugInManager, dropGenerator, changeMediator, mapHostLocator, mapTransferDirectory, mapOwnershipLocator);
             this._gameContext.GameMapCreated += (_, _) => this.OnPropertyChanged(nameof(this.Context));
             this._gameContext.GameMapRemoved += (_, _) => this.OnPropertyChanged(nameof(this.Context));
             this._gameContext.LoggedInPlayerCountChanged += (_, _) => this.OnPropertyChanged(nameof(this.CurrentConnections));

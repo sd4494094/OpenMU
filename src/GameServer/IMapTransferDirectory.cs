@@ -17,4 +17,13 @@ public interface IMapTransferDirectory
     /// <param name="version">The client version on the source session.</param>
     /// <returns>The destination server and listener, or null if no host can accept the transfer.</returns>
     ValueTask<(byte ServerId, IPEndPoint EndPoint)?> FindDestinationAsync(IGameServerContext source, ushort mapNumber, ClientVersion version);
+
+    /// <summary>Finds a compatible destination on a specific game server.</summary>
+    /// <param name="source">The game server requesting the transfer.</param>
+    /// <param name="serverId">The designated destination server.</param>
+    /// <param name="mapNumber">The destination map.</param>
+    /// <param name="version">The client version on the source session.</param>
+    /// <returns>The destination listener, or null if that server cannot accept the transfer.</returns>
+    ValueTask<(byte ServerId, IPEndPoint EndPoint)?> FindDestinationOnServerAsync(IGameServerContext source, byte serverId, ushort mapNumber, ClientVersion version)
+        => this.FindDestinationAsync(source, mapNumber, version);
 }
