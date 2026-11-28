@@ -29,6 +29,8 @@ public static class CastleSiegeParticipantTracker
         {
             UpdateParticipant(context, player, utcNow, true, false);
         }
+
+        await context.SaveParticipationAsync().ConfigureAwait(false);
     }
 
     /// <summary>

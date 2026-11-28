@@ -762,6 +762,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.Property<Guid?>("OwnerGuildId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ParticipationCheckpoint")
+                        .HasColumnType("text");
+
                     b.Property<byte>("TaxChaos")
                         .HasColumnType("smallint");
 

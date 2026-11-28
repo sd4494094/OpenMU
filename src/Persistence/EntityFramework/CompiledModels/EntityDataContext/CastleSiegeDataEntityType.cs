@@ -22,7 +22,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeData",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeData),
                 baseEntityType,
-                propertyCount: 8,
+                propertyCount: 9,
                 navigationCount: 2,
                 foreignKeyCount: 1,
                 unnamedIndexCount: 1,
@@ -62,6 +62,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
                 fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegeData).GetField("<OwnerGuildId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 nullable: true);
             ownerGuildId.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var participationCheckpoint = runtimeEntityType.AddProperty(
+                "ParticipationCheckpoint",
+                typeof(string),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegeData).GetProperty("ParticipationCheckpoint", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegeData).GetField("<ParticipationCheckpoint>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+            participationCheckpoint.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var taxChaos = runtimeEntityType.AddProperty(
                 "TaxChaos",

@@ -52,6 +52,11 @@ public class CastleSiegeData
     public long TributeMoney { get; set; }
 
     /// <summary>
+    /// Gets or sets the serialized participation checkpoint for the current battle.
+    /// </summary>
+    public string? ParticipationCheckpoint { get; set; }
+
+    /// <summary>
     /// Gets or sets the persisted states of all castle NPCs.
     /// </summary>
     [MemberOfAggregate]

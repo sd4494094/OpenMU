@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
+using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.CastleSiege;
@@ -956,6 +957,47 @@ public class CastleSiegeStateMachineTests
     private static DateTime ParseUtc(string utcTime)
     {
         return DateTime.Parse(utcTime, null, System.Globalization.DateTimeStyles.AdjustToUniversal);
+    }
+
+    /// <summary>
+    /// Verifies that a restart restores earned participation for the same battle without treating downtime as playtime.
+    /// </summary>
+    [Test]
+    public async ValueTask ParticipationCheckpointRestoresOnlyForSameBattleAsync()
+    {
+        var fixture = await CreateFixtureAsync().ConfigureAwait(false);
+        fixture.CastleSiegeConfiguration.RewardItemDefinition = new ItemDefinition();
+        var battle = fixture.CastleSiegeConfiguration.StateSchedule.Single(entry => entry.State == CastleSiegeState.Start);
+        var battleDay = new DateTime(2026, 8, 2, 0, 0, 0, DateTimeKind.Utc).AddDays((int)battle.DayOfWeek);
+        var start = battleDay.AddHours(battle.Hour).AddMinutes(battle.Minute);
+        var original = new CastleSiegeContext(fixture.GameContext.Object, fixture.CastleSiegeConfiguration);
+        await original.InitializeAsync(start).ConfigureAwait(false);
+        Assert.That(original.CurrentState, Is.EqualTo(CastleSiegeState.Start));
+        var characterId = Guid.NewGuid();
+        var accrued = TimeSpan.FromSeconds(18);
+        original.ParticipantTracking[characterId] = new CastleSiegeParticipant
+        {
+            CharacterId = characterId,
+            ParticipationTime = accrued,
+            LastUpdateUtc = start.Add(accrued),
+            IsTracking = true,
+        };
+        await original.SaveParticipationAsync().ConfigureAwait(false);
+
+        var restarted = new CastleSiegeContext(fixture.GameContext.Object, fixture.CastleSiegeConfiguration);
+        var restartTime = start.AddSeconds(30);
+        await restarted.InitializeAsync(restartTime).ConfigureAwait(false);
+        var restored = restarted.ParticipantTracking[characterId];
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.ParticipationTime, Is.EqualTo(accrued));
+            Assert.That(restored.IsTracking, Is.False);
+            Assert.That(restored.LastUpdateUtc, Is.EqualTo(restartTime));
+        });
+
+        var nextBattle = new CastleSiegeContext(fixture.GameContext.Object, fixture.CastleSiegeConfiguration);
+        await nextBattle.InitializeAsync(start.AddDays(7)).ConfigureAwait(false);
+        Assert.That(nextBattle.ParticipantTracking, Is.Empty);
     }
 
     private static IEnumerable<CastleSiegeStateScheduleEntry> CreateSchedule()
