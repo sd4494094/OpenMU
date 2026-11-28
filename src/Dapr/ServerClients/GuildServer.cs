@@ -288,6 +288,16 @@ public class GuildServer : IGuildServer
     }
 
     /// <inheritdoc />
+    public async ValueTask<bool> ApplyCastleSiegeScoreAwardAsync(Guid persistentGuildId, DateTime battleStartUtc, int amount)
+    {
+        return await this._daprClient.InvokeMethodAsync<CastleSiegeScoreAwardArguments, bool>(
+                this._targetAppId,
+                GetMethodName(nameof(this.ApplyCastleSiegeScoreAwardAsync)),
+                new CastleSiegeScoreAwardArguments(persistentGuildId, battleStartUtc, amount))
+            .ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
     public async ValueTask<AllianceCreationResult> CreateAllianceAsync(uint masterGuildId, uint targetGuildId)
     {
         try

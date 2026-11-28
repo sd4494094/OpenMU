@@ -43,6 +43,7 @@ public static class CastleSiegeParticipantTracker
     /// <returns>A task that represents the asynchronous reward operation.</returns>
     public static async ValueTask AwardRewardsAsync(CastleSiegeContext context)
     {
+        var battleStartUtc = context.CurrentBattleStartUtc ?? context.StateStartTimeUtc;
         var eligibleParticipants = context.ParticipantTracking.Values
             .Where(participant => participant.ParticipationTime.TotalSeconds >= context.Configuration.ParticipantRewardMinSeconds)
             .ToList();
@@ -53,54 +54,102 @@ public static class CastleSiegeParticipantTracker
 
         if (context.Configuration.RewardItemDefinition is { } rewardDefinition)
         {
-            var queuedCharacterIds = new List<Guid>();
+            await CastleSiegeRewardDelivery
+                .QueueAsync(
+                    context.GameContext,
+                    eligibleParticipants.Select(participant => participant.CharacterId).ToList(),
+                    rewardDefinition,
+                    battleStartUtc)
+                .ConfigureAwait(false);
+
             foreach (var participant in eligibleParticipants)
             {
-                if (onlinePlayers.TryGetValue(participant.CharacterId, out var player)
-                    && await CastleSiegeRewardDelivery
-                        .TryAddToInventoryAsync(player, rewardDefinition)
-                        .ConfigureAwait(false))
+                if (onlinePlayers.TryGetValue(participant.CharacterId, out var player))
                 {
-                    continue;
+                    await CastleSiegePendingRewardPlugIn.DeliverPendingRewardsAsync(player).ConfigureAwait(false);
                 }
-
-                queuedCharacterIds.Add(participant.CharacterId);
-            }
-
-            if (queuedCharacterIds.Count > 0)
-            {
-                await CastleSiegeRewardDelivery
-                    .QueueAsync(context.GameContext, queuedCharacterIds, rewardDefinition)
-                    .ConfigureAwait(false);
             }
         }
 
-        if (context.GameContext is not IGameServerContext gameServerContext
-            || context.GetBattleOwner() is not { } ownerGuild)
+        if (context.GameContext is IGameServerContext gameServerContext)
         {
-            return;
-        }
+            var ownerGuild = context.GetBattleOwner();
+            var ownerGuildId = ownerGuild?.PersistentGuildId ?? context.SiegeData.OwnerGuildId;
+            var winningGuildIds = await GetPersistedWinningGuildIdsAsync(context, ownerGuildId).ConfigureAwait(false);
+            if (winningGuildIds.Length == 0 && ownerGuild is not null)
+            {
+                winningGuildIds = context.FinalGuildList.Values
+                    .Where(guild => guild.Side == ownerGuild.Side)
+                    .Select(guild => guild.PersistentGuildId)
+                    .ToArray();
+            }
 
-        foreach (var guild in context.FinalGuildList.Values.Where(guild => guild.Side == ownerGuild.Side))
+            if (winningGuildIds.Length == 0 && ownerGuildId.HasValue)
+            {
+                winningGuildIds = [ownerGuildId.Value];
+            }
+
+            if (ownerGuildId is { } persistentOwnerGuildId)
+            {
+                context.GameContext.LoggerFactory
+                    .CreateLogger(typeof(CastleSiegeParticipantTracker))
+                    .LogInformation(
+                        "Castle Siege settlement awards {winningGuildCount} guilds {winningGuildIds} for owner {ownerGuildId}; runtime owner available: {runtimeOwnerAvailable}; configured owner score: {ownerScore}; member score: {memberScore}.",
+                        winningGuildIds.Length,
+                        string.Join(",", winningGuildIds),
+                        persistentOwnerGuildId,
+                        ownerGuild is not null,
+                        context.Configuration.GuildScoreCastleSiege,
+                        context.Configuration.GuildScoreCastleSiegeMembers);
+
+                foreach (var guildId in winningGuildIds.Distinct())
+                {
+                    var score = guildId == persistentOwnerGuildId
+                        ? context.Configuration.GuildScoreCastleSiege
+                        : context.Configuration.GuildScoreCastleSiegeMembers;
+                    if (score <= 0)
+                    {
+                        continue;
+                    }
+
+                    var awardPersisted = await gameServerContext.GuildServer
+                        .ApplyCastleSiegeScoreAwardAsync(guildId, battleStartUtc, score)
+                        .ConfigureAwait(false);
+                    context.GameContext.LoggerFactory
+                        .CreateLogger(typeof(CastleSiegeParticipantTracker))
+                        .LogInformation(
+                            "Castle Siege score award for guild {guildId}, amount {score}, persisted: {awardPersisted}.",
+                            guildId,
+                            score,
+                            awardPersisted);
+                    if (!awardPersisted)
+                    {
+                        throw new InvalidOperationException($"The Castle Siege score award for guild {guildId} could not be persisted.");
+                    }
+                }
+            }
+        }
+    }
+
+    private static async ValueTask<Guid[]> GetPersistedWinningGuildIdsAsync(CastleSiegeContext context, Guid? ownerGuildId)
+    {
+        if (ownerGuildId is not { } persistentOwnerGuildId)
         {
-            var score = guild.PersistentGuildId == ownerGuild.PersistentGuildId
-                ? context.Configuration.GuildScoreCastleSiege
-                : context.Configuration.GuildScoreCastleSiegeMembers;
-            if (score <= 0)
-            {
-                continue;
-            }
-
-            var runtimeGuildId = await gameServerContext.GuildServer
-                .GetGuildIdAsync(guild.PersistentGuildId)
-                .ConfigureAwait(false);
-            if (runtimeGuildId == 0)
-            {
-                continue;
-            }
-
-            await gameServerContext.GuildServer.IncreaseGuildScoreAsync(runtimeGuildId, score).ConfigureAwait(false);
+            return [];
         }
+
+        using var persistenceContext = context.GameContext.PersistenceContextProvider
+            .CreateNewTypedContext(typeof(CastleSiegeData), false, context.GameContext.Configuration);
+        var siegeData = await persistenceContext.GetByIdAsync<CastleSiegeData>(context.SiegeData.Id).ConfigureAwait(false);
+        if (siegeData?.Guilds.FirstOrDefault(guild => guild.GuildId == persistentOwnerGuildId) is not { } persistedOwner)
+        {
+            return [];
+        }
+
+        return siegeData.Guilds
+            .Where(guild => guild.Side == persistedOwner.Side)
+            .Select(guild => guild.GuildId)
+            .ToArray();
     }
 
     /// <summary>

@@ -238,6 +238,15 @@ public interface IGuildServer
     ValueTask IncreaseGuildScoreAsync(uint guildId, int amount);
 
     /// <summary>
+    /// Applies a Castle Siege guild score award once for a battle.
+    /// </summary>
+    /// <param name="persistentGuildId">The persistent identifier of the guild.</param>
+    /// <param name="battleStartUtc">The UTC start time of the battle.</param>
+    /// <param name="amount">The score amount to add.</param>
+    /// <returns><see langword="true"/> if the award was applied or was already applied.</returns>
+    ValueTask<bool> ApplyCastleSiegeScoreAwardAsync(Guid persistentGuildId, DateTime battleStartUtc, int amount);
+
+    /// <summary>
     /// Creates an alliance between the master guild and the target guild.
     /// The master guild becomes (or remains) the alliance master.
     /// </summary>

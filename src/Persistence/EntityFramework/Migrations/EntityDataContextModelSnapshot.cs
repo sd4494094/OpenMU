@@ -848,6 +848,29 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.ToTable("CastleSiegeGuildRegistration", "data");
                 });
 
+            modelBuilder.Entity("MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeGuildScoreAward", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("BattleStartUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GuildId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId", "BattleStartUtc")
+                        .IsUnique();
+
+                    b.ToTable("CastleSiegeGuildScoreAward", "guild");
+                });
+
             modelBuilder.Entity("MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegeNpcDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -930,8 +953,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("BattleStartUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("CharacterId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDelivered")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("ItemDefinitionId")
                         .HasColumnType("uuid");
@@ -941,6 +970,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.Migrations
                     b.HasIndex("CharacterId");
 
                     b.HasIndex("ItemDefinitionId");
+
+                    b.HasIndex("CharacterId", "BattleStartUtc")
+                        .IsUnique();
 
                     b.ToTable("CastleSiegePendingReward", "data");
                 });

@@ -145,6 +145,17 @@ internal class MyNpgsqlMigrationsSqlGenerator : NpgsqlMigrationsSqlGenerator
     protected override void Generate(CreateTableOperation operation, IModel? model, MigrationCommandListBuilder builder, bool terminate = true)
     {
         base.Generate(operation, model, builder, terminate);
+        if (operation.Schema is { } schemaName && DatabaseRoles.TryGetValue(schemaName, out var databaseRole))
+        {
+            var roleName = ConnectionConfigurator.GetRoleName(databaseRole);
+            builder
+                .AppendLine($"GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE {schemaName}.\"{operation.Name}\" TO GROUP {roleName};")
+                .EndCommand()
+                .AppendLine($"GRANT USAGE ON SCHEMA {schemaName} TO GROUP {roleName};")
+                .EndCommand();
+            return;
+        }
+
         if (operation.Schema != "data")
         {
             return;

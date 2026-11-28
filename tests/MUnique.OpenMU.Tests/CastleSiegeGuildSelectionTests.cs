@@ -315,13 +315,15 @@ public class CastleSiegeGuildSelectionTests
             Assert.That(fixture.Context.SiegeData.OwnerGuildId, Is.EqualTo(fixture.AlphaPersistentGuildId));
         });
         fixture.GuildServer.Verify(
-            server => server.IncreaseGuildScoreAsync(
-                AlphaGuildId,
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                fixture.AlphaPersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
                 fixture.CastleSiegeConfiguration.GuildScoreCastleSiege),
             Times.Once);
         fixture.GuildServer.Verify(
-            server => server.IncreaseGuildScoreAsync(
-                AlphaAllianceGuildId,
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                fixture.Context.GetSelectedGuild(AlphaAllianceGuildId).PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
                 fixture.CastleSiegeConfiguration.GuildScoreCastleSiegeMembers),
             Times.Once);
     }
@@ -475,19 +477,21 @@ public class CastleSiegeGuildSelectionTests
             var pendingReward = (await persistenceContext
                     .GetAsync<CastleSiegePendingReward>()
                     .ConfigureAwait(false))
-                .Single();
+                .Single(reward => !reward.IsDelivered);
             Assert.That(pendingReward.CharacterId, Is.EqualTo(fixture.OfflineCharacterId));
             Assert.That(pendingReward.ItemDefinitionId, Is.EqualTo(fixture.RewardItemDefinition.GetId()));
         }
 
         fixture.GuildServer.Verify(
-            server => server.IncreaseGuildScoreAsync(
-                AlphaGuildId,
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                fixture.Context.GetSelectedGuild(AlphaGuildId).PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
                 fixture.CastleSiegeConfiguration.GuildScoreCastleSiege),
             Times.Once);
         fixture.GuildServer.Verify(
-            server => server.IncreaseGuildScoreAsync(
-                AlphaAllianceGuildId,
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                fixture.Context.GetSelectedGuild(AlphaAllianceGuildId).PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
                 fixture.CastleSiegeConfiguration.GuildScoreCastleSiegeMembers),
             Times.Once);
     }
@@ -517,7 +521,8 @@ public class CastleSiegeGuildSelectionTests
 
         using var persistenceContext = fixture.PersistenceContextProvider.CreateNewTypedContext(
             typeof(CastleSiegePendingReward), false, fixture.GameConfiguration);
-        var queuedRewards = await persistenceContext.GetAsync<CastleSiegePendingReward>().ConfigureAwait(false);
+        var queuedRewards = (await persistenceContext.GetAsync<CastleSiegePendingReward>().ConfigureAwait(false))
+            .Where(reward => !reward.IsDelivered).ToList();
         var expectedCount = secondsBelowThreshold == 0 ? 1 : 0;
         Assert.Multiple(() =>
         {
@@ -539,13 +544,57 @@ public class CastleSiegeGuildSelectionTests
         await CastleSiegeParticipantTracker.AwardRewardsAsync(fixture.Context).ConfigureAwait(false);
 
         fixture.GuildServer.Verify(
-            server => server.IncreaseGuildScoreAsync(
-                DefenseGuildId,
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                fixture.Context.GetSelectedGuild(DefenseGuildId).PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
                 fixture.CastleSiegeConfiguration.GuildScoreCastleSiege),
             Times.Once);
         fixture.GuildServer.Verify(
-            server => server.IncreaseGuildScoreAsync(
-                DefenseAllianceGuildId,
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                fixture.Context.GetSelectedGuild(DefenseAllianceGuildId).PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
+                fixture.CastleSiegeConfiguration.GuildScoreCastleSiegeMembers),
+            Times.Once);
+    }
+
+    /// <summary>
+    /// Verifies that settlement restores winning guild scores from persistent selection data when runtime guilds are unavailable.
+    /// </summary>
+    [Test]
+    public async ValueTask RewardsUsePersistedWinningGuildsWhenRuntimeGuildsAreUnavailableAsync()
+    {
+        var fixture = await CreateFixtureAsync().ConfigureAwait(false);
+        await CastleSiegeGuildSelector.SelectGuildsAsync(fixture.Context).ConfigureAwait(false);
+        var ownerGuild = fixture.Context.GetSelectedGuild(DefenseGuildId);
+        var allianceGuild = fixture.Context.GetSelectedGuild(DefenseAllianceGuildId);
+        fixture.Context.SiegeData.OwnerGuildId = ownerGuild.PersistentGuildId;
+        fixture.Context.SiegeData.Guilds.Add(new BasicModel.CastleSiegeGuild
+        {
+            GuildId = ownerGuild.PersistentGuildId,
+            GuildName = ownerGuild.GuildName,
+            Side = CastleSiegeJoinSide.Defense,
+            IsAllianceMaster = true,
+        });
+        fixture.Context.SiegeData.Guilds.Add(new BasicModel.CastleSiegeGuild
+        {
+            GuildId = allianceGuild.PersistentGuildId,
+            GuildName = allianceGuild.GuildName,
+            Side = CastleSiegeJoinSide.Defense,
+        });
+        fixture.Context.FinalGuildList.Clear();
+
+        await CastleSiegeParticipantTracker.AwardRewardsAsync(fixture.Context).ConfigureAwait(false);
+
+        fixture.GuildServer.Verify(
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                ownerGuild.PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
+                fixture.CastleSiegeConfiguration.GuildScoreCastleSiege),
+            Times.Once);
+        fixture.GuildServer.Verify(
+            server => server.ApplyCastleSiegeScoreAwardAsync(
+                allianceGuild.PersistentGuildId,
+                fixture.Context.StateStartTimeUtc,
                 fixture.CastleSiegeConfiguration.GuildScoreCastleSiegeMembers),
             Times.Once);
     }
@@ -570,6 +619,7 @@ public class CastleSiegeGuildSelectionTests
             ParticipationTime = TimeSpan.FromSeconds(fixture.CastleSiegeConfiguration.ParticipantRewardMinSeconds),
         };
 
+        await CastleSiegeParticipantTracker.AwardRewardsAsync(fixture.Context).ConfigureAwait(false);
         await CastleSiegeParticipantTracker.AwardRewardsAsync(fixture.Context).ConfigureAwait(false);
 
         var deliveredRewards = firstPlayer.Inventory!.Items.Count(item => item.Definition == fixture.RewardItemDefinition)
@@ -607,6 +657,35 @@ public class CastleSiegeGuildSelectionTests
         Assert.That(
             await persistenceContext.GetAsync<CastleSiegePendingReward>().ConfigureAwait(false),
             Is.Empty);
+    }
+
+    /// <summary>
+    /// Verifies that a delivered battle reward retains its durable idempotency receipt.
+    /// </summary>
+    [Test]
+    public async ValueTask DeliveredBattleRewardIsNotGrantedAgainAsync()
+    {
+        var fixture = await CreateFixtureAsync().ConfigureAwait(false);
+        var player = await CreateSiegePlayerAsync(fixture, AlphaGuildId, "DurableReturn").ConfigureAwait(false);
+        var battleStartUtc = fixture.InitializationTimeUtc;
+        await CastleSiegeRewardDelivery
+            .QueueAsync(fixture.GameServerContext, [player.SelectedCharacter!.Id], fixture.RewardItemDefinition, battleStartUtc)
+            .ConfigureAwait(false);
+
+        var plugIn = new CastleSiegePendingRewardPlugIn();
+        await plugIn.PlayerStateChangedAsync(player, PlayerState.CharacterSelection, PlayerState.EnteredWorld).ConfigureAwait(false);
+        await plugIn.PlayerStateChangedAsync(player, PlayerState.CharacterSelection, PlayerState.EnteredWorld).ConfigureAwait(false);
+
+        using var persistenceContext = fixture.PersistenceContextProvider.CreateNewTypedContext(
+            typeof(CastleSiegePendingReward), false, fixture.GameConfiguration);
+        var receipts = await persistenceContext.GetAsync<CastleSiegePendingReward>().ConfigureAwait(false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(player.Inventory!.Items.Count(item => item.Definition == fixture.RewardItemDefinition), Is.EqualTo(1));
+            Assert.That(receipts, Has.Count.EqualTo(1));
+            Assert.That(receipts.Single().BattleStartUtc, Is.EqualTo(battleStartUtc));
+            Assert.That(receipts.Single().IsDelivered, Is.True);
+        });
     }
 
     /// <summary>
@@ -849,8 +928,8 @@ public class CastleSiegeGuildSelectionTests
             .Returns<uint>(guildId => new ValueTask<IImmutableList<AllianceGuildEntry>>(
                 alliances.GetValueOrDefault(guildId, ImmutableList<AllianceGuildEntry>.Empty)));
         guildServer
-            .Setup(server => server.IncreaseGuildScoreAsync(It.IsAny<uint>(), It.IsAny<int>()))
-            .Returns(ValueTask.CompletedTask);
+            .Setup(server => server.ApplyCastleSiegeScoreAwardAsync(It.IsAny<Guid>(), It.IsAny<DateTime>(), It.IsAny<int>()))
+            .ReturnsAsync(true);
 
         var mapInitializer = new MapInitializer(
             gameConfiguration,

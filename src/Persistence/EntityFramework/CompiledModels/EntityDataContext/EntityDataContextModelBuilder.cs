@@ -12,7 +12,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
     public partial class EntityDataContextModel
     {
         private EntityDataContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("8e22215d-8472-4d46-88c6-22b950fd1cbe"), entityTypeCount: 130)
+            : base(skipDetectChanges: false, modelId: new Guid("88e51670-e624-4c9a-afaf-9be53ddf8d31"), entityTypeCount: 131)
         {
         }
 
@@ -38,6 +38,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             var castleSiegeData = CastleSiegeDataEntityType.Create(this);
             var castleSiegeGuild = CastleSiegeGuildEntityType.Create(this);
             var castleSiegeGuildRegistration = CastleSiegeGuildRegistrationEntityType.Create(this);
+            var castleSiegeGuildScoreAward = CastleSiegeGuildScoreAwardEntityType.Create(this);
             var castleSiegeNpcDefinition = CastleSiegeNpcDefinitionEntityType.Create(this);
             var castleSiegeNpcState = CastleSiegeNpcStateEntityType.Create(this);
             var castleSiegePendingReward = CastleSiegePendingRewardEntityType.Create(this);
@@ -427,6 +428,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForEntityDat
             CastleSiegeDataEntityType.CreateAnnotations(castleSiegeData);
             CastleSiegeGuildEntityType.CreateAnnotations(castleSiegeGuild);
             CastleSiegeGuildRegistrationEntityType.CreateAnnotations(castleSiegeGuildRegistration);
+            CastleSiegeGuildScoreAwardEntityType.CreateAnnotations(castleSiegeGuildScoreAward);
             CastleSiegeNpcDefinitionEntityType.CreateAnnotations(castleSiegeNpcDefinition);
             CastleSiegeNpcStateEntityType.CreateAnnotations(castleSiegeNpcState);
             CastleSiegePendingRewardEntityType.CreateAnnotations(castleSiegePendingReward);

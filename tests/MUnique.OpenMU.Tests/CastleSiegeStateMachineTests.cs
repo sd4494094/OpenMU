@@ -1000,6 +1000,43 @@ public class CastleSiegeStateMachineTests
         Assert.That(nextBattle.ParticipantTracking, Is.Empty);
     }
 
+    /// <summary>
+    /// Verifies that an eligible participant snapshot is recovered when the host restarts in the End state.
+    /// </summary>
+    [Test]
+    public async ValueTask ParticipationCheckpointRestoresForSettlementAfterBattleDeadlineAsync()
+    {
+        var fixture = await CreateFixtureAsync().ConfigureAwait(false);
+        var battle = fixture.CastleSiegeConfiguration.StateSchedule.Single(entry => entry.State == CastleSiegeState.Start);
+        var battleDay = new DateTime(2026, 8, 2, 0, 0, 0, DateTimeKind.Utc).AddDays((int)battle.DayOfWeek);
+        var start = battleDay.AddHours(battle.Hour).AddMinutes(battle.Minute);
+        var original = new CastleSiegeContext(fixture.GameContext.Object, fixture.CastleSiegeConfiguration);
+        await original.InitializeAsync(start).ConfigureAwait(false);
+        var characterId = Guid.NewGuid();
+        original.ParticipantTracking[characterId] = new CastleSiegeParticipant
+        {
+            CharacterId = characterId,
+            ParticipationTime = TimeSpan.FromSeconds(18),
+            LastUpdateUtc = start.AddSeconds(18),
+            IsTracking = false,
+        };
+        await original.SaveParticipationAsync().ConfigureAwait(false);
+
+        var schedule = new CastleSiegeSchedule(fixture.CastleSiegeConfiguration.StateSchedule, TimeZoneInfo.Utc);
+        var battleEnd = schedule.CreatePeriod(CastleSiegeState.Start, start).EndUtc;
+        var restartTime = battleEnd.AddSeconds(30);
+        var restarted = new CastleSiegeContext(fixture.GameContext.Object, fixture.CastleSiegeConfiguration);
+        await restarted.InitializeAsync(restartTime).ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restarted.CurrentState, Is.EqualTo(CastleSiegeState.End));
+            Assert.That(restarted.CurrentBattleStartUtc, Is.EqualTo(start));
+            Assert.That(restarted.ParticipantTracking, Is.Empty);
+            Assert.That(restarted.PendingSettlementParticipantCount, Is.EqualTo(1));
+        });
+    }
+
     private static IEnumerable<CastleSiegeStateScheduleEntry> CreateSchedule()
     {
         yield return CreateScheduleEntry(CastleSiegeState.Idle1, DayOfWeek.Sunday, 0, 0);

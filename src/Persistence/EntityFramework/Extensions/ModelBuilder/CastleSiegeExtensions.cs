@@ -108,6 +108,7 @@ internal static class CastleSiegeExtensions
     public static void Apply(this EntityTypeBuilder<CastleSiegePendingReward> builder)
     {
         builder.HasIndex(reward => reward.CharacterId);
+        builder.HasIndex(reward => new { reward.CharacterId, reward.BattleStartUtc }).IsUnique();
         builder.HasOne<Character>()
             .WithMany()
             .HasForeignKey(reward => reward.CharacterId)
@@ -116,5 +117,15 @@ internal static class CastleSiegeExtensions
             .WithMany()
             .HasForeignKey(reward => reward.ItemDefinitionId)
             .OnDelete(DeleteBehavior.Restrict);
+    }
+
+    /// <summary>
+    /// Applies the settings for the <see cref="CastleSiegeGuildScoreAward"/> entity.
+    /// </summary>
+    /// <param name="builder">The builder.</param>
+    public static void Apply(this EntityTypeBuilder<CastleSiegeGuildScoreAward> builder)
+    {
+        builder.HasIndex(award => new { award.GuildId, award.BattleStartUtc }).IsUnique();
+        builder.ToTable(nameof(CastleSiegeGuildScoreAward), SchemaNames.Guild);
     }
 }

@@ -48,28 +48,33 @@ internal static class CastleSiegeRewardDelivery
     /// <param name="gameContext">The game context.</param>
     /// <param name="characterIds">The persistent character identifiers.</param>
     /// <param name="rewardDefinition">The reward item definition.</param>
+    /// <param name="battleStartUtc">The UTC start time which identifies the battle.</param>
     /// <returns>A task that represents the asynchronous queue operation.</returns>
     internal static async ValueTask QueueAsync(
         IGameContext gameContext,
         IReadOnlyCollection<Guid> characterIds,
-        ItemDefinition rewardDefinition)
+        ItemDefinition rewardDefinition,
+        DateTime? battleStartUtc = null)
     {
         if (characterIds.Count == 0)
         {
             return;
         }
 
-        using var persistenceContext = gameContext.PersistenceContextProvider.CreateNewTypedContext(
-            typeof(CastleSiegePendingReward),
-            false,
-            gameContext.Configuration);
         foreach (var characterId in characterIds)
         {
+            using var persistenceContext = gameContext.PersistenceContextProvider.CreateNewPlayerContext(gameContext.Configuration);
+            var pendingRewards = await persistenceContext.GetPendingCastleSiegeRewardsAsync(characterId).ConfigureAwait(false);
+            if (battleStartUtc is not null && pendingRewards.Any(reward => reward.BattleStartUtc == battleStartUtc))
+            {
+                continue;
+            }
+
             var pendingReward = persistenceContext.CreateNew<CastleSiegePendingReward>();
             pendingReward.CharacterId = characterId;
             pendingReward.ItemDefinitionId = rewardDefinition.GetId();
+            pendingReward.BattleStartUtc = battleStartUtc;
+            await persistenceContext.SaveChangesAsync().ConfigureAwait(false);
         }
-
-        await persistenceContext.SaveChangesAsync().ConfigureAwait(false);
     }
 }

@@ -22,9 +22,9 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
                 "MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegePendingReward",
                 typeof(MUnique.OpenMU.Persistence.EntityFramework.Model.CastleSiegePendingReward),
                 baseEntityType,
-                propertyCount: 3,
+                propertyCount: 5,
                 foreignKeyCount: 1,
-                unnamedIndexCount: 1,
+                unnamedIndexCount: 2,
                 keyCount: 1);
 
             var id = runtimeEntityType.AddProperty(
@@ -38,6 +38,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
                 sentinel: new Guid("00000000-0000-0000-0000-000000000000"));
             id.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
+            var battleStartUtc = runtimeEntityType.AddProperty(
+                "BattleStartUtc",
+                typeof(DateTime?),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetProperty("BattleStartUtc", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetField("<BattleStartUtc>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
+            battleStartUtc.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
             var characterId = runtimeEntityType.AddProperty(
                 "CharacterId",
                 typeof(Guid),
@@ -45,6 +53,14 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
                 fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetField("<CharacterId>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 sentinel: new Guid("00000000-0000-0000-0000-000000000000"));
             characterId.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
+
+            var isDelivered = runtimeEntityType.AddProperty(
+                "IsDelivered",
+                typeof(bool),
+                propertyInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetProperty("IsDelivered", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(MUnique.OpenMU.DataModel.Entities.CastleSiegePendingReward).GetField("<IsDelivered>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                sentinel: false);
+            isDelivered.AddAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.None);
 
             var itemDefinitionId = runtimeEntityType.AddProperty(
                 "ItemDefinitionId",
@@ -60,6 +76,10 @@ namespace MUnique.OpenMU.Persistence.EntityFramework.CompiledModels.ForAccountCo
 
             var index = runtimeEntityType.AddIndex(
                 new[] { characterId });
+
+            var index0 = runtimeEntityType.AddIndex(
+                new[] { characterId, battleStartUtc },
+                unique: true);
 
             return runtimeEntityType;
         }

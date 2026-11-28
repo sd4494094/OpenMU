@@ -24,4 +24,15 @@ public class CastleSiegePendingReward
     /// Gets or sets the identifier of the item definition to deliver.
     /// </summary>
     public Guid ItemDefinitionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the start time of the battle which created this reward.
+    /// <see langword="null"/> for pending rewards created before durable settlement tracking.
+    /// </summary>
+    public DateTime? BattleStartUtc { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the battle reward has been committed to the character inventory.
+    /// </summary>
+    public bool IsDelivered { get; set; }
 }

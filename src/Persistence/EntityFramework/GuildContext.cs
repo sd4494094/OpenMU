@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework;
 
 using Microsoft.EntityFrameworkCore;
 using MUnique.OpenMU.Persistence.EntityFramework.Extensions;
+using MUnique.OpenMU.Persistence.EntityFramework.Extensions.ModelBuilder;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
 
 /// <summary>
@@ -31,6 +32,8 @@ public class GuildContext : DbContext
             e.HasIndex(guild => guild.Name).IsUnique();
             e.ToTable(nameof(Guild), SchemaNames.Guild);
         });
+
+        modelBuilder.Entity<CastleSiegeGuildScoreAward>().Apply();
     }
 
     /// <inheritdoc/>

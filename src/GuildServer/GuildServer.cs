@@ -139,12 +139,29 @@ public class GuildServer : IGuildServer
     /// <inheritdoc />
     public async ValueTask IncreaseGuildScoreAsync(uint guildId, int amount)
     {
+        using var relationshipLock = await this._relationshipChangeLock.LockAsync().ConfigureAwait(false);
         if (amount > 0
             && this._guildDictionary.TryGetValue(guildId, out var guildContainer))
         {
             guildContainer.Guild.Score += amount;
             await guildContainer.DatabaseContext.SaveChangesAsync().ConfigureAwait(false);
         }
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<bool> ApplyCastleSiegeScoreAwardAsync(Guid persistentGuildId, DateTime battleStartUtc, int amount)
+    {
+        if (amount <= 0)
+        {
+            return true;
+        }
+
+        using var relationshipLock = await this._relationshipChangeLock.LockAsync().ConfigureAwait(false);
+        var guild = await this.GetOrCreateGuildContainerCoreAsync(persistentGuildId).ConfigureAwait(false);
+        return guild is null
+            || await guild.DatabaseContext
+                .ApplyCastleSiegeScoreAwardAsync(persistentGuildId, battleStartUtc, amount)
+                .ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

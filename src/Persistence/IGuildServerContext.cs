@@ -101,4 +101,13 @@ public interface IGuildServerContext : IContext
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>The statistics about the guilds.</returns>
     ValueTask<GuildStatistics> GetGuildStatisticsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a Castle Siege score and records its battle identity atomically.
+    /// </summary>
+    /// <param name="persistentGuildId">The persistent identifier of the guild.</param>
+    /// <param name="battleStartUtc">The UTC start time of the battle.</param>
+    /// <param name="amount">The score amount to add.</param>
+    /// <returns><see langword="true"/> if the award was applied or was already applied.</returns>
+    ValueTask<bool> ApplyCastleSiegeScoreAwardAsync(Guid persistentGuildId, DateTime battleStartUtc, int amount);
 }

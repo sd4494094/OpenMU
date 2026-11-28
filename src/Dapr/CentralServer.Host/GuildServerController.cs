@@ -215,6 +215,17 @@ public class GuildServerController : ControllerBase
     }
 
     /// <summary>
+    /// Applies one idempotent Castle Siege guild score award.
+    /// </summary>
+    /// <param name="award">The guild, battle identity, and score amount.</param>
+    /// <returns><see langword="true"/> if the award was applied or was already applied.</returns>
+    [HttpPost(nameof(IGuildServer.ApplyCastleSiegeScoreAwardAsync))]
+    public ValueTask<bool> ApplyCastleSiegeScoreAwardAsync([FromBody] CastleSiegeScoreAwardArguments award)
+    {
+        return this._guildServer.ApplyCastleSiegeScoreAwardAsync(award.PersistentGuildId, award.BattleStartUtc, award.Amount);
+    }
+
+    /// <summary>
     /// Creates an alliance between the master guild and the target guild.
     /// </summary>
     /// <param name="data">The alliance creation arguments.</param>

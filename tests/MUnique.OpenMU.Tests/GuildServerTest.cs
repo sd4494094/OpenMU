@@ -75,6 +75,43 @@ public class GuildServerTest : GuildTestBase
     }
 
     /// <summary>
+    /// Verifies that a Castle Siege score award is persisted once per guild and battle.
+    /// </summary>
+    [Test]
+    public async ValueTask CastleSiegeScoreAwardIsIdempotentAsync()
+    {
+        using var context = this.PersistenceContextProvider.CreateNewContext();
+        var persistentGuild = (await context
+                .GetAsync<MUnique.OpenMU.DataModel.Entities.Guild>()
+                .ConfigureAwait(false))
+            .Single(guild => guild.Name == GuildName);
+        var battleStartUtc = new DateTime(2026, 11, 28, 7, 0, 0, DateTimeKind.Utc);
+
+        var firstResult = await this.GuildServer
+            .ApplyCastleSiegeScoreAwardAsync(persistentGuild.Id, battleStartUtc, 7)
+            .ConfigureAwait(false);
+        var retryResult = await this.GuildServer
+            .ApplyCastleSiegeScoreAwardAsync(persistentGuild.Id, battleStartUtc, 7)
+            .ConfigureAwait(false);
+
+        using var verificationContext = this.PersistenceContextProvider.CreateNewContext();
+        var savedGuild = (await verificationContext
+                .GetAsync<MUnique.OpenMU.DataModel.Entities.Guild>()
+                .ConfigureAwait(false))
+            .Single(guild => guild.Id == persistentGuild.Id);
+        var awards = await verificationContext.GetAsync<MUnique.OpenMU.DataModel.Entities.CastleSiegeGuildScoreAward>()
+            .ConfigureAwait(false);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(firstResult, Is.True);
+            Assert.That(retryResult, Is.True);
+            Assert.That(savedGuild.Score, Is.EqualTo(7));
+            Assert.That(awards, Has.Count.EqualTo(1));
+        });
+    }
+
+    /// <summary>
     /// Tests that persistent guild names are projected in one batch and missing guilds are omitted.
     /// </summary>
     [Test]

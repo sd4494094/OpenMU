@@ -30,6 +30,7 @@ public class CastleSiegeContext : IEventStateProvider
     private readonly System.Collections.Concurrent.ConcurrentDictionary<Player, byte> _siegeMapPlayers = new();
     private readonly System.Collections.Concurrent.ConcurrentDictionary<uint, CastleSiegeLifeStone> _lifeStones = new();
     private int _requestedState = -1;
+    private ParticipationSnapshot? _pendingSettlementSnapshot;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CastleSiegeContext"/> class.
@@ -169,9 +170,19 @@ public class CastleSiegeContext : IEventStateProvider
     internal bool? LastBroadcastCrownAvailability { get; set; }
 
     /// <summary>
-    /// Gets a value indicating whether the context has been initialized.
+    /// Gets or sets a value indicating whether the context has been initialized.
     /// </summary>
-    internal bool IsInitialized { get; private set; }
+    internal bool IsInitialized { get; set; }
+
+    /// <summary>
+    /// Gets the UTC start time which uniquely identifies the current Castle Siege battle.
+    /// </summary>
+    internal DateTime? CurrentBattleStartUtc { get; private set; }
+
+    /// <summary>
+    /// Gets the number of participants preserved for a settlement which must be resumed.
+    /// </summary>
+    internal int PendingSettlementParticipantCount => this._pendingSettlementSnapshot?.ElapsedTicks.Count ?? 0;
 
     /// <summary>
     /// Gets the game context.
@@ -197,7 +208,7 @@ public class CastleSiegeContext : IEventStateProvider
         var players = new List<Player>();
         foreach (var context in this.GetLocalGameContexts())
         {
-            players.AddRange(await context.GetPlayersAsync().ConfigureAwait(false));
+            players.AddRange(await context.GetPlayersAsync().ConfigureAwait(false) ?? []);
         }
 
         return players;
@@ -904,7 +915,9 @@ public class CastleSiegeContext : IEventStateProvider
         this.NpcController.InitializePersistentStructures();
         await this.LoadRegistrationsAsync().ConfigureAwait(false);
         await this.LoadFinalGuildListAsync().ConfigureAwait(false);
+        this.InitializeBattleOwner();
         var period = this.Schedule.GetCurrentEventPeriod(utcNow);
+        this.CurrentBattleStartUtc = null;
         this.SetPeriod(period);
         this.RestoreParticipation(utcNow);
         await this.InitializeSiegeMapPlayersAsync().ConfigureAwait(false);
@@ -919,30 +932,59 @@ public class CastleSiegeContext : IEventStateProvider
     /// <returns>A task representing the checkpoint write.</returns>
     internal async ValueTask SaveParticipationAsync()
     {
-        if (this.SiegeData is null || this.Configuration.RewardItemDefinition is null || this.ParticipantTracking.IsEmpty)
+        if (this.SiegeData is null || this.CurrentState != CastleSiegeState.Start)
         {
             return;
         }
 
         var elapsedTicks = this.ParticipantTracking.ToArray()
             .ToDictionary(entry => entry.Key, entry => entry.Value.ParticipationTime.Ticks);
-        var checkpoint = JsonSerializer.Serialize(new ParticipationSnapshot(this.StateStartTimeUtc, elapsedTicks));
+        var battleStartUtc = this.CurrentBattleStartUtc ?? this.StateStartTimeUtc;
+        var checkpoint = JsonSerializer.Serialize(new ParticipationSnapshot(battleStartUtc, elapsedTicks, this.StateEndTimeUtc));
         if (checkpoint == this.SiegeData.ParticipationCheckpoint)
         {
             return;
         }
 
-        using var context = this._gameContext.PersistenceContextProvider.CreateNewTypedContext(
-            typeof(CastleSiegeData), false, this._gameContext.Configuration);
-        var persistentData = await context.GetByIdAsync<CastleSiegeData>(this.SiegeData.Id).ConfigureAwait(false)
-            ?? throw new InvalidOperationException("The persistent Castle Siege state no longer exists.");
-        persistentData.ParticipationCheckpoint = checkpoint;
-        if (!await context.SaveChangesAsync().ConfigureAwait(false))
+        await this.WriteParticipationCheckpointAsync(checkpoint).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Clears the completed or explicitly abandoned battle's participation checkpoint.
+    /// </summary>
+    internal async ValueTask ClearParticipationCheckpointAsync()
+    {
+        if (this.SiegeData.ParticipationCheckpoint is not null)
         {
-            throw new InvalidOperationException("The Castle Siege participation checkpoint could not be saved.");
+            await this.WriteParticipationCheckpointAsync(null).ConfigureAwait(false);
         }
 
-        this.SiegeData.ParticipationCheckpoint = checkpoint;
+        this.CurrentBattleStartUtc = null;
+        this._pendingSettlementSnapshot = null;
+        this.ParticipantTracking.Clear();
+    }
+
+    /// <summary>
+    /// Restores participants from a durable checkpoint when resuming a completed battle settlement.
+    /// </summary>
+    internal void RestorePendingSettlementParticipants(DateTime utcNow)
+    {
+        if (this._pendingSettlementSnapshot is not { } snapshot)
+        {
+            return;
+        }
+
+        this.ParticipantTracking.Clear();
+        foreach (var (characterId, ticks) in snapshot.ElapsedTicks)
+        {
+            this.ParticipantTracking[characterId] = new CastleSiegeParticipant
+            {
+                CharacterId = characterId,
+                ParticipationTime = TimeSpan.FromTicks(ticks),
+                LastUpdateUtc = utcNow,
+                IsTracking = false,
+            };
+        }
     }
 
     /// <summary>
@@ -954,6 +996,11 @@ public class CastleSiegeContext : IEventStateProvider
         this.CurrentState = period.State;
         this.StateStartTimeUtc = period.StartUtc;
         this.StateEndTimeUtc = period.EndUtc;
+        if (period.State == CastleSiegeState.Start)
+        {
+            this.CurrentBattleStartUtc = period.StartUtc;
+        }
+
         this.NextNotificationUtc = DateTime.MaxValue;
         this.SentReadyCountdownMinutes.Clear();
     }
@@ -1046,13 +1093,35 @@ public class CastleSiegeContext : IEventStateProvider
 
     private void RestoreParticipation(DateTime utcNow)
     {
-        if (this.CurrentState != CastleSiegeState.Start || this.SiegeData.ParticipationCheckpoint is not { } checkpoint
-            || JsonSerializer.Deserialize<ParticipationSnapshot>(checkpoint) is not { } snapshot
-            || snapshot.BattleStartUtc != this.StateStartTimeUtc)
+        this.ParticipantTracking.Clear();
+        this._pendingSettlementSnapshot = null;
+        if (this.SiegeData.ParticipationCheckpoint is not { } checkpoint
+            || JsonSerializer.Deserialize<ParticipationSnapshot>(checkpoint) is not { } snapshot)
         {
             return;
         }
 
+        var isActiveBattle = this.CurrentState == CastleSiegeState.Start && snapshot.BattleStartUtc == this.StateStartTimeUtc;
+        if (isActiveBattle)
+        {
+            this.CurrentBattleStartUtc = snapshot.BattleStartUtc;
+            RestoreSnapshotParticipants(snapshot, utcNow);
+            return;
+        }
+
+        var isDueSettlement = snapshot.BattleEndUtc is { } deadline
+            ? this.CurrentState == CastleSiegeState.End && deadline <= utcNow
+            : this.CurrentState == CastleSiegeState.End
+                && this.Schedule.CreatePeriod(CastleSiegeState.Start, snapshot.BattleStartUtc).EndUtc == this.StateStartTimeUtc;
+        if (isDueSettlement)
+        {
+            this.CurrentBattleStartUtc = snapshot.BattleStartUtc;
+            this._pendingSettlementSnapshot = snapshot;
+        }
+    }
+
+    private void RestoreSnapshotParticipants(ParticipationSnapshot snapshot, DateTime utcNow)
+    {
         foreach (var (characterId, ticks) in snapshot.ElapsedTicks)
         {
             this.ParticipantTracking[characterId] = new CastleSiegeParticipant
@@ -1063,6 +1132,21 @@ public class CastleSiegeContext : IEventStateProvider
                 IsTracking = false,
             };
         }
+    }
+
+    private async ValueTask WriteParticipationCheckpointAsync(string? checkpoint)
+    {
+        using var context = this._gameContext.PersistenceContextProvider.CreateNewTypedContext(
+            typeof(CastleSiegeData), false, this._gameContext.Configuration);
+        var persistentData = await context.GetByIdAsync<CastleSiegeData>(this.SiegeData.Id).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("The persistent Castle Siege state no longer exists.");
+        persistentData.ParticipationCheckpoint = checkpoint;
+        if (!await context.SaveChangesAsync().ConfigureAwait(false))
+        {
+            throw new InvalidOperationException("The Castle Siege participation checkpoint could not be saved.");
+        }
+
+        this.SiegeData.ParticipationCheckpoint = checkpoint;
     }
 
     private async ValueTask InitializeSiegeMapPlayersAsync()
@@ -1169,5 +1253,5 @@ public class CastleSiegeContext : IEventStateProvider
         return persistedGuild.Side;
     }
 
-    private sealed record ParticipationSnapshot(DateTime BattleStartUtc, Dictionary<Guid, long> ElapsedTicks);
+    private sealed record ParticipationSnapshot(DateTime BattleStartUtc, Dictionary<Guid, long> ElapsedTicks, DateTime? BattleEndUtc);
 }

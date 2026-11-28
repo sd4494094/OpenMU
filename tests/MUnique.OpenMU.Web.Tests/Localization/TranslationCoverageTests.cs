@@ -59,7 +59,8 @@ public class TranslationCoverageTests
     [Test]
     public void GermanPlayerMessagesMatchNeutralPlaceholders()
     {
-        var manager = MUnique.OpenMU.GameLogic.Properties.PlayerMessage.ResourceManager;
+        // The resource sets below are disposed by the test and must use an independent manager.
+        var manager = new ResourceManager(typeof(MUnique.OpenMU.GameLogic.Properties.PlayerMessage));
         using var neutral = manager.GetResourceSet(CultureInfo.InvariantCulture, true, false)!;
         using var german = manager.GetResourceSet(CultureInfo.GetCultureInfo("de"), true, false)!;
         Assert.That(german, Is.Not.Null, manager.BaseName);

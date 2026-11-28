@@ -7,6 +7,7 @@ namespace MUnique.OpenMU.Persistence.EntityFramework;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 using MUnique.OpenMU.Persistence.EntityFramework.Model;
 
 /// <summary>
@@ -144,6 +145,89 @@ internal class GuildServerContext : CachingEntityFrameworkContext, IGuildServerC
         var term = text.ToLowerInvariant();
         return await this.Context.Set<Guild>().AsNoTracking()
             .CountAsync(g => g.Name != null && g.Name.ToLower().Contains(term), cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask<bool> ApplyCastleSiegeScoreAwardAsync(Guid persistentGuildId, DateTime battleStartUtc, int amount)
+    {
+        var existingAward = await this.Context.Set<CastleSiegeGuildScoreAward>()
+            .AnyAsync(award => award.GuildId == persistentGuildId && award.BattleStartUtc == battleStartUtc)
+            .ConfigureAwait(false);
+        if (existingAward)
+        {
+            // The preceding commit can have succeeded even if the connection closed
+            // before this process received its result.
+            return true;
+        }
+
+        var guild = await this.Context.Set<Guild>()
+            .SingleOrDefaultAsync(candidate => candidate.Id == persistentGuildId)
+            .ConfigureAwait(false);
+        if (guild is null)
+        {
+            return true; // A deleted guild has no score to update.
+        }
+
+        var previousScore = guild.Score;
+        guild.Score += amount;
+        var award = this.CreateNew<CastleSiegeGuildScoreAward>();
+        award.GuildId = persistentGuildId;
+        award.BattleStartUtc = battleStartUtc;
+        award.Score = amount;
+        try
+        {
+            // EF commits the receipt and score together, using the context's save lock.
+            await this.SaveChangesAsync().ConfigureAwait(false);
+            return true;
+        }
+        catch (PersistenceConflictException exception) when (IsDuplicateScoreAward(exception))
+        {
+            guild.Score = previousScore;
+            this.DetachPendingScoreAwards(persistentGuildId, battleStartUtc);
+            await this.Context.Entry(guild).ReloadAsync().ConfigureAwait(false);
+            if (await this.Context.Set<CastleSiegeGuildScoreAward>()
+                    .AnyAsync(candidate => candidate.GuildId == persistentGuildId && candidate.BattleStartUtc == battleStartUtc)
+                    .ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            throw;
+        }
+        catch
+        {
+            guild.Score = previousScore;
+            this.DetachPendingScoreAwards(persistentGuildId, battleStartUtc);
+            await this.Context.Entry(guild).ReloadAsync().ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private void DetachPendingScoreAwards(Guid persistentGuildId, DateTime battleStartUtc)
+    {
+        foreach (var pendingAward in this.Context.Set<CastleSiegeGuildScoreAward>().Local
+                     .Where(candidate => candidate.GuildId == persistentGuildId && candidate.BattleStartUtc == battleStartUtc)
+                     .ToArray())
+        {
+            this.Detach(pendingAward);
+        }
+    }
+
+    private static bool IsDuplicateScoreAward(PersistenceConflictException exception)
+    {
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException
+                {
+                    SqlState: PostgresErrorCodes.UniqueViolation,
+                    ConstraintName: "IX_CastleSiegeGuildScoreAward_GuildId_BattleStartUtc",
+                })
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <inheritdoc/>

@@ -125,6 +125,32 @@ public class GuildServerInMemoryContext : InMemoryContext, IGuildServerContext
         return guilds.Count(g => g.Name?.Contains(text, StringComparison.OrdinalIgnoreCase) == true);
     }
 
+    /// <inheritdoc />
+    public async ValueTask<bool> ApplyCastleSiegeScoreAwardAsync(Guid persistentGuildId, DateTime battleStartUtc, int amount)
+    {
+        if ((await this.Provider.GetRepository<DataModel.Entities.CastleSiegeGuildScoreAward>()
+                .GetAllAsync().ConfigureAwait(false))
+            .Any(award => award.GuildId == persistentGuildId && award.BattleStartUtc == battleStartUtc))
+        {
+            return true;
+        }
+
+        var guild = (await this.Provider.GetRepository<DataModel.Entities.Guild>().GetAllAsync().ConfigureAwait(false))
+            .SingleOrDefault(candidate => candidate.Id == persistentGuildId);
+        if (guild is null)
+        {
+            return false;
+        }
+
+        guild.Score += amount;
+        var award = this.CreateNew<DataModel.Entities.CastleSiegeGuildScoreAward>();
+        award.GuildId = persistentGuildId;
+        award.BattleStartUtc = battleStartUtc;
+        award.Score = amount;
+        await this.SaveChangesAsync().ConfigureAwait(false);
+        return true;
+    }
+
     /// <inheritdoc/>
     public async ValueTask<IReadOnlyCollection<Guid>> GetAllianceMasterIdsAsync(IReadOnlyCollection<Guid> guildIds)
     {

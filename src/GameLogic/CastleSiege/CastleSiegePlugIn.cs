@@ -258,23 +258,34 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             return;
         }
 
+        var isInitializing = !context.IsInitialized;
         try
         {
             var utcNow = this._timeProvider.GetUtcNow().UtcDateTime;
             if (!context.IsInitialized)
             {
-                await context.InitializeAsync(utcNow).ConfigureAwait(false);
+                var period = await context.InitializeAsync(utcNow).ConfigureAwait(false);
+                if (context.CurrentBattleStartUtc is { } battleStart
+                    && (period.State != CastleSiegeState.Start || battleStart != period.StartUtc))
+                {
+                    await SettleBattleAsync(context).ConfigureAwait(false);
+                    context.SetPeriod(period);
+                }
+
                 await CleanUpMissedCycleEndAsync(context, logger).ConfigureAwait(false);
                 context.NextEconomySaveUtc = utcNow + EconomySaveInterval;
                 this.ConfigureNotifications(context, utcNow);
                 await this.OnEnterStateAsync(context, true).ConfigureAwait(false);
                 await CastleSiegeEconomyNotifier.BroadcastTaxRatesAsync(context).ConfigureAwait(false);
                 await this.BroadcastStateUpdateAsync(context).ConfigureAwait(false);
+                context.IsInitialized = true;
                 logger.LogInformation(
                     "Castle Siege initialized in state {state}; the state ends at {stateEndUtc}.",
                     context.CurrentState,
                     context.StateEndTimeUtc);
             }
+
+            isInitializing = false;
 
             var forceRequestVersion = Volatile.Read(ref this._forceRequestVersion);
             var contextStateRequested = context.TryTakeRequestedState(out var requestedState);
@@ -297,6 +308,11 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
         }
         catch (Exception ex)
         {
+            if (isInitializing)
+            {
+                context.IsInitialized = false;
+            }
+
             logger.LogError(ex, "Unexpected error while executing the Castle Siege state machine.");
         }
         finally
@@ -448,6 +464,15 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             }
         }
 
+        if (period.State == CastleSiegeState.End)
+        {
+            await SettleBattleAsync(context).ConfigureAwait(false);
+        }
+        else if (previousState == CastleSiegeState.Start)
+        {
+            await context.ClearParticipationCheckpointAsync().ConfigureAwait(false);
+        }
+
         await this.OnExitStateAsync().ConfigureAwait(false);
 
         context.SetPeriod(period);
@@ -476,6 +501,14 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
             var registrationPeriod = context.Schedule.CreateEarlyStartPeriod(CastleSiegeState.RegisterGuild, period.StartUtc);
             await this.ChangeStateAsync(context, registrationPeriod, logger).ConfigureAwait(false);
         }
+    }
+
+    private static async ValueTask SettleBattleAsync(CastleSiegeContext context)
+    {
+        context.RestorePendingSettlementParticipants(context.TimeProvider.GetUtcNow().UtcDateTime);
+        await CastleSiegeCrownMechanics.CheckResultAsync(context).ConfigureAwait(false);
+        await CastleSiegeParticipantTracker.AwardRewardsAsync(context).ConfigureAwait(false);
+        await context.ClearParticipationCheckpointAsync().ConfigureAwait(false);
     }
 
     private void ConfigureNotifications(CastleSiegeContext context, DateTime utcNow)
@@ -556,13 +589,6 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
                 context.NextMiniMapUpdateUtc = utcNow + MiniMapUpdateInterval;
                 break;
             case CastleSiegeState.End:
-                await CastleSiegeCrownMechanics.CheckResultAsync(context).ConfigureAwait(false);
-                if (!isStartup)
-                {
-                    await CastleSiegeParticipantTracker.AwardRewardsAsync(context).ConfigureAwait(false);
-                    context.ParticipantTracking.Clear();
-                }
-
                 await context.SaveNpcStatesAsync().ConfigureAwait(false);
                 await context.NpcController.DespawnMachinesAsync().ConfigureAwait(false);
                 break;
@@ -596,6 +622,12 @@ public class CastleSiegePlugIn : IPeriodicTaskPlugIn, IObjectAddedToMapPlugIn, I
     private async ValueTask OnTickAsync(CastleSiegeContext context, DateTime utcNow)
     {
         await PersistEconomyIfDueAsync(context, utcNow).ConfigureAwait(false);
+
+        if (context.CurrentState == CastleSiegeState.End && context.CurrentBattleStartUtc is not null)
+        {
+            await SettleBattleAsync(context).ConfigureAwait(false);
+            context.ParticipantTracking.Clear();
+        }
 
         if (context.NextNotificationUtc <= utcNow)
         {

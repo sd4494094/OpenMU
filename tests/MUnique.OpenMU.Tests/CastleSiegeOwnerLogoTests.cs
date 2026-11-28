@@ -212,6 +212,7 @@ public class CastleSiegeOwnerLogoTests
         var player = await PlayerTestHelper.CreatePlayerAsync(gameServerContext).ConfigureAwait(false);
         var castleSiegeContext = new CastleSiegeContext(gameServerContext, castleSiegeConfiguration);
         await castleSiegeContext.InitializeAsync(new DateTime(2026, 8, 3, 12, 0, 0, DateTimeKind.Utc)).ConfigureAwait(false);
+        castleSiegeContext.IsInitialized = true;
         var logoView = Mock.Get(player.ViewPlugIns.GetPlugIn<ICastleSiegeOwnerLogoPlugIn>()!);
         return new(castleSiegeConfiguration, castleSiegeContext, player, logoView, persistentGuildId, logo, guildServer);
     }
